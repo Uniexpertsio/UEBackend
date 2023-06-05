@@ -66,7 +66,7 @@ const data = {
 	},
 	keys: {
 		secret: process.env.SECRET_KEY,
-		passwordSalt: process.env.PSWD_SALT,
+		passwordSalt: "PASSWORD_SALT",
 		unsplash: {
 			access: process.env.UNSPLASH_API_KEY,
 		},
