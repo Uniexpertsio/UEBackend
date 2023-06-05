@@ -17,7 +17,7 @@ module.exports = function (cbs = callbacks) {
 	let mongoUri = "mongodb+srv://dbuser:Password123@atlascluster.ziipicy.mongodb.net/uniexpertsdb?retryWrites=true&w=majority";
 	//let mongoUri = `mongodb://localhost:27017/projectdb`;
 	mongoose.connect(mongoUri);
-	// mongoose.set('useNewUrlParser', true);
+	mongoose.set('useNewUrlParser', true);
 	// mongoose.set('useFindAndModify', false);
 	mongoose.set('useCreateIndex', true);
 	mongoose.set('useUnifiedTopology', true);
