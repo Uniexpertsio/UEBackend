@@ -1,0 +1,52 @@
+module.exports = (port) => {
+	let express = require("express")
+	let cors = require("cors")
+	let app = express();
+	port = port || 5000;
+	let authRoute = require("./routes/auth.routes");
+	let agentRoute = require("./routes/agent.routes");
+	let documentRoute = require("./routes/document.routes");
+	let documentTypeRoute = require("./routes/documentType.routes");
+	let educationRoute = require("./routes/education.routes");
+	let taskRoute = require("./routes/task.routes");
+	// let schoolRoute = require("./routes/school.routes");
+	// let currencyRoute = require("./routes/currency.routes");
+
+	app.use(express.json());
+	app.use(express.urlencoded({ extended: false }));
+	app.use(cors());
+
+	app.use("/api/auth", authRoute);
+	app.use("/api/agent", agentRoute);
+	app.use("/api/document", documentRoute);
+	app.use("/api/document-type", documentTypeRoute);
+	app.use("/api/education", educationRoute);
+	app.use("/api/task", taskRoute);
+	// app.use("/api/school", schoolRoute);
+	// app.use("/api/currency", currencyRoute);
+
+
+	app.use( (req, res, next) => {
+		res.status(404).send({
+			message: "No such api endpoint found.",
+		});
+	});
+
+	/* error handler */
+	app.use((err, req, res, next) => {
+		// set locals, only providing error in development
+		res.locals.message = err.message;
+		res.locals.error = req.app.get("env") === "development" ? err : {};
+		// render the error page
+		res.status(err.status || 500).json({
+			message: res.locals.message,
+		});
+	});
+
+	app.set("trust proxy", true);
+	app.set("port", port);
+
+	app.listen(port, () => {
+		console.table({ Status: "HTTP Server running", Environment: process.env.NODE_ENV, Port: port });
+	});
+};
