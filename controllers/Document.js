@@ -9,7 +9,7 @@ const addDocuments = async (req, res) => {
   const { modifiedBy, userId, body } = req;
   try {
     for (const document of body.documents) {
-      await documentService.findById(document.documentTypeId ?? '');
+      await documentService.findById(document.documentTypeId ? document.documentTypeId: '');
     }
     const insertedDocuments = await Document.insertMany(
       body.documents.map((doc) => ({

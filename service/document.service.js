@@ -8,7 +8,7 @@ class DocumentService{
     }
     async addDocuments(modifiedBy, userId, body){
         for (const document of body.documents) {
-          await this.documentTypeService.findById(document.documentTypeId ?? "");
+          await this.documentTypeService.findById(document.documentTypeId ? document.documentTypeId : "");
         }
         return await Document.insertMany(
           body.documents.map((doc) => ({
