@@ -236,7 +236,7 @@ function generateAuthResponse(staff, agent, token) {
 	return {
 	  token: token,
 	  isDocumentsRequired: agent.documents.length === 0,
-	  isTncAccepted: agent.tncMeta.isAccepted ?  agent.tncMeta.isAccepted : false,
+	  isTncAccepted: agent.tncMeta ? (agent.tncMeta.isAccepted ?  agent.tncMeta.isAccepted : false) : false,
 	  status: agent.verificationStatus,
 	  details: {
 		name: staff.fullName,
