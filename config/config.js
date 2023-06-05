@@ -65,7 +65,7 @@ const data = {
 		website: process.env.EMAIL_WEBSITE,
 	},
 	keys: {
-		secret: process.env.SECRET_KEY,
+		secret: "SECRET_KEY",
 		passwordSalt: "PASSWORD_SALT",
 		unsplash: {
 			access: process.env.UNSPLASH_API_KEY,
