@@ -9,8 +9,10 @@ module.exports = (port) => {
 	let documentTypeRoute = require("./routes/documentType.routes");
 	let educationRoute = require("./routes/education.routes");
 	let taskRoute = require("./routes/task.routes");
-	// let schoolRoute = require("./routes/school.routes");
-	// let currencyRoute = require("./routes/currency.routes");
+	let schoolRoute = require("./routes/school.routes");
+	let currencyRoute = require("./routes/currency.routes");
+	let programRoute = require("./routes/program.routes");
+	let studentRoute = require("./routes/student.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -22,8 +24,11 @@ module.exports = (port) => {
 	app.use("/api/document-type", documentTypeRoute);
 	app.use("/api/education", educationRoute);
 	app.use("/api/task", taskRoute);
-	// app.use("/api/school", schoolRoute);
-	// app.use("/api/currency", currencyRoute);
+	app.use("/api/school", schoolRoute);
+	app.use("/api/currency", currencyRoute);
+	app.use("/api/program", programRoute);
+	app.use("/api/student", studentRoute);
+
 
 
 	app.use( (req, res, next) => {

@@ -7,20 +7,19 @@ class SchoolController {
 
 async addSchool(req, res) {
     const { id } = req.user;
-    return await this.schoolService.createSchool(id, req.body);
+    return res.status(200).json(await this.schoolService.createSchool(id, req.body));
   }
 
-
   async getAllSchool(req, res) {
-    return await this.schoolService.getAllSchool();
+    return res.status(200).json(await this.schoolService.getAllSchool());
   }
 
   async getSchool(req, res) {
-    return await this.schoolService.findById(req.params.schoolId);
+    return res.status(200).json(await this.schoolService.findById(req.params.schoolId));
   }
 
   async getSchoolByCountryStateOrSchoolType(req, res) {
-    return await this.schoolService.getSchoolByCountryStateOrSchoolType(req.query);
+    return res.status(200).json(await this.schoolService.getSchoolByCountryStateOrSchoolType(req.query));
   }
 }
 

@@ -6,7 +6,7 @@ class CurrencyController {
   }
 
   async getCurrencies(req, res) {
-    return this.currencyService.getCurrencies();
+    return res.status(200).json(await this.currencyService.getCurrencies());
   }
 }
 

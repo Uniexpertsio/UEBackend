@@ -1,0 +1,41 @@
+const express = require('express');
+const router = express.Router();
+const StudentController = require('../controllers/Student');
+
+const studentController = new StudentController();
+
+router.post('/', studentController.createStudent.bind(studentController));
+router.get('/', studentController.getStudents.bind(studentController));
+router.get('/preferredCountries', studentController.getStudentPc.bind(studentController));
+router.delete('/:studentId', studentController.deleteStudent.bind(studentController));
+router.get('/:studentId/general-information', studentController.getStudentGeneralInformation.bind(studentController));
+router.patch('/:studentId/general-information', studentController.updateStudentGeneralInformation.bind(studentController));
+router.get('/:studentId/education', studentController.getStudentEducation.bind(studentController));
+router.post('/:studentId/education', studentController.addStudentEducation.bind(studentController));
+router.patch('/:studentId/education/:educationId', studentController.updateStudentEducation.bind(studentController));
+router.delete('/:studentId/education/:educationId', studentController.deleteStudentEducation.bind(studentController));
+router.get('/:studentId/work-history', studentController.getStudentWorkHistory.bind(studentController));
+router.post('/:studentId/work-history', studentController.addStudentWorkHistory.bind(studentController));
+router.patch('/:studentId/work-history/:workHistoryId', studentController.updateStudentWorkHistory.bind(studentController));
+router.get('/:studentId/test-score', studentController.getStudentTestScore.bind(studentController));
+router.post('/:studentId/test-score', studentController.addStudentTestScore.bind(studentController));
+router.patch('/:studentId/test-score/:testScoreId', studentController.updateStudentTestScore.bind(studentController));
+router.delete('/:studentId/test-score/:testScoreId', studentController.deleteStudentTestScore.bind(studentController));
+router.get('/:studentId/document', studentController.getStudentDocuments.bind(studentController));
+router.post('/:studentId/document', studentController.addStudentDocuments.bind(studentController));
+router.patch('/:studentId/document', studentController.updateStudentDocument.bind(studentController));
+router.delete('/:studentId/document/:documentId', studentController.deleteStudentDocument.bind(studentController));
+router.get('/:studentId/payment', studentController.getStudentPayments.bind(studentController));
+router.post('/:studentId/payment', studentController.addStudentPayment.bind(studentController));
+router.patch('/:studentId/payment/:paymentId', studentController.updateStudentPayment.bind(studentController));
+router.delete('/:studentId/payment/:paymentId', studentController.deleteStudentPayment.bind(studentController));
+router.get('/:studentId/task', studentController.getStudentTasks.bind(studentController));
+router.post('/:studentId/task', studentController.addStudentTask.bind(studentController));
+router.patch('/:studentId/task/:taskId', studentController.updateStudentTask.bind(studentController));
+router.get('/:studentId/task/:taskId/comment', studentController.getStudentTaskComments.bind(studentController));
+router.post('/:studentId/task/:taskId/comment', studentController.addStudentTaskComment.bind(studentController));
+router.get('/:studentId/comment', studentController.getStudentComments.bind(studentController));
+router.post('/:studentId/comment', studentController.addStudentComment.bind(studentController));
+router.get('/:studentId/progress', studentController.getStudentProgress.bind(studentController));
+
+module.exports = router;

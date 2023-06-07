@@ -8,16 +8,15 @@ class SchoolService {
 
   async createSchool(id, body) {
     const externalId = uuid.v4();
-
     body.entryRequirements.push(
       `This program does${body.offerConditionalAdmission ? "" : " not"} offer conditional admission`
     );
 
     const school = await School.create({ ...body, modifiedBy: id, createdBy: id, externalId });
-    await sendToSF(MappingFiles.SCHOOL_school, {
-      ...school,
-      _user: { id }
-    });
+    // await sendToSF(MappingFiles.SCHOOL_school, {
+    //   ...school,
+    //   _user: { id }
+    // });
     return { id: school._id };
   }
 
