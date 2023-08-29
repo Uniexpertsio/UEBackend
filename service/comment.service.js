@@ -1,14 +1,19 @@
-const { isVideo } = require("../common/helpers");
 const uuid = require("uuid");
-const StaffService = require("../service/staff.service");
+const StaffService = require("./staff.service");
 const Comment = require("../models/Comment");
-
 
 class CommentService {
   constructor() {
     this.commentModel = Comment;
-    this.staffService = StaffService();
+    this.staffService = new StaffService();
+    this.videos = ["mp4", "3gp", "ogg"];
   }
+
+isVideo(url) {
+  const splits = url.split(".");
+  const extension = splits[splits.length - 1];
+  return videos.includes(extension);
+}
 
   async add(message, userId, relationId, attachment = "") {
     const externalId = uuid.v4();
@@ -18,7 +23,7 @@ class CommentService {
       relationId,
       externalId,
       attachment,
-      isVideo: isVideo(attachment),
+      isVideo: this.isVideo(attachment),
     });
     const user = await this.staffService.findById(comment.userId);
     return { comment, user };

@@ -1,0 +1,50 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+module.exports = async function (db) {
+    return {
+    "RecordTypeId":"0125g00000020HRAAY",
+      "FirstName": db.studentInformation.firstName,
+      "LastName": db.studentInformation.lastName,
+      "Lock_Record__c":"true",
+      "Source__c": db.studentInformation.source,
+      "Passport_Number__c": db.studentInformation.passportNumber,
+      "MobilePhone": db.studentInformation.mobile,
+      "Whatsapp_No__c":db.studentInformation.mobile,
+      "Preferred_Country__c": "Austria;Cyprus",
+      "Email": db.studentInformation.email,
+      "Medical_History_Detail__c": db.demographicInformation.medicalHistoryDetails,
+      "Medical_History__c": "No",
+      "Account_Name_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Application_Submitted_By_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "BDM_User_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "MC_Subscriber_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Partner_Account_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Processing_Officer_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Partner_User_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Reports_To_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "School_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Martial_Status__c": db.demographicInformation.maritalStatus,
+      "Gender__c": db.demographicInformation.gender,
+      "Birthdate": db.demographicInformation.dateOfBirth,
+      "First_Language__c": db.demographicInformation.firstLanguage,
+      "Country_of_Citizenship__c": db.demographicInformation.country,
+      "EmergencyContactName__c": db.emergencyContact.name,
+      "Relationship__c": db.emergencyContact.relationship,
+      "EmergencyContactEmail__c": db.emergencyContact.email,
+      "Phone": db.emergencyContact.phoneNumber,
+      "Country__c": db.emergencyContact.country,
+      "Have_you_been_refused_a_visa__c": "No",
+      "Do_you_have_a_valid_Study_Permit_Visa__c": "No",
+      "Study_Permit_Visa_Details__c": "wefwer",
+      "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30"
+    };
+
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/

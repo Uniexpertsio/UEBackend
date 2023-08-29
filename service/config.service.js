@@ -2,7 +2,7 @@ const ConfigModel = require("../models/Config")
 
 class ConfigService {
   constructor() {
-    this.configModel = Config;
+    this.configModel = ConfigModel;
   }
 
   async getAllConfigs() {

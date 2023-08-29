@@ -19,14 +19,15 @@ const {
 const acceptTnc = async (req, res, next) => {
 	try{
         const { id, agentId } = req.user;
-        console.log("Agent Id: " + agentId, id);
         const agent = await Agent.findByIdAndUpdate(agentId, { tncMeta: req.body });
 
         if (!agent) throw new Error("Agent not found");
         const staff = await Staff.findById(id);
         const token = await generateToken(agentId, )
         const staffResponse = generateAuthResponse(staff, agent, token);
-        //sendToSF(MappingFiles.AGENT_account, { ...req.body, externalId: agent.commonId });
+        const url = "Contact/ExternalId__c/2573t236423eva";
+        const data = await sendToSF(MappingFiles.AGENT_account, { ...req.body,commonId: agent.commonId, url });
+
 		return res.status(200).json({statusCode: 200, data: staffResponse})
 	}catch(err){
 		return res.status(200).json({statusCode: 400, message: err.message})
@@ -45,17 +46,17 @@ const getGeneralInformation = async (req, res, next) => {
 }
 
 const updateGeneralInformation = async (req, res) => {
-        const { agentId } = req.user;
-        const result = await Agent.findOneAndUpdate({ _id: agentId }, { $set: { ...req.body } });
-        if (!result) return res.status(200).json({ statusCode: 400, message: "Bad Request" })
+    const { agentId } = req.user;
+    const result = await Agent.findOneAndUpdate({ _id: agentId }, { $set: { ...req.body } });
+    if (!result) return res.status(200).json({ statusCode: 400, message: "Bad Request" })
 
-        if (result.modifiedCount === 0) {
-            return res.status(200).json({ statusCode: 400, message: "Agent not found" })
-        }
+    if (result.modifiedCount === 0) {
+        return res.status(200).json({ statusCode: 400, message: "Agent not found" })
+    }
+    const url = "Contact/ExternalId__c/2573t236423eva";
+    await sendToSF(MappingFiles.AGENT_account, { ...req.body, externalId, _user: { agentId: id }, url });
 
-       // sendToSF(MappingFiles.AGENT_account, { ...req.body, externalId, _user: { agentId: id }  });
-
-        return res.status(200).json({ statusCode: 200, data: result });
+    return res.status(200).json({ statusCode: 200, data: result });
 }
 
 
@@ -71,13 +72,30 @@ const getBankInformation = async (req, res) => {
 
 const updateBankInformation = async(req, res)=> {
     const {id, agentId} = req.user;
-    const result = await Agent.updateOne({ _id: agentId }, { $set: { bank: req.body } });
+    const result = await Agent.findByIdAndUpdate(agentId, { $set: { bank: req.body } }, {new :true});
 
     if (result.modifiedCount === 0) {
         return res.status(200).json({ statusCode: 400, message: "Agent not found" })
     }
-    //sendToSF(MappingFiles.AGENT_bank, { bank: req.body, externalId, _user: { agentId: id }  });
+    // {
+    //     "Name":"From Postman Bank",
+    //     "Account__r":{
+    //         "ExternalId__c":"e4433a12-51b8-1adc-c4f5-0f1f0842a973"
+    //     },
+    //     "AccountHolderName__c":"test holder",
+    //     "SwiftCode__c":"AERDFG093RT",
+    //     "AccountNumber__c":"234543234434",
+    //     "BankCode__c":"wref34fgrevse",
+    //     "AccountNumberConfirm__c":"234543234434",
+    //     "Status__c":"New"
+    //     }
+        // EndPointUrl:https://uniexperts--dev.sandbox.my.salesforce.com/services/data/v55.0/sobjects/BankDetail__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973
+        //  Headers:
+        //         Content-Type:-application/json
+        //         Authorization:- Bearer 00DN0000000cDM4!ASAAQCPueQ1kguX04emRQIWIniLncCALulkTnxpFZRfmwXZYpD2UGMiCr.NyZzgt0_eK_lJd0SHibPrHZksH7eOPpncSXTX2
 
+    const url = "BankDetail__c/ExternalId__c/"+result.commonId
+    const data = await sendToSF(MappingFiles.AGENT_bank, { bank: req.body, externalId: result.commonId, _user: { agentId: id } , url });
     return res.status(200).json({ statusCode: 200, data: result });
 
 }

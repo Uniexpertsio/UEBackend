@@ -1,4 +1,5 @@
 const WorkHistory = require("../models/WorkHistory");
+const uuid = require("uuid");
 
 
 class WorkHistoryService {
@@ -7,7 +8,7 @@ class WorkHistoryService {
   }
 
   async add(studentId, modifiedBy, body) {
-    const externalId = uuid.v4();
+    const externalId = uuid();
     return await this.workHistoryModel.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
   }
 

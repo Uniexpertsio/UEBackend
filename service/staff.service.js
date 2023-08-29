@@ -1,8 +1,9 @@
 const { v4: uuidv4 } = require("uuid");
 const Common = require("../controllers/Common");
 const BranchService = require("../service/branch.service");
-const SalesforceService = require("../salesforce/salesforce.service");
+const SalesforceService = require("./salesforce.service");
 const StaffModel = require("../models/Staff");
+const { MappingFiles } = require('./../constants/Agent.constants');
 
 class StaffService {
   constructor() {
@@ -184,4 +185,4 @@ class StaffService {
   }
 }
 
-module.exports = new StaffService();
+module.exports = StaffService;

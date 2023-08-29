@@ -176,12 +176,4 @@ const StudyPermit = {
   TestResults: "Australian Study Visa",
 };
 
-module.exports = {
-  Student: mongoose.model("Student", StudentSchema),
-  MaritalStatus,
-  Gender,
-  Salutation,
-  Relationship,
-  StudentSource,
-  StudyPermit,
-};
+module.exports = mongoose.model("Student", StudentSchema)

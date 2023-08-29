@@ -2,7 +2,7 @@ const StudentService = require("../service/student.service")
 
 class StudentController {
     constructor() {
-      this.studentService = StudentService();
+      this.studentService = new StudentService();
     }
   
     async createStudent(req, res) {
@@ -20,7 +20,7 @@ class StudentController {
       try {
         const { agentId } = req.user;
         const query = req.query;
-        const result = await this.studentService.getStudents(agentId, query);
+        const result = await this.studentService.getStudent(agentId, query);
         res.status(200).json(result);
       } catch (error) {
         res.status(500).json({ error: error.message });
@@ -83,8 +83,8 @@ class StudentController {
         const studentId = req.params.studentId;
         const { id } = req.user;
         const body = req.body;
-        await this.studentService.addStudentEducation(studentId, id, body);
-        res.status(200).end();
+        const student = await this.studentService.addStudentEducation(studentId, id, body);
+        res.status(200).json(student);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -96,8 +96,8 @@ class StudentController {
         const educationId = req.params.educationId;
         const { id } = req.user;
         const body = req.body;
-        await this.studentService.updateStudentEducation(studentId, id, educationId, body);
-        res.status(200).end();
+        const education = await this.studentService.updateStudentEducation(studentId, id, educationId, body);
+        res.status(200).json(education);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -108,8 +108,8 @@ class StudentController {
         const studentId = req.params.studentId;
         const educationId = req.params.educationId;
         const { id } = req.user;
-        await this.studentService.deleteEducation(studentId, id, educationId);
-        res.status(200).end();
+        const education = await this.studentService.deleteEducation(studentId, id, educationId);
+        res.status(200).json(education);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -130,8 +130,8 @@ class StudentController {
         const studentId = req.params.studentId;
         const { id } = req.user;
         const body = req.body;
-        await this.studentService.addStudentWorkHistory(studentId, id, body);
-        res.status(200).end();
+        const workHistory = await this.studentService.addStudentWorkHistory(studentId, id, body);
+        res.status(200).json(workHistory);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -143,8 +143,8 @@ class StudentController {
         const workHistoryId = req.params.workHistoryId;
         const body = req.body;
         const { id } = req.user;
-        await this.studentService.updateStudentWorkHistory(studentId, id, workHistoryId, body);
-        res.status(200).end();
+        const workHistory = await this.studentService.updateStudentWorkHistory(studentId, id, workHistoryId, body);
+        res.status(200).json(workHistory);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }

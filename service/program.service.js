@@ -7,7 +7,8 @@ const Currency = require("../models/Currency");
 const TestScore = require("../models/TestScore");
 const SchoolService = require("../service/school.service");
 // const SalesforceService = require("src/salesforce/salesforce.service");
-// const { MappingFiles } = require("src/salesforce/salesforce.enum");
+const { MappingFiles } = require('./../constants/Agent.constants');
+
 
 class ProgramService {
   constructor() {
@@ -62,11 +63,80 @@ class ProgramService {
       { _id: schoolId },
       { $push: { programmes: program._id }, $set: { modifiedBy: id } }
     );
-    // this.salesforceService.sendToSF(MappingFiles.SCHOOL_programme, {
-    //   ...program,
-    //   schoolId: (await this.schoolService.findById(program.schoolId)).externalId,
-    //   _user: { id }
-    // });
+
+    // {
+    //   ""GMAT_Verbal_Percentile__c"": 22,
+    //   ""Name"": ""Sample Body for Salesforce"",
+    //   ""Discipline__c"": ""Disciplines"",
+    //   ""Duolingo_Comprehension__c"": 56,
+    //   ""Duolingo_Conversation__c"": 34,
+    //   ""GRE_Percentile__c"": 76,
+    //   ""Offer_Conditional_Admission__c"": true,
+    //   ""TIP_Writing__c"": 46,
+    //   ""GRE_Analytical_reasoning_Score__c"": 654,
+    //   ""GRE_Verbal_Reasoning_Score__c"": 54,
+    //   ""GRE_Verbal_Reasoning_Percentile__c"": 45,
+    //   ""City__c"": ""rddsfg"",
+    //   ""Icon__c"": ""54fwdfgge"",
+    //   ""IsRecommended__c"": true,
+    //   ""GMAT_Total_Marks_of_English__c"": 44,
+    //   ""Minimum_work_history__c"": 55,
+    //   ""QS_Ranking__c"": 76,
+    //   ""Maximum_gap_allowed__c"": 65,
+    //   ""Global_Ranking__c"": 54,
+    //   ""Time_Ranking__c"": 34,
+    //   ""required_Program_Level__c"": ""Higher Secondary"",
+    //   ""Requirement_Exam_Type__c"": ""45"",
+    //   ""Estimated_Total_Per_Year__c"": 654,
+    //   ""GMAT_Quantitative_Score__c"": 45,
+    //   ""Delivery_Method__c"": ""Online"",
+    //   ""GMAT_Verbal_Score__c"": 23,
+    //   ""TIP_Speaking__c"": 45,
+    //   ""TIP_Reading__c"": 45,
+    //   ""TIP_Listening__c"": 67,
+    //   ""commission__c"": 65,
+    //   ""GMAT_Total_Percentile__c"": 56,
+    //   ""GRE_Quantitative_reasoning_Score__c"": 34,
+    //   ""Average_Cost_Of_Tuition_Per_Year__c"": 45,
+    //   ""GRE_Analytical_reasoning_Percentile__c"": 6,
+    //   ""XII_Total_Marks_of_English__c"": 45,
+    //   ""GMAT_Integrated_Listening_Percentile__c"": 34,
+    //   ""Lock_Record__c"": false,
+    //   ""Duolingo_Percentile__c"": 34,
+    //   ""Duolingo_Literacy__c"": 65,
+    //   ""GMAT_Quantitative_Percentile__c"": 56,
+    //   ""GMAT_Integrated_Listening_Score__c"": 78,
+    //   ""Duolingo_Overall__c"": 67,
+    //   ""School__r"":{
+    //       ""ExternalId__c"": ""ertfjf-adrcw37y-fhda3ter6""},
+    //   ""XIIth_Percentile__c"": 43,
+    //   ""Length__c"": ""4"",
+    //   ""Duolingo_Production__c"": 34,
+    //   ""Program_level__c"": ""Under Graduate"",
+    //   ""Tuition__c"": 44,
+    //   ""Application_fee__c"": 55,
+    //   ""Starting_Dates__c"": ""2023-01-22"",
+    //   ""Cost_of_Living__c"": 65,
+    //   ""Status__c"": ""Open Now"",
+    //   ""Submission_deadlines__c"": ""2023-01-23"",
+    //   ""Note__c"": ""hgfds"",
+    //   ""Scholarship__c"": ""erszdsfgkjuy"",
+    //   ""Department__c"": ""Arts and media"",
+    //   ""Link__c"": ""etyu"",
+    //   ""International_Health_Insurance_Fee__c"": 34,
+    //   ""Career_Advising_and_Transition_Services__c"": 456,
+    //   ""Sub_Discipline__c"": ""trrtuyy""
+    // }
+    // EndPointUrl For Patch:-- https://uniexperts--dev.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973
+    //  Headers:
+    //         Content-Type:-application/json
+    //         Authorization:- Bearer 00DN0000000cDM4!ASAAQDM.EQzHY3pG6TVBBtQU2NDLIkRgO8nWWFlbNUySnCABnD4Wud.Fw7KxzK0A2OXxnp1BXBKosLb.9ZlgfNU01aEVE_ks"			
+    const url = "Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973"
+    const sf = await this.salesforceService.sendToSF(MappingFiles.SCHOOL_programme, {
+      ...program,
+      schoolId: (await this.schoolService.findById(program.schoolId)).externalId,
+      _user: { id }, url
+    });
     return { id: program._id };
   }
 

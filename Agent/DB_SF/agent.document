@@ -1,0 +1,27 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+module.exports = async function (db) {
+    return  {
+            "Name":db.documentTypeName,
+            "LatestDocumentId__c": db._doc._id.toString(),
+            "BypassDocumentation__c":false,
+            "SharepointStatus__c":"Pending",
+            "Status__c":db._doc.status,
+            "IsNewDoc__c":true,
+            "FileType__c":".docx",
+            "Is_Downloaded__c":false,
+            "Student__r": {
+                    "ExternalId__c" : "2573t236423ev"
+                },
+            "Used_For__c":"Application",
+            "Sequence__c":51
+            }
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/
