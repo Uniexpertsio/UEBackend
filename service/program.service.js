@@ -32,7 +32,7 @@ class ProgramService {
     data.id = data._id;
 
     const school = await this.schoolModel.findById(data.schoolId);
-    const currency = await this.currencyModel.findOne({ symbol: school?.currency });
+    const currency = await this.currencyModel.findOne({ symbol: school.currency });
 
     delete data._id;
     delete data.__v;
