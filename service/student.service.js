@@ -938,16 +938,16 @@ class StudentService {
     if (student.studentInformation) {
       progress++;
     }
-    if ((student.educations.length ?? 0) > 0) {
+    if ((student.educations.length ?student.educations.length: 0) > 0) {
       progress++;
     }
-    if ((student.workHistory.length ?? 0) > 0) {
+    if ((student.workHistory.length ?student.workHistory.length: 0) > 0) {
       progress++;
     }
-    if ((student.testScore.length ?? 0) > 0) {
+    if ((student.testScore.length ?student.testScore.length: 0) > 0) {
       progress++;
     }
-    if ((student.documents.length ?? 0) > 0) {
+    if ((student.documents.length ?student.documents.length: 0) > 0) {
       progress++;
     }
     return (progress / total) * 100;
