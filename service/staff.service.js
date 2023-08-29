@@ -84,7 +84,7 @@ class StaffService {
 
   async checkIfStaffBelongsToAgent(agentId, staffId) {
     const staff = await this.staffModel.findById(staffId);
-    if (staff?.agentId !== agentId) {
+    if (staff.agentId !== agentId) {
       throw StaffDoesNotBelongsToAgentException();
     }
   }

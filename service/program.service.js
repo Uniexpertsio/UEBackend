@@ -218,13 +218,13 @@ class ProgramService {
       }
       if (programFilterDto.programFilters.intakeId) {
         const intake = await this.intakeModel.findById(programFilterDto.programFilters.intakeId);
-        const program = intake?.programId;
+        const program = intake.programId;
         programFilter = {
           ...programFilter,
           _id: program,
         };
       }
-      if (programFilterDto.programFilters.discipline?.length && programFilterDto.programFilters.discipline.length > 0) {
+      if (programFilterDto.programFilters.discipline.length && programFilterDto.programFilters.discipline.length > 0) {
         programFilter = {
           ...programFilter,
           discipline: {
@@ -233,7 +233,7 @@ class ProgramService {
         };
       }
       if (
-        programFilterDto.programFilters.subDiscipline?.length &&
+        programFilterDto.programFilters.subDiscipline.length &&
         programFilterDto.programFilters.subDiscipline.length > 0
       ) {
         programFilter = {
@@ -374,11 +374,11 @@ class ProgramService {
 
   async isEligibleForProgram(programId, schoolId, studentId, intakeId) {
     const program = await this.programModel.findById(programId);
-    const examTypeRequired = program?.requirementExamType;
-    const scoreRequired = program?.requirementScoreInformation || [];
+    const examTypeRequired = program.requirementExamType;
+    const scoreRequired = program.requirementScoreInformation || [];
 
     const testScores = await this.testScoreModel.findOne({ studentId, examType: examTypeRequired });
-    const studentScores = testScores?.scoreInformation || [];
+    const studentScores = testScores.scoreInformation || [];
 
     if (!testScores) return false;
 
