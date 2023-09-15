@@ -1,6 +1,7 @@
 const Agent = require("../models/Agent");
 const Staff = require("../models/Staff");
 const axios = require("axios");
+const path = require("path");
 
 // # client_id :-3MVG9z6NAroNkeMkQIYXpSeRyrHQJBbNMH21xAcoifdreqdFHYR8fLkvuY3gk_J1_Whm2yTcL5ayH1fZEKs2c
 // # client_secret :- EA815585901C63B5DD57335043FA94957708F3D7B4BD7B6F53908E739ED6A921
@@ -25,9 +26,10 @@ const generateToken = async () => {
   return data;
 }
 
-const getMapperPath = (path) => {
-  path = 'D:\\pg\\visa_backend-main\\Agent\\DB_SF\\' + path;
-  return path;
+const getMapperPath = (mapperPath) => {
+  const paths = path.join(__dirname,'..', 'Agent', 'DB_SF', mapperPath);
+  console.log("\n\n\nPath: " + paths);
+  return paths;
 }
 
 const generateHeaders = (token) => {

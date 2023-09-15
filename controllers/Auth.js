@@ -104,7 +104,6 @@ Auth.post.signup = async (req, res, next) => {
 		});
 		const url = "Contact/ExternalId__c/2573t236423e";
 		const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
-		console.log("sf: ", sf);
 		const token = await jwt.sign({
 			data: { id: agent._id }
 		}, config.keys.secret, { expiresIn: '24d' });
