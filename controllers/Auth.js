@@ -37,7 +37,6 @@ Auth.get.config = async (req, res, next) => {
 
 Auth.post.login = async (req, res) => {
 	const tokens = await generateToken();
-	console.log("\n\n\nprocess: ", tokens)
 	const email = req.body.email;
 	const password = req.body.password;
 	let staff = await Staff.findOne({ email: email });
@@ -75,6 +74,7 @@ Auth.post.signup = async (req, res, next) => {
 	try {
 		const externalId = uuid();
 		const agentData = req.body;
+		const email = req.body.personalDetails.email;
 		const agent = await Agent.create({ ...agentData, commonId: externalId });
 		const externalStaffId = uuid();
 		const staff = await Staff.create({
@@ -105,7 +105,7 @@ Auth.post.signup = async (req, res, next) => {
 		const url = "Contact/ExternalId__c/2573t236423e";
 		const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
 		const token = await jwt.sign({
-			data: { id: agent._id }
+			data: { id: staff._id, email: email }
 		}, config.keys.secret, { expiresIn: '24d' });
 
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
