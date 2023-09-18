@@ -104,9 +104,16 @@ Auth.post.signup = async (req, res, next) => {
 		});
 		const url = "Contact/ExternalId__c/2573t236423e";
 		const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
-		const token = await jwt.sign({
-			data: { id: staff._id, email: email }
-		}, config.keys.secret, { expiresIn: '24d' });
+		const token = jwt.sign(
+			{
+				id: staff._id,
+				email: email
+			},
+			config.keys.secret,
+			{
+				expiresIn: "24d",
+			}
+		);
 
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
 
