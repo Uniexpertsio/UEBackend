@@ -127,8 +127,12 @@ class StudentService {
     return { id: student.id };
   }
 
-  async getStudent(studentId) {
-    return await this.findById(studentId);
+  async getStudent(agentId, query) {
+    
+    const filter = {agentId}
+    const sortByType = query.sortByType === 'Ascending' ? 1 : 0 ;
+    const sortBy = { 'name': sortByType }
+    return await StudentModel.find(filter).skip(query.perPage * (query.pageNo - 1)).sort(sortBy).limit(query.perPage);
   }
 
   async getStudentGeneralInformation(studentId) {
