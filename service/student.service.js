@@ -127,6 +127,10 @@ class StudentService {
     return { id: student.id };
   }
 
+  async preferredCountries() {
+    return PreferredCountries
+  }
+
   async getStudent(agentId, query) {
     
     const filter = {agentId}

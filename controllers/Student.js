@@ -29,7 +29,7 @@ class StudentController {
   
     async getStudentPc(req, res) {
       try {
-        const result = PreferredCountries;
+        const result = await this.studentService.preferredCountries();
         res.status(200).json(result);
       } catch (error) {
         res.status(500).json({ error: error.message });
