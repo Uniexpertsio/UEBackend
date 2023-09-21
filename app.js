@@ -13,6 +13,8 @@ module.exports = (port) => {
 	let currencyRoute = require("./routes/currency.routes");
 	let programRoute = require("./routes/program.routes");
 	let studentRoute = require("./routes/student.routes");
+	let staffRoute = require("./routes/staff.routes");
+	let intakeRoute = require("./routes/intake.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -28,6 +30,8 @@ module.exports = (port) => {
 	app.use("/api/currency", currencyRoute);
 	app.use("/api/program", programRoute);
 	app.use("/api/student", studentRoute);
+	app.use("/api/staff", staffRoute);
+	app.use("/api/intake", intakeRoute);
 
 
 
