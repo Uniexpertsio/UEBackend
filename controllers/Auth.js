@@ -36,7 +36,8 @@ Auth.get.config = async (req, res, next) => {
 }
 
 Auth.post.login = async (req, res) => {
-	const tokens = await generateToken();
+	try{
+		const tokens = await generateToken();
 	const email = req.body.email;
 	const password = req.body.password;
 	let staff = await Staff.findOne({ email: email });
@@ -66,6 +67,15 @@ Auth.post.login = async (req, res) => {
 				"error": "Unauthorized"
 			});
 		}
+	}
+
+	} catch (err) {
+
+		return res.status(200).json({
+			"statusCode": 400,
+			"message": err.message,
+			"error": "Bad Request"
+		})
 	}
 };
 
