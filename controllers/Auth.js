@@ -71,7 +71,7 @@ Auth.post.login = async (req, res) => {
 
 	} catch (err) {
 
-		return res.status(200).json({
+		return res.status(400).json({
 			"statusCode": 400,
 			"message": err.message,
 			"error": "Bad Request"
@@ -129,7 +129,7 @@ Auth.post.signup = async (req, res, next) => {
 
 	} catch (err) {
 
-		return res.status(200).json({
+		return res.status(400).json({
 			"statusCode": 400,
 			"message": err.message,
 			"error": "Bad Request"
