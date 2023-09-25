@@ -15,6 +15,7 @@ module.exports = (port) => {
 	let studentRoute = require("./routes/student.routes");
 	let staffRoute = require("./routes/staff.routes");
 	let intakeRoute = require("./routes/intake.routes");
+	let testScoreRoute = require("./routes/testScore.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -32,6 +33,7 @@ module.exports = (port) => {
 	app.use("/api/student", studentRoute);
 	app.use("/api/staff", staffRoute);
 	app.use("/api/intake", intakeRoute);
+	app.use("/api/test-score", testScoreRoute);
 
 
 

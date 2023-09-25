@@ -134,9 +134,30 @@ class StudentService {
   async getStudent(agentId, query) {
     
     const filter = {agentId}
-    const sortByType = query.sortByType === 'Ascending' ? 1 : 0 ;
-    const sortBy = { 'name': sortByType }
-    return await StudentModel.find(filter).skip(query.perPage * (query.pageNo - 1)).sort(sortBy).limit(query.perPage);
+    const sortByType = query.sortByType === 'Ascending' ? 1 : -1 ;
+    const sortBy = {}
+    if(query.sortBy){
+      sortBy[`${query.sortBy}`] = sortByType
+    }
+    if(query.queryCreatedBy){
+      filter.createdBy=query.queryCreatedBy
+    }
+    if(query.queryName){
+      filter.studentInformation={firstName: query.queryName}
+    }
+    if(query.queryEmail){
+      filter.emergencyContact={email: query.queryEmail}
+    }
+    if(query.queryMobile){
+      filter.emergencyContact={phoneNumber: query.queryMobile}
+    }
+    if(query.queryCountry){
+      filter.demographicInformation={country: query.queryCountry}
+    }
+    if(query.queryCounsellor){
+      filter.studentInformation={counsellorId: query.queryCounsellor}
+    }
+    return await StudentModel.find(filter).skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1)).sort(sortBy).limit(parseInt(query.perPage));
   }
 
   async getStudentGeneralInformation(studentId) {
@@ -166,8 +187,7 @@ class StudentService {
   }
 
   async deleteStudent(studentId) {
-    const student = await this.findById(studentId);
-    await student.remove();
+    return await StudentModel.findByIdAndDelete(studentId);
   }
 
   getStudentEducation(studentId) {
@@ -360,7 +380,6 @@ class StudentService {
   }
 
   async addStudentTestScore(studentId, modifiedBy, body) {
-    const externalId = uuid();
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
