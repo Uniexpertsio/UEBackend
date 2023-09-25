@@ -1,7 +1,7 @@
 const Agent = require("../models/Agent");
 const { MappingFiles } = require('./../constants/Agent.constants');
 const Staff = require("../models/Staff");
-const { sendToSF }  = require("../service/salesforce.service");
+const { sendToSF, getTnc }  = require("../service/salesforce.service");
 const DocumentService = require('../service/document.service');
 const DocumentTypeService = require('../service/documentType.service');
 const AgentService = require('../service/agent.service');
@@ -33,6 +33,19 @@ const acceptTnc = async (req, res, next) => {
 		return res.status(200).json({statusCode: 400, message: err.message})
 	}
 }
+
+const getTnC = async (req, res, next) => {
+	try{
+       
+        const data = await getTnc();
+
+		return res.status(200).json(data);
+	}catch(err){
+		return res.status(200).json({statusCode: 400, message: err.message})
+	}
+}
+
+
 
 const getGeneralInformation = async (req, res, next) => {
 	try{
@@ -154,5 +167,6 @@ module.exports = {
     getAccountManager,
     updateDocument,
     updateDocuments,
-    getDocuments
+    getDocuments,
+    getTnC
 }

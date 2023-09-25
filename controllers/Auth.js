@@ -124,6 +124,8 @@ Auth.post.signup = async (req, res, next) => {
 				expiresIn: "24d",
 			}
 		);
+			//console.log("sf::: ", sf);
+		// sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
 
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
 

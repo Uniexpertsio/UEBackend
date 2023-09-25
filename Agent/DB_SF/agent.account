@@ -4,9 +4,7 @@
 
 module.exports = async function (db) {
     return {
-        "RecordType":{
-             "Name":"Partner"
-             },
+        "RecordTypeId": "0125g00000020HQAAY",
        "FirstName": db.personalDetails.firstName,
        "LastName": db.personalDetails.lastName,
        "Source__c": "Sales",

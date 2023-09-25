@@ -49,6 +49,20 @@ const filterUndefined = (body) => {
   });
 }
 
+const getTnc = async () => {
+  try{
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/query?q=SELECT Term_Condition__c FROM Website_Config__c WHERE Type__c='Sign Up' AND Active__c = TRUE LIMIT 1`
+    const { data } = await axios.get(url, { headers });
+    return data;
+
+  }catch(err){
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+}
+
 
 const sendToSF = async (fileName, rawBody) => {
   const token = await generateToken();
@@ -95,11 +109,20 @@ const sendToSF = async (fileName, rawBody) => {
     //  }
 
    // filterUndefined(body);
-    console.log(`Mapped ${fileName}: `, body);
+   const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;
 
-    const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;
-   const { data } = await axios.patch(url, body, { headers });
-   return data;
+    if(rawBody.url.includes("/")){
+      const { data } = await axios.patch(url, body, { headers });
+
+      console.log("Data post: ", data);
+      return data;
+    }else{
+      const { data } = await axios.post(url, body, { headers });
+
+      console.log("Data patch: ", data);
+      return data;
+    }
+  
   } catch (err) {
     console.error("Error: " + err);
     handleSfError(err);
@@ -151,5 +174,6 @@ module.exports = {
   sendToSF,
   generateHeaders,
   getMapperPath,
-  generateToken
+  generateToken,
+  getTnc
 }

@@ -59,10 +59,15 @@ class StudentService {
   }
 
   async createStudent(modifiedBy, agentId, studentInformation) {
+
+    console.log("create student: ", agentId);
+
     await this.checkForValidUsers(
       studentInformation.studentInformation.staffId,
       studentInformation.studentInformation.counsellorId
     );
+
+    console.log("create student: 2");
     const externalId = uuid();
 
     const student = await StudentModel.create({
@@ -72,6 +77,8 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
+
+    console.log("student: ", student);
 
     // {
     //   "attributes": {
@@ -116,14 +123,15 @@ class StudentService {
     //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30"
     // }		
    
-    const url = "Contact/003N000001vT1EDIA0"
+    const url = "Contact"
     const sf = await sendToSF(MappingFiles.STUDENT_student, {
       ...studentInformation,
       externalId: externalId,
       _user: { agentId, id: modifiedBy },
       url
     });
-    console.log("sf: ", sf);
+
+    console.log("sf 222: ", sf);
     return { id: student.id };
   }
 
@@ -743,8 +751,8 @@ class StudentService {
     }
 
     let sid = (await this.findById(studentId)).externalId;
-    documents.forEach(doc => {
-      // await sendToSF(MappingFiles.STUDENT_document, { ...doc, studentId: sid, _user: { id: modifiedBy } });
+    documents.forEach(async doc => {
+      await sendToSF(MappingFiles.STUDENT_document, { ...doc, studentId: sid, _user: { id: modifiedBy } });
     });
 
     return documentIds;

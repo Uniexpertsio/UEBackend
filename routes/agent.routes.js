@@ -1,9 +1,10 @@
 const {Router} = require("express");
-const {acceptTnc, getGeneralInformation, updateGeneralInformation, getBankInformation, updateBankInformation, getAccountManager, getDocuments, updateDocuments, updateDocument } = require("../controllers/Agent");
+const {acceptTnc, getGeneralInformation, updateGeneralInformation, getBankInformation, updateBankInformation, getAccountManager, getDocuments, updateDocuments, updateDocument, getTnC } = require("../controllers/Agent");
 const Middleware = require("../controllers/Middleware");
 
 const router = Router();
 
+router.get("/tnc", getTnC);
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
 router.patch("/general-information",  Middleware.checkAuth, updateGeneralInformation);
