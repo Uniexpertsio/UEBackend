@@ -1,3 +1,4 @@
+const uuid = require("uuid");
 const ConfigService = require("../service/config.service");
 const TestScore = require("../models/TestScore")
 
