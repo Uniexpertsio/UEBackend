@@ -1,6 +1,9 @@
 const uuid = require("uuid");
 const ConfigService = require("../service/config.service");
 const TestScore = require("../models/TestScore")
+const { MappingFiles } = require('./../constants/Agent.constants');
+const {sendToSF} = require("./salesforce.service");
+
 
 class TestScoreService {
   constructor() {
@@ -18,9 +21,19 @@ class TestScoreService {
     return config.value[examType];
   }
 
-  add(studentId, modifiedBy, body) {
+ async add(studentId, modifiedBy, body) {
     const externalId = uuid.v4();
-    return this.testScoreModel.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
+    const testScore = this.testScoreModel.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
+    const url = "Test_Score__c/ExternalId__c/2573t236423ev"
+    const sf = await sendToSF(MappingFiles.STUDENT_test_score, {
+      ...testScore,
+      externalId: externalId,
+      _user: { agentId, id: modifiedBy },
+      url
+    });
+
+    console.log("sf test score: "+sf);
+    return testScore;
   }
 
   update(modifiedBy, testScoreId, body) {

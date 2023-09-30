@@ -6,13 +6,13 @@ const DocumentService = require("../service/document.service");
 const WorkHistoryService = require("../service/workHistory.service");
 const TestScoreService = require("../service/testScore.service");
 const StudentPaymentService = require("../service/studentPayment.service");
-const {sendToSF} = require("./salesforce.service");
 const TaskService = require("../service/task.service");
 const CommentService = require("../service/comment.service");
 const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
+const {sendToSF} = require("./salesforce.service");
 
 
 const PreferredCountries = {
@@ -67,7 +67,6 @@ class StudentService {
       studentInformation.studentInformation.counsellorId
     );
 
-    console.log("create student: 2");
     const externalId = uuid();
 
     const student = await StudentModel.create({
@@ -77,9 +76,7 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
-
-    console.log("student: ", student);
-
+    
     // {
     //   "attributes": {
     //     "type": "Contact",
@@ -123,7 +120,7 @@ class StudentService {
     //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30"
     // }		
    
-    const url = "Contact"
+    const url = "Contact/0036D00000pHIZNQA4"
     const sf = await sendToSF(MappingFiles.STUDENT_student, {
       ...studentInformation,
       externalId: externalId,
@@ -132,7 +129,7 @@ class StudentService {
     });
 
     console.log("sf 222: ", sf);
-    return { id: student.id };
+    return { id: student.id, sf };
   }
 
   async preferredCountries() {

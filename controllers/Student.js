@@ -7,10 +7,8 @@ class StudentController {
   
     async createStudent(req, res) {
       try {
-        console.log("Student controller: 1", req.body);
         const { id, agentId } = req.user;
         const body = req.body;
-        console.log("Student controller: ", req.body);
         const result = await this.studentService.createStudent(id, agentId, body);
         res.status(200).json(result);
       } catch (error) {

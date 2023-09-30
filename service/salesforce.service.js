@@ -28,7 +28,6 @@ const generateToken = async () => {
 
 const getMapperPath = (mapperPath) => {
   const paths = path.join(__dirname,'..', 'Agent', 'DB_SF', mapperPath);
-  console.log("\n\n\nPath: " + paths);
   return paths;
 }
 
@@ -109,19 +108,11 @@ const sendToSF = async (fileName, rawBody) => {
     //  }
 
    // filterUndefined(body);
+   console.log("Body: " + body);
    const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;
-
-    if(rawBody.url.includes("/")){
       const { data } = await axios.patch(url, body, { headers });
-
       console.log("Data post: ", data);
       return data;
-    }else{
-      const { data } = await axios.post(url, body, { headers });
-
-      console.log("Data patch: ", data);
-      return data;
-    }
   
   } catch (err) {
     console.error("Error: " + err);
