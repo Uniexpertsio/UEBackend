@@ -4,6 +4,7 @@ const uuid = require("uuid/v4");
 const Common = require("./Common");
 const nodemailer = require('nodemailer');
 const { MappingFiles } = require('./../constants/Agent.constants');
+const Document = require("../models/Document");
 
 const Config = require("../models/Config");
 const Agent = require("../models/Agent");
@@ -37,6 +38,7 @@ Auth.get.config = async (req, res, next) => {
 
 Auth.post.login = async (req, res) => {
 	try{
+		
 		const tokens = await generateToken();
 	const email = req.body.email;
 	const password = req.body.password;
@@ -58,8 +60,12 @@ Auth.post.login = async (req, res) => {
 				}
 			);
 			let loggedInMessage = `${staff.email} logged in at ${req.x_request_ts} [${req.ip}]`.green;
-
-			return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 200, tokens: token });
+			const docs = await Document.find({userId: agent._id});
+			let docUploaded = false;
+			if(docs.length > 0) {
+				docUploaded = true;
+			}
+			return res.status(200).json({ data: {docUploaded, ...generateAuthResponse(staff, agent, token)}, statusCode: 200, tokens: token });
 		} else {
 			res.status(403).json({
 				"statusCode": 401,
@@ -68,7 +74,6 @@ Auth.post.login = async (req, res) => {
 			});
 		}
 	}
-
 	} catch (err) {
 
 		return res.status(400).json({

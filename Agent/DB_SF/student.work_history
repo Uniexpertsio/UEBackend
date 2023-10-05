@@ -4,18 +4,19 @@
 
 module.exports = async function (db) {
     return {
-    "Name": "Ankit",
-      "Designation__c": "Developer",
-      "Lock_Record__c":"true",
-      "Date_of_Joining__c": "2022-10-12",
-      "Date_of_relieving__c": "2022-10-13",
-      "Contact_info__c": "wehf",
-      "Email_Id__c": "ank@gmail.com",
-      "Id": "a0EN000000K7HBUMA3",
-      "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-      "Student_Id__c": "7fe359b1-81a5-4a0e-7 (16 more) ..."
-    };
+    "Name": "Testing Postman",
+    "Designation__c": "Integration",
+    "Date_of_Joining__c": "2022-10-12",
+    "Date_of_relieving__c": "2022-10-13",
+    "Contact_info__c": "Ankit Contact Info",
+    "Email_Id__c": "Ankit@gmail.com",
+    "Student__r": 
+    {
+        "ExternalId__c" : "0036D00000pHIZNQA4"
+    }
+  }; 
 };
+     
 
 
 // Available funcs

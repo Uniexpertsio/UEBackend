@@ -73,40 +73,6 @@ const sendToSF = async (fileName, rawBody) => {
   //console.log("rawbody: ", rawBody)
     const mapper = require(flPath)
     let body = await mapper(rawBody, rawBody.commonId);
-    //   const data1 = {
-    //     "RecordType":{
-    //          "Name":"Partner"},
-    //    "FirstName": "Testing Postman",
-    //    "LastName": "Integration",
-    //    "Source__c": "Sales",
-    //    "Passport_Number__c": "8787678ui765aw",
-    //    "MobilePhone": "+917876567876",
-    //    "Whatsapp_No__c": "+917876567876",
-    //    "Preferred_Country__c": "Austria;Cyprus",
-    //    "Email": "ank@gmail.com",
-    //    "Medical_History_Detail__c": "sjkchsduiwv",
-    //    "Medical_History__c": "No",
-    //    "Martial_Status__c": "Married",
-    //    "Gender__c": "Male",
-    //    "Birthdate": "2022-07-11",
-    //    "First_Language__c": "iohdwef",
-    //    "Country_of_Citizenship__c": "Albania",
-    //    "Account": {
-    //        "ExternalId__c" :"2573t236423ev"
-    //    },
-    //  "Partner_Account__r": {
-    //        "ExternalId__c" :"juytf567"
-    //    },
-    //    "EmergencyContactName__c": "dcvderfverw",
-    //    "Relationship__c": "Mother",
-    //    "EmergencyContactEmail__c": "ank@gmail.com",
-    //    "Phone": "8987678987",
-    //    "Country__c": "Aland Islands",
-    //    "Have_you_been_refused_a_visa__c": "No",
-    //    "Do_you_have_a_valid_Study_Permit_Visa__c": "No",
-    //    "Study_Permit_Visa_Details__c": "wefwer"
-    //  }
-
    // filterUndefined(body);
    console.log("Body: " + body);
    const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;

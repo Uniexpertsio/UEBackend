@@ -59,9 +59,6 @@ class StudentService {
   }
 
   async createStudent(modifiedBy, agentId, studentInformation) {
-
-    console.log("create student: ", agentId);
-
     await this.checkForValidUsers(
       studentInformation.studentInformation.staffId,
       studentInformation.studentInformation.counsellorId
@@ -318,9 +315,9 @@ class StudentService {
     }
   }
 
-  async addStudentWorkHistory(studentId, modifiedBy, body) {
+  async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
     await this.findById(studentId);
-
+    console.log("student work history: ")
     const workHistory = await this.workHistoryService.add(studentId, modifiedBy, body);
 
     const result = await StudentModel.updateOne(
@@ -348,9 +345,10 @@ class StudentService {
     //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30",
     //   "Student_Id__c": "7fe359b1-81a5-4a0e-7 (16 more) ..."
     // }
+    const url = "Work_history__c/ExternalId__c/11995"
 
-  const url = "Work_history__c/a0EN000000K7HBUMA3"
-  const sf = await sendToSF(MappingFiles.STUDENT_work_history, { ...workHistory, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
+  //const url = "Work_history__c/a0EN000000K7HBUMA3"
+  const sf = await sendToSF(MappingFiles.STUDENT_work_history, { ...workHistory, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy, agentId }, url });
   console.log("sf: ", sf);
 
     return workHistory;
