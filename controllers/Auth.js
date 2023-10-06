@@ -61,7 +61,7 @@ Auth.post.login = async (req, res) => {
 			);
 			let loggedInMessage = `${staff.email} logged in at ${req.x_request_ts} [${req.ip}]`.green;
 			const docs = await Document.find({userId: agent._id});
-			let docUploaded = false;
+						let docUploaded = false;
 			if(docs.length > 0) {
 				docUploaded = true;
 			}
@@ -90,7 +90,15 @@ Auth.post.signup = async (req, res, next) => {
 		const externalId = uuid();
 		const agentData = req.body;
 		const email = req.body.personalDetails.email;
-		const agent = await Agent.create({ ...agentData, commonId: externalId });
+		let agent = await Agent.findOne({"personalDetails.email": email});
+		if(agent){
+			return res.status(400).json("Email already exists");
+		}
+		agent = await Agent.findOne({"personalDetails.phone": req.body.personalDetails.phone});
+		if(agent){
+			return res.status(400).json("Phone number already exists");
+		}
+		agent = await Agent.create({ ...agentData, commonId: externalId });
 		const externalStaffId = uuid();
 		const staff = await Staff.create({
 			fullName: agentData.personalDetails.firstName + " " + agentData.personalDetails.lastName,
