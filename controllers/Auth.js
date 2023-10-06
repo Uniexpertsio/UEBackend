@@ -92,11 +92,11 @@ Auth.post.signup = async (req, res, next) => {
 		const email = req.body.personalDetails.email;
 		let agent = await Agent.findOne({"personalDetails.email": email});
 		if(agent){
-			return res.status(400).json("Email already exists");
+			return res.status(400).json({message: "Email already exists"});
 		}
 		agent = await Agent.findOne({"personalDetails.phone": req.body.personalDetails.phone});
 		if(agent){
-			return res.status(400).json("Phone number already exists");
+			return res.status(400).json({message: "Phone number already exists"});
 		}
 		agent = await Agent.create({ ...agentData, commonId: externalId });
 		const externalStaffId = uuid();
