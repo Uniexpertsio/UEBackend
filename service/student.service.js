@@ -13,6 +13,7 @@ const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
 const {sendToSF} = require("./salesforce.service");
+const Staff = require("../models/Staff");
 
 
 const PreferredCountries = {
@@ -159,7 +160,19 @@ class StudentService {
     if(query.queryCounsellor){
       filter.studentInformation={counsellorId: query.queryCounsellor}
     }
-    return await StudentModel.find(filter).skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1)).sort(sortBy).limit(parseInt(query.perPage));
+    const student = await StudentModel.find(filter)
+    .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+    .sort(sortBy)
+    .limit(parseInt(query.perPage));
+    const studentList = []
+    for(let i=0;i<student.length;i++){
+      //console.log(student[i])
+      const staff = await Staff.findOne({modifiedBy: student[i].modifiedBy});
+      //student.modifiedBy = agent.personalDetails.firstName+" "+agent.personalDetails.lastName;
+        studentList.push({...student, modifiedBy : staff?.fullName})
+    }
+
+    return studentList;
   }
 
   async getStudentGeneralInformation(studentId) {
