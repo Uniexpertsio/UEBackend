@@ -166,10 +166,10 @@ class StudentService {
     .limit(parseInt(query.perPage));
     const studentList = []
     for(let i=0;i<student.length;i++){
-      const staff = await Staff.findOne({_id: student[i].modifiedBy});
+      const staff = await Staff.findOne({_id: student[i].createdBy});
 
       if(staff){
-        student[i].modifiedBy = staff.fullName;
+        student[i].createdBy = staff.fullName;
       }
       
       studentList.push(student[i])
