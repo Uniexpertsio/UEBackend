@@ -167,9 +167,14 @@ class StudentService {
     const studentList = []
     for(let i=0;i<student.length;i++){
       const staff = await Staff.findOne({_id: student[i].createdBy});
+      const counsellor = await Staff.findOne({_id: student[i].studentInformation.counsellorId});
 
       if(staff){
         student[i].createdBy = staff.fullName;
+      }
+
+      if(counsellor){
+        student[i].studentInformation.counsellorId = staff.fullName;
       }
       
       studentList.push(student[i])
