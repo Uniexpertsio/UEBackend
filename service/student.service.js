@@ -169,7 +169,7 @@ class StudentService {
       //console.log(student[i])
       const staff = await Staff.findOne({modifiedBy: student[i].modifiedBy});
       //student.modifiedBy = agent.personalDetails.firstName+" "+agent.personalDetails.lastName;
-        studentList.push({...student, modifiedBy : staff?.fullName})
+        studentList.push({...student[i], modifiedBy : staff?.fullName})
     }
 
     return studentList;
