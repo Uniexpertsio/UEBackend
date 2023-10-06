@@ -166,10 +166,13 @@ class StudentService {
     .limit(parseInt(query.perPage));
     const studentList = []
     for(let i=0;i<student.length;i++){
-      //console.log(student[i])
-      const staff = await Staff.findOne({modifiedBy: student[i].modifiedBy});
-      //student.modifiedBy = agent.personalDetails.firstName+" "+agent.personalDetails.lastName;
-        studentList.push({...student[i], modifiedBy : staff?.fullName})
+      const staff = await Staff.findOne({_id: student[i].modifiedBy});
+
+      if(staff){
+        student[i].modifiedBy = staff.fullName;
+      }
+      
+      studentList.push(student[i])
     }
 
     return studentList;
