@@ -81,7 +81,7 @@ class StudentController {
     async addStudentEducation(req, res) {
       try {
         const studentId = req.params.studentId;
-        const { id } = req.user;
+        const { id, agentId } = req.user;
         const body = req.body;
         const student = await this.studentService.addStudentEducation(studentId, id, body);
         res.status(200).json(student);
@@ -175,8 +175,8 @@ class StudentController {
           try {
             const { studentId } = req.params;
             const { body } = req;
-            const { id } = req.user;
-            const result = await this.studentService.addStudentTestScore(studentId, id, body);
+            const { id, agentId } = req.user;
+            const result = await this.studentService.addStudentTestScore(studentId, id, body, agentId);
             res.status(200).json(result);
           } catch (error) {
             res.status(500).json({ error: error.message });

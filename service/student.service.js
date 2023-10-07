@@ -227,7 +227,7 @@ class StudentService {
     );
 
     if (result.modifiedCount === 0) {
-      throw new Error("Stufdent not found");
+      throw new Error("Student not found");
     }
 
     // {
@@ -279,8 +279,8 @@ class StudentService {
   //         Authorization:- Bearer 00DN0000000cDM4!ASAAQCPueQ1kguX04emRQIWIniLncCALulkTnxpFZRfmwXZYpD2UGMiCr.NyZzgt0_eK_lJd0SHibPrHZksH7eOPpncSXTX2			  
   
     const url = "Education__c/a02N000000N8POMIA3"
-    const sf = await sendToSF(MappingFiles.STUDENT_education_history, { ...body, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
-    console.log("sf: ", sf)
+    // const sf = await sendToSF(MappingFiles.STUDENT_education_history, { ...body, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
+    // console.log("sf: ", sf)
     return { id: education.id };
   }
 
@@ -403,7 +403,7 @@ class StudentService {
     }
   }
 
-  async addStudentTestScore(studentId, modifiedBy, body) {
+  async addStudentTestScore(studentId, modifiedBy, body, agentId) {
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
@@ -415,7 +415,7 @@ class StudentService {
         }
       }
     }
-    const testScore = await this.testScoreService.add(studentId, modifiedBy, body);
+    const testScore = await this.testScoreService.add(studentId, modifiedBy, body, agentId);
 
     const result = await StudentModel.updateOne(
       { _id: studentId },

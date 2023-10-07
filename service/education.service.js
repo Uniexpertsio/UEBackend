@@ -8,16 +8,17 @@ class EducationService {
   async add(studentId, modifiedBy, body) {
     const externalId = uuidv4();
     const education = await Education.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
+    
     const url = "Education__c/ExternalId__c/11996"
-    const sf = await sendToSF(MappingFiles.STUDENT_education_history, {
-      ...education,
-      externalId: externalId,
-      _user: { agentId, id: modifiedBy },
-      url
-    });
+    // const sf = await sendToSF(MappingFiles.STUDENT_education_history, {
+    //   ...education,
+    //   externalId: externalId,
+    //   _user: { agentId, id: modifiedBy },
+    //   url
+    // });
 
-    console.log("sf education history: "+sf);
-    return 
+    // console.log("sf education history: "+sf);
+    return education;
   }
 
 async update(modifiedBy, educationId, body) {

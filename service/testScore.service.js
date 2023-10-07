@@ -21,7 +21,7 @@ class TestScoreService {
     return config.value[examType];
   }
 
- async add(studentId, modifiedBy, body) {
+ async add(studentId, modifiedBy, body, agentId) {
     const externalId = uuid.v4();
     const testScore = this.testScoreModel.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
     const url = "Test_Score__c/ExternalId__c/2573t236423ev"
