@@ -10,14 +10,14 @@ class StudentController {
       try {
         const { id, agentId } = req.user;
         const body = req.body;
-        let student = await StudentModel.findOne({ "studentInformation.passportNumber": body.studentInformation.passportNumber });
-        if (student) {
-          return res.status(400).json({ message: "Passport already exists" });
-        }
-        student = await StudentModel.findOne({ "studentInformation.mobile": body.studentInformation.mobile });
-        if (student) {
-          return res.status(400).json({ message: "Phone number already exists" });
-        }
+        // let student = await StudentModel.findOne({ "studentInformation.passportNumber": body.studentInformation.passportNumber });
+        // if (student) {
+        //   return res.status(400).json({ message: "Passport already exists" });
+        // }
+        // student = await StudentModel.findOne({ "studentInformation.mobile": body.studentInformation.mobile });
+        // if (student) {
+        //   return res.status(400).json({ message: "Phone number already exists" });
+        // }
         const result = await this.studentService.createStudent(id, agentId, body);
         res.status(200).json(result);
       } catch (error) {
