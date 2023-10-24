@@ -20,7 +20,7 @@ const generateToken = async () => {
         client_id: "3MVG9z6NAroNkeMkQIYXpSeRyrHQJBbNMH21xAcoifdreqdFHYR8fLkvuY3gk_J1_Whm2yTcL5ayH1fZEKs2c",
         client_secret: "EA815585901C63B5DD57335043FA94957708F3D7B4BD7B6F53908E739ED6A921",
         username: "ashok1@uniexperts.io.uxuat",
-        password: "Xperts@2023"
+        password: "Xperts@2023.1"
       })
     )
   return data;
