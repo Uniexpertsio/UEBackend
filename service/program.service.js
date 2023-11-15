@@ -132,11 +132,11 @@ class ProgramService {
     //         Content-Type:-application/json
     //         Authorization:- Bearer 00DN0000000cDM4!ASAAQDM.EQzHY3pG6TVBBtQU2NDLIkRgO8nWWFlbNUySnCABnD4Wud.Fw7KxzK0A2OXxnp1BXBKosLb.9ZlgfNU01aEVE_ks"			
     const url = "Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973"
-    const sf = await this.salesforceService.sendToSF(MappingFiles.SCHOOL_programme, {
-      ...program,
-      schoolId: (await this.schoolService.findById(program.schoolId)).externalId,
-      _user: { id }, url
-    });
+    // const sf = await this.salesforceService.sendToSF(MappingFiles.SCHOOL_programme, {
+    //   ...program,
+    //   schoolId: (await this.schoolService.findById(program.schoolId)).externalId,
+    //   _user: { id }, url
+    // });
     return { id: program._id };
   }
 
@@ -218,7 +218,7 @@ class ProgramService {
       }
       if (programFilterDto.programFilters.intakeId) {
         const intake = await this.intakeModel.findById(programFilterDto.programFilters.intakeId);
-        const program = intake.programId;
+        const program = intake?.programId;
         programFilter = {
           ...programFilter,
           _id: program,

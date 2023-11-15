@@ -21,12 +21,12 @@ class IntakeService {
   async addIntake(id, intakeCreateDto) {
     const externalId = uuidv4();
     const intake = new this.intakeModel({ ...intakeCreateDto, createdBy: id, updatedBy: id, externalId });
-    sendToSF(MappingFiles.SCHOOL_intake, {
-      ...intake,
-      schoolId: (await this.schoolService.findById(intake.schoolId)).externalId,
-      programId: (await this.programService.findById(intake.programId)).externalId,
-      _user: { id }
-    });
+    // sendToSF(MappingFiles.SCHOOL_intake, {
+    //   ...intake,
+    //   schoolId: (await this.schoolService.findById(intake.schoolId)).externalId,
+    //   programId: (await this.programService.findById(intake.programId)).externalId,
+    //   _user: { id }
+    // });
     return intake.save();
   }
 

@@ -10,6 +10,7 @@ const StudentPaymentService = require("./studentPayment.service");
 const CurrencyService = require("./currency.service");
 const Student = require("../models/Student");
 const School = require("../models/School");
+const Application = require("../models/Application");
 
 const ApplicationStatus = {
     NEW : "New",
@@ -77,7 +78,7 @@ class ApplicationService {
     await this.intakeService.findById(body.intakeId);
 
     const externalId = uuid.v4();
-    return this.applicationModel.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
+    return Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
   }
 
   async findStudentById(id) {
