@@ -6,6 +6,24 @@ class ProgramController {
     this.programService = new ProgramService();
   }
 
+  addPrograms = async (req, res) => {
+    try {
+      const res = [];
+      for(let i=0;i<req.body.length;i++){
+        const { schoolId } = req.params;
+        const programCreateDto = req.body;
+        const { id } = req.user;
+  
+        const result = await this.programService.createProgram(id, schoolId, programCreateDto);
+        res.push(result);
+      }
+      
+      res.status(200).json({ success: true, data: res });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+
   addProgram = async (req, res) => {
     try {
       const { schoolId } = req.params;

@@ -312,7 +312,7 @@ class ProgramService {
     if (countryDisciplineFilter.discipline) {
       filter = {
         ...filter,
-        discipline: { $in: countryDisciplineFilter.discipline },
+        "about.details.programLevel": { $in: countryDisciplineFilter.discipline }
       };
     }
 
@@ -322,6 +322,7 @@ class ProgramService {
     }
 
     const programs = await this.programModel.find(filter);
+
     const programsIds = programs.map((p) => p.id);
     const schools = await this.schoolModel.find({}).sort(sort);
 
