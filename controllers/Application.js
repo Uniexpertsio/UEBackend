@@ -16,6 +16,7 @@ async function addApplication(req, res) {
 
 async function getApplications(req, res) {
   try {
+    console.log("Getting applications")
     const { agentId } = req.user;
     const query = req.query;
     const applications = await applicationService.getApplications(agentId, query);

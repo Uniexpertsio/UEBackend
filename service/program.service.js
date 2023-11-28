@@ -379,9 +379,11 @@ class ProgramService {
     const scoreRequired = program.requirementScoreInformation || [];
 
     const testScores = await this.testScoreModel.findOne({ studentId, examType: examTypeRequired });
+    console.log("testScores: ", testScores)
+        
+    if (!testScores) return false;
     const studentScores = testScores.scoreInformation || [];
 
-    if (!testScores) return false;
 
     return scoreRequired.every((requiredScore) => {
       return studentScores.some((studentScore) => {
