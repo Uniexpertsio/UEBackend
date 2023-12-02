@@ -18,6 +18,7 @@ module.exports = (port) => {
 	let testScoreRoute = require("./routes/testScore.routes");
 	let applicationRoute = require("./routes/application.routes");
 	let salesforceSyncRoute = require("./routes/salesforcesync.routes");
+	let paymentRoute = require("./routes/payment.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -38,6 +39,8 @@ module.exports = (port) => {
 	app.use("/api/test-score", testScoreRoute);
 	app.use("/api/application", applicationRoute);
 	app.use("/api/salesforce", salesforceSyncRoute);
+	app.use("/api/payment", paymentRoute);
+
 
 
 
