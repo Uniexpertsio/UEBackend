@@ -56,7 +56,7 @@ class ApplicationService {
   async addApplication(id, agentId, body) {
     let applicationCount = 1;
     try {
-      let x = await this.applicationModel.find({}, {
+      let x = await Application.find({}, {
         projection: {
           'applicationId': 1,
           '_id': 0
@@ -79,6 +79,10 @@ class ApplicationService {
 
     const externalId = uuid.v4();
     return Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
+  }
+
+  async getApplicationById(id){
+    return Application.findById(id);
   }
 
   async findStudentById(id) {
@@ -104,7 +108,7 @@ class ApplicationService {
 
     const data = await Promise.all(
       (
-        await this.applicationModel
+        await Application
           .find(filter)
           .skip(query.perPage * (query.pageNo - 1))
           .limit(query.perPage)
@@ -151,7 +155,7 @@ class ApplicationService {
       meta: {
         perPage: query.perPage,
         pageNo: query.pageNo,
-        total: (await this.applicationModel.find(filter)).length,
+        total: (await Application.find(filter)).length,
         ApplicationStatus
       },
     };
@@ -174,7 +178,7 @@ class ApplicationService {
   }
 
   async getComments(applicationId) {
-    const student = await this.applicationModel.findById(applicationId);
+    const student = await Application.findById(applicationId);
     if (!student) throw new Error("student not found");
 
     return Promise.all(
@@ -187,7 +191,7 @@ class ApplicationService {
   async addComment(applicationId, modifiedBy, body) {
     const comment = await this.commentService.add(body.message, modifiedBy, applicationId, body.attachment);
 
-    const result = await this.applicationModel.updateOne(
+    const result = await Application.updateOne(
       { _id: applicationId },
       { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
     );
@@ -204,15 +208,15 @@ class ApplicationService {
   }
 
   async getApplicationCount(agentId) {
-    return (await this.applicationModel.find({ agentId })).length;
+    return (await Application.find({ agentId })).length;
   }
 
   async getSelectedApplicationCount(agentId) {
-    return (await this.applicationModel.find({ agentId, status: ApplicationStatus.ACCEPTED })).length;
+    return (await Application.find({ agentId, status: ApplicationStatus.ACCEPTED })).length;
   }
 
   getApplicationCountWithSchool() {
-    return this.applicationModel.aggregate([{ $group: { _id: "$schoolId", count: { $sum: 1 } } }]);
+    return Application.aggregate([{ $group: { _id: "$schoolId", count: { $sum: 1 } } }]);
   }
 
   async addPayment(applicationId, id, body) {
@@ -227,11 +231,11 @@ class ApplicationService {
       body.currency,
       body
     );
-    return this.applicationModel.updateOne({ _id: applicationId }, { $push: { payments: payment.id } });
+    return Application.updateOne({ _id: applicationId }, { $push: { payments: payment.id } });
   }
 
   async findById(id) {
-    const application = await this.applicationModel.findById(id);
+    const application = await Application.findById(id);
     if (!application) throw new Error("Application not found");
     return application;
   }
@@ -270,8 +274,8 @@ class ApplicationService {
   }
 
   async getApplication(applicationId) {
-    const application = await this.findById(applicationId);
-    const student = await this.findStudentById(application.studentId);
+    const application = await Application.findById(applicationId);
+    const student = await this.studentModel.findById(application.studentId);
     const school = await this.schoolService.findById(application.schoolId);
     const program = await this.programService.findById(application.programId);
 
@@ -356,7 +360,7 @@ class ApplicationService {
           },
         },
       };
-    return this.applicationModel.aggregate([
+    return Application.aggregate([
       { $match: { agentId: agentId, createdAt: { $exists: true } } },
       {
         $redact: {

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const PaymentSchema = {
+const PaymentSchema = new mongoose.Schema({
   agentId: { type: String, required: true },
   bankName: { type: String, required: true },
   paymentMode: { type: String, required: true },
@@ -13,10 +13,8 @@ const PaymentSchema = {
   otp: { type: String, required: false },
   type: { type: String, required: false },
   applicationId: { type: String, required: false },
-  college: { type: String, required: false },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-};
+  college: { type: String, required: false }
+}, {timestamps: true});
 
 const PaymentModel = mongoose.model('Payment', PaymentSchema);
 

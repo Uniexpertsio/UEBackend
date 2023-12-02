@@ -1,10 +1,8 @@
-const StaffService = require("../service/staff.service"); 
+const StaffService = require("../service/staff.service");
 
 const staffService = new StaffService();
 
-
 // Controller functions
-
 async function getAllStaff(req, res) {
   try {
     const { agentId } = req.user;
