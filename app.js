@@ -20,6 +20,10 @@ module.exports = (port) => {
 	let salesforceSyncRoute = require("./routes/salesforcesync.routes");
 	let paymentRoute = require("./routes/payment.routes");
 	let reportRoute = require("./routes/report.routes");
+	let interviewRoute = require("./routes/interview.routes");
+	let commissionRoute = require("./routes/commission.routes");
+	let commissionTypeRoute = require("./routes/commissionType.routes");
+	let invoiceRoute = require("./routes/invoice.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -42,6 +46,10 @@ module.exports = (port) => {
 	app.use("/api/salesforce", salesforceSyncRoute);
 	app.use("/api/payment", paymentRoute);
 	app.use("/api/report", reportRoute);
+	app.use("/api/interview", interviewRoute);
+	app.use("/api/commission", commissionRoute);
+	app.use("/api/commission", commissionTypeRoute);
+	app.use("/api/invoice", invoiceRoute);
 
 
 
