@@ -24,6 +24,7 @@ module.exports = (port) => {
 	let commissionRoute = require("./routes/commission.routes");
 	let commissionTypeRoute = require("./routes/commissionType.routes");
 	let invoiceRoute = require("./routes/invoice.routes");
+	let dashboardRoute = require("./routes/dashboard.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -50,6 +51,7 @@ module.exports = (port) => {
 	app.use("/api/commission", commissionRoute);
 	app.use("/api/commission", commissionTypeRoute);
 	app.use("/api/invoice", invoiceRoute);
+	app.use("/api/dashboard", dashboardRoute);
 
 
 
