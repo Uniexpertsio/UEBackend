@@ -53,9 +53,6 @@ module.exports = (port) => {
 	app.use("/api/invoice", invoiceRoute);
 	app.use("/api/dashboard", dashboardRoute);
 
-
-
-
 	app.use( (req, res, next) => {
 		res.status(404).send({
 			message: "No such api endpoint found.",

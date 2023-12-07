@@ -1,4 +1,3 @@
-const { MongoClient } = require("mongodb");
 const Student = require("../models/Student");
 const Agent = require("../models/Agent");
 const School = require("../models/School");
@@ -11,6 +10,25 @@ const Education = require("../models/Education");
 const Comment = require("../models/Comment");
 const Document = require("../models/Document");
 const DocumentType = require("../models/DocumentType");
+const Payment = require("../models/Payment");
+const Task = require("../models/Task");
+const Staff = require("../models/Staff");
+const WorkHistory = require("../models/WorkHistory");
+const StudentPayment = require("../models/StudentPayment");
+const Interview = require("../models/Interview");
+
+
+const { mapComment,
+  mapDocument,
+  mapEducation,
+  mapIntake,
+  mapPayment,
+  mapProgram,
+  mapTask,
+  mapSchool,
+  mapWorkHistory,
+  mapStudent,
+  mapTestScore } = require("../utils/mapper");
 
 class SalesforceSyncService {
   constructor() {
@@ -275,7 +293,7 @@ async getDocumentTypeId(externalId) {
   }
 
   async deleteStudentPayment(id, body) {
-    const payment = await this.paymentModel.findOne({ externalId: body.ExternalId__c });
+    const payment = await Payment.findOne({ externalId: body.ExternalId__c });
     if (!payment) throw new Error("not found");
 
     //await this.paymentModel.deleteOne({ externalId: body.ExternalId__c });
@@ -334,7 +352,8 @@ async getDocumentTypeId(externalId) {
   }
 
    async getStaffId(externalId) {
-    const staff = await this.staffModel.findOne({ externalId });
+    console.log("\n\ngetStaffId", externalId)
+    const staff = await Staff.findOne({ externalId });
     if (!staff) throw Error("Agent not found");
     return staff.id;
   }
@@ -382,7 +401,7 @@ async getAgentId(externalId) {
   }
 
   getStudentPayment(count) {
-    return this.paymentModel.find({}).sort({ _id: -1 }).limit(count);
+    return Payment.find({}).sort({ _id: -1 }).limit(count);
   }
 
   getStudentTask(count) {
@@ -606,7 +625,7 @@ async getAgentId(externalId) {
       data.status = body.Status__c;
     }
     if (typeof body.ExternalId__c != "undefined") {
-      return this.paymentModel.updateOne({ externalId: body.ExternalId__c }, { $set: data });
+      return Payment.updateOne({ externalId: body.ExternalId__c }, { $set: data });
     }
 
   }
