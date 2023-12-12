@@ -13,7 +13,7 @@ class TestScoreService {
 
   async getExamType() {
     const config = await this.configService.getConfig("TEST_SCORE_EXAM_TYPE");
-    return config.value;
+    return config?.value;
   }
 
   async getScoreTestFields(examType) {

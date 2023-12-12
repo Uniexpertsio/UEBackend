@@ -135,7 +135,7 @@ class StudentService {
   }
 
   async getStudent(agentId, query) {
-    
+
     const filter = {agentId}
     const sortByType = query.sortByType === 'Ascending' ? 1 : -1 ;
     const sortBy = {}
@@ -166,7 +166,7 @@ class StudentService {
     .limit(parseInt(query.perPage));
     const studentList = []
     for(let i=0;i<student.length;i++){
-      const staff = await Staff.findOne({_id: student[i].createdBy});
+            const staff = await Staff.findOne({_id: student[i].createdBy});
       const counsellor = await Staff.findOne({_id: student[i].studentInformation.counsellorId});
 
       if(staff){

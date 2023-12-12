@@ -154,18 +154,19 @@ class ProgramService {
   async searchProgram(programFilterDto) {
     let schoolFilter = {};
     let programFilter = {};
+    console.log("search  program", programFilterDto)
 
-    if (programFilterDto.eligibilityFilter) {
-      if (programFilterDto.eligibilityFilter.studentId) {
+    if (programFilterDto?.eligibilityFilter) {
+      if (programFilterDto.eligibilityFilter?.studentId) {
         // it's just being used to fill the other fields in filter and looks of no use here
       }
-      if (programFilterDto.eligibilityFilter.hasValidVisa) {
+      if (programFilterDto.eligibilityFilter?.hasValidVisa) {
         //both program and school does not have this field so not considering here
       }
-      if (programFilterDto.eligibilityFilter.nationality) {
+      if (programFilterDto.eligibilityFilter?.nationality) {
         //both program and school does not have this field so not considering here
       }
-      if (programFilterDto.eligibilityFilter.educationCountry) {
+      if (programFilterDto.eligibilityFilter?.educationCountry) {
         //both program and school does not have this field so not considering here
       }
       if (programFilterDto.eligibilityFilter.gradingScheme) {
@@ -174,10 +175,10 @@ class ProgramService {
       if (programFilterDto.eligibilityFilter.examType) {
         //both program and school does not have this field so not considering here
       }
-      if (programFilterDto.eligibilityFilter.marks && programFilterDto.eligibilityFilter.marks.length > 0) {
+      if (programFilterDto.eligibilityFilter?.marks && programFilterDto?.eligibilityFilter?.marks.length > 0) {
         //both program and school does not have this field so not considering here
       }
-      if (programFilterDto.eligibilityFilter.shouldShowOnlyDirect) {
+      if (programFilterDto.eligibilityFilter?.shouldShowOnlyDirect) {
         //both program and school does not have this field so not considering here
       }
     }
@@ -189,64 +190,64 @@ class ProgramService {
           "address.country": { $regex: programFilterDto.schoolFilter.preferredCountry, $options: "i" },
         };
       }
-      if (programFilterDto.schoolFilter.state && programFilterDto.schoolFilter.state.length > 0) {
+      if (programFilterDto.schoolFilter.state && programFilterDto?.schoolFilter?.state.length > 0) {
         schoolFilter = {
           ...schoolFilter,
           "address.state": { $in: programFilterDto.schoolFilter.state },
         };
       }
-      if (programFilterDto.schoolFilter.schoolIds && programFilterDto.schoolFilter.schoolIds.length > 0) {
+      if (programFilterDto.schoolFilter?.schoolIds && programFilterDto.schoolFilter?.schoolIds.length > 0) {
         schoolFilter = {
           ...schoolFilter,
           _id: { $in: programFilterDto.schoolFilter.schoolIds },
         };
       }
-      if (programFilterDto.schoolFilter.schoolType && programFilterDto.schoolFilter.schoolType.length > 0) {
+      if (programFilterDto.schoolFilter.schoolType && programFilterDto.schoolFilter?.schoolType.length > 0) {
         schoolFilter = {
           ...schoolFilter,
-          "about.details.schoolType": { $in: programFilterDto.schoolFilter.schoolType },
+          "about.details.schoolType": { $in: programFilterDto.schoolFilter?.schoolType },
         };
       }
     }
 
     if (programFilterDto.programFilters) {
-      if (programFilterDto.programFilters.programLevels && programFilterDto.programFilters.programLevels.length > 0) {
+      if (programFilterDto.programFilters.programLevels && programFilterDto.programFilters?.programLevels?.length > 0) {
         programFilter = {
           ...programFilter,
-          "about.details.programLevel": { $in: programFilterDto.programFilters.programLevels },
+          "about.details.programLevel": { $in: programFilterDto.programFilters?.programLevels },
         };
       }
       if (programFilterDto.programFilters.intakeId) {
-        const intake = await this.intakeModel.findById(programFilterDto.programFilters.intakeId);
+        const intake = await this.intakeModel.findById(programFilterDto.programFilters?.intakeId);
         const program = intake?.programId;
         programFilter = {
           ...programFilter,
           _id: program,
         };
       }
-      if (programFilterDto.programFilters.discipline.length && programFilterDto.programFilters.discipline.length > 0) {
+      if (programFilterDto.programFilters.discipline && programFilterDto.programFilters?.discipline.length > 0) {
         programFilter = {
           ...programFilter,
           discipline: {
-            $in: programFilterDto.programFilters.discipline,
+            $in: programFilterDto.programFilters?.discipline,
           },
         };
       }
       if (
-        programFilterDto.programFilters.subDiscipline.length &&
-        programFilterDto.programFilters.subDiscipline.length > 0
+        programFilterDto.programFilters?.subDiscipline &&
+        programFilterDto.programFilters?.subDiscipline.length > 0
       ) {
         programFilter = {
           ...programFilter,
           subDiscipline: {
-            $in: programFilterDto.programFilters.subDiscipline,
+            $in: programFilterDto.programFilters?.subDiscipline,
           },
         };
       }
-      if (programFilterDto.programFilters.showCommission) {
+      if (programFilterDto.programFilters?.showCommission) {
         // not sure what to do with this
       }
-      if (programFilterDto.programFilters.tuitionFee) {
+      if (programFilterDto.programFilters?.tuitionFee) {
         programFilter = {
           ...programFilter,
           "about.cost.tuitionFees": { $lte: programFilterDto.programFilters.tuitionFee },
@@ -255,15 +256,15 @@ class ProgramService {
       if (programFilterDto.programFilters.applicationFee) {
         programFilter = {
           ...programFilter,
-          "about.cost.applicationFees": { $lte: programFilterDto.programFilters.applicationFee },
+          "about.cost.applicationFees": { $lte: programFilterDto.programFilters?.applicationFee },
         };
       }
-      if (programFilterDto.programFilters.includeLivingCost) {
+      if (programFilterDto.programFilters?.includeLivingCost) {
         // bigger change
       }
     }
 
-    if (Object.keys(schoolFilter).length && Object.keys(programFilter).length) {
+    if (Object.keys(schoolFilter).length && Object.keys(programFilter)?.length) {
       programFilter = {
         ...programFilter,
         isRecommended: true,
@@ -342,7 +343,7 @@ class ProgramService {
       })
     );
 
-    return response.filter((res) => res.programs.length);
+    return response.filter((res) => res.programs?.length);
   }
 
   getRecentPrograms() {

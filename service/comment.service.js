@@ -23,7 +23,7 @@ isVideo(url) {
       relationId,
       externalId,
       attachment,
-      isVideo: this.isVideo(attachment),
+      isVideo: false,
     });
     const user = await this.staffService.findById(comment.userId);
     return { comment, user };

@@ -189,8 +189,8 @@ class ApplicationService {
   }
 
   async addComment(applicationId, modifiedBy, body) {
-    const comment = await this.commentService.add(body.message, modifiedBy, applicationId, body.attachment);
-
+        const comment = await this.commentService.add(body.message, modifiedBy, applicationId, body.attachment);
+    
     const result = await Application.updateOne(
       { _id: applicationId },
       { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
