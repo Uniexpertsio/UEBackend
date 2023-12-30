@@ -26,6 +26,7 @@ module.exports = (port) => {
 	let invoiceRoute = require("./routes/invoice.routes");
 	let dashboardRoute = require("./routes/dashboard.routes");
 	let notificationRoute = require("./routes/notification.routes");
+	let caseRoute = require("./routes/case.routes");
 
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
@@ -54,6 +55,7 @@ module.exports = (port) => {
 	app.use("/api/invoice", invoiceRoute);
 	app.use("/api/dashboard", dashboardRoute);
 	app.use("/api/notification", notificationRoute);
+	app.use("/api/case", caseRoute);
 
 	app.use( (req, res, next) => {
 		res.status(404).send({
