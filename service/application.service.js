@@ -203,8 +203,8 @@ class ApplicationService {
     return comment;
   }
 
-  getDocuments(applicationId) {
-    return this.documentService.getByUserId(applicationId);
+  async getDocuments(applicationId) {
+    return await this.documentService.getByUserId(applicationId);
   }
 
   async getApplicationCount(agentId) {
