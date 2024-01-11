@@ -1,8 +1,12 @@
 const { startOfDay, endOfDay, add, previousMonday, nextSunday, subWeeks, addWeeks, startOfMonth, endOfMonth, subMonths, addMonths, parseISO } = require('date-fns');
-const staffService = require("./staff.service");
-const agentService = require("./agent.service");
-const studentService = require("./student.service");
+const StaffService = require("./staff.service");
+const AgentService = require("./agent.service");
+const StudentService = require("./student.service");
 const Interview = require("../models/Interview")
+
+const staffService = new StaffService();
+const studentService = new StudentService();
+const agentService = new AgentService();
 
 
 class InterviewService {
@@ -132,8 +136,7 @@ class InterviewService {
       };
     } else {
       filter = {
-        ...filter,
-        endTime: { $gte: new Date() },
+        ...filter
       };
     }
     return this.mapInterviews(await Interview.find(filter).sort({ startTime: 1 }));

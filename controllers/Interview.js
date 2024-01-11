@@ -17,7 +17,7 @@ const getPartnerInterviews = async (req, res) => {
   try {
     const { id } = req.user;
     const query = req.query;
-    const result = await interviewService.getPartnerInterviews(id, query);
+    const result = await interviewService.getPartnerUpcomingInterviews(id, query);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
