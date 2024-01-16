@@ -5,6 +5,12 @@ const Middleware = require("../controllers/Middleware");
 const router = Router();
 
 router.get("/tnc", getTnC);
+
+///to add a route to send /accept-tnc to salesforce 
+and receive back the s3 to display under get method
+
+
+
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
 router.patch("/general-information",  Middleware.checkAuth, updateGeneralInformation);
