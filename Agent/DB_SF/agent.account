@@ -2,6 +2,19 @@
 // db will contain current object according to database structure
 // funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
 
+
+//// agent response needs to change to agent.service and agent.constants 
+
+ // agent sync to agent.account and agent.service
+
+
+
+
+
+
+
+
+
 module.exports = async function (db) {
     return {
         "RecordTypeId": "0125g00000020HQAAY",
