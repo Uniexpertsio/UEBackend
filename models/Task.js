@@ -3,6 +3,13 @@ const mongoose = require('mongoose');
 const taskSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    stage: { type: String, required: true, enum: ["Pre-Submission", "Application Submitted", "Accepted(Conditional)", "Accepted(Unconditional)", "Payment", "Visa Letter Requested", "Additional Documents Req.", "Visa Letter Approved", "Visa Applied", "Visa Approved", "Pre Departure", "Post-Arrival", "Commission", "Rejected"], default: "Pre-Submission" },
+    stages: { type: [StageSchema], required: false, default: [], _id: false },
+    preferredCountry : {{....}},
+  ///to add to task id 
+    objectType : [enum: ['a', 'b', 'c',]
+recordTypeId: {{}} // static recordtype fromSF
+
     status: { type: String, enum: ['New', 'Scheduled', 'In Progress', 'Rescheduled', 'Pending', 'Closed', 'Completed'], required: false, default: 'New' },
     responseType: { type: String, enum: ['Information', 'Document', 'Statement'], required: false, default: 'Statement' },
     description: { type: String, required: false },
