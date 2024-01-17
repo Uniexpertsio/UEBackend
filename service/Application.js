@@ -17,6 +17,9 @@ const ApplicationSchema = new mongoose.Schema(
     intakeId: { type: String, required: false },
     status: { type: String, required: false, enum: ["New", "Accepted", "Program Closed", "Withdrawn", "Cancelled", "Not Paid"], default: "New" },
     stage: { type: String, required: true, enum: ["Pre-Submission", "Application Submitted", "Accepted(Conditional)", "Accepted(Unconditional)", "Payment", "Visa Letter Requested", "Additional Documents Req.", "Visa Letter Approved", "Visa Applied", "Visa Approved", "Pre Departure", "Post-Arrival", "Commission", "Rejected"], default: "Pre-Submission" },
+    
+    // confirm with nilesh for currentstage
+    
     stages: { type: [StageSchema], required: false, default: [], _id: false },
     tasks: { type: [String], required: false, default: [] },
     comments: { type: [String], required: false, default: [] },
