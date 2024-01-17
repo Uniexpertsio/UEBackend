@@ -11,8 +11,12 @@ const CommissionTypeEnum = {
   FIXED: "Fixed",
 };
 
+
+// removed givenTo type
+
+
+
 const CommissionGivenTo = {
-  UNIEXPERTS: "Uniexperts",
   PARTNER: "Partner",
 };
 
