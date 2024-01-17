@@ -9,6 +9,12 @@ const CommissionModel = {
 const CommissionTypeEnum = {
   COMMISSION: "Commission %",
   FIXED: "Fixed",
+  
+  //adding new params to commissionType
+  
+  IntakeID: "",
+  isActive: "false",
+  
 };
 
 
