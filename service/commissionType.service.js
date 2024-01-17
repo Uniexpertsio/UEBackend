@@ -2,7 +2,7 @@ const uuid = require("uuid");
 const SchoolService = require("./school.service");
 const ProgramService = require("./program.service");
 const IntakeService = require("./intake.service");
-const StaffService = require("./staff.service");
+//const StaffService = require("./staff.service");
 
 
 const CommissionType = require("../models/CommissionType");
@@ -13,7 +13,10 @@ class CommissionTypeService {
     this.schoolService = new SchoolService();
     this.programService = new ProgramService();
     this.intakeService = new IntakeService();
-    this.staffService = new StaffService();
+   
+    // remove staffService
+    
+    //this.staffService = new StaffService();
   }
 
   async findTypeById(id) {
