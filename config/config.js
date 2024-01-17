@@ -41,6 +41,12 @@ const data = {
 		frontend: frontendUrl,
 		s3Endpoint: process.env.S3_ENDPOINT,
 	},
+
+
+	// please remove localhost:3000 to server ips
+
+
+	
 	allowedOrigins: [frontendUrl, "http://localhost:3000"],
 	aws: {
 		bucket: process.env.S3_BUCKET,
