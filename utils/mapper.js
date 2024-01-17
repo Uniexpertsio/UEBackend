@@ -10,6 +10,12 @@ function mapStudent(id, agentId, body) {
       lastName: body.LastName,
       source: body.Source__c,
       passportNumber: body.Passport_Number__c,
+      
+      
+      // added PassportExpiryDate to modal and mapper new field text input type date
+      
+      
+      PassportExpiryDate :body.PassportExpiryDate__c,
       mobile: body.MobilePhone,
       whatsappNumber: body.Whatsapp_No__c,
       countryOfInterest,
