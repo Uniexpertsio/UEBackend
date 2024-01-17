@@ -22,7 +22,8 @@ function mapStudent(id, agentId, body) {
       staffId: body.Partner_Account_Id__c,
       counsellorId: body.Doc_Verification_Officer_Id__c,
       intakePreferred: body.Intake_Preferred__c,
-      dp: body.BDM_User_Id__c
+      dp: body.DisplayPicture__c
+
     },
     demographicInformation: {
       medicalHistoryDetails: body.Medical_History_Detail__c,
