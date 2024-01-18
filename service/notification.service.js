@@ -12,6 +12,10 @@ async function addNotification(id, body) {
 }
 
 async function getNotifications(id, agentId, query) {
+
+    ///chnage the isAnnouncement filter to general
+    //no filter with staffid
+
     let filter = {
         $or: [{ staffId: id }, { agentId }, { isAnnouncement: true }],
     };
