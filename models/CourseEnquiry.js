@@ -1,6 +1,6 @@
 
-IntakeId: {{}}
-PartnerAccountId : {{}}
+IntakeId:  { type: String, required: true },
+PartnerAccountId : { type: String, required: true },
 PartnerUserId: {{}}
 ProgrammeId: {{}}
 SchoolId: {{}}
