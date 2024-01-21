@@ -4,9 +4,6 @@ const Agent = require("../models/Agent");
 
 /// add country to logic in creation of the docs
 
-Country 
-Country__c
-
 
 
 class DocumentTypeService{

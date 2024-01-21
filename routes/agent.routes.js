@@ -7,7 +7,6 @@ const router = Router();
 router.get("/tnc", getTnC);
 
 ///to add a route to send /accept-tnc to salesforce 
-and receive back the s3 to display under get method
 
 
 
