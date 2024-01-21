@@ -374,6 +374,10 @@ class ProgramService {
     return this.createProgramSchoolResponse(schools, programsIds);
   }
 
+
+
+  // to confirm with nilesh 
+  
   async isEligibleForProgram(programId, schoolId, studentId, intakeId) {
     const program = await this.programModel.findById(programId);
     const examTypeRequired = program.requirementExamType;

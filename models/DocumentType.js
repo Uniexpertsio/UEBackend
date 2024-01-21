@@ -31,11 +31,8 @@ const DocumentTypeSchema = new mongoose.Schema(
     country: { type: [String], required: true },
     sequence: { type: Number, required: false, default: 0 },
     objectType: { type: String, required: true, enum: [
-        "Both",
         "Application",
-        "Visa",
         "Student",
-        "Agent"
       ] },
     externalId: { type: String, required: true },
     isBypass: { type: Boolean, required: false }

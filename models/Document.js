@@ -40,9 +40,19 @@ const DocumentSchema = new mongoose.Schema(
         reviewRemarks: { type: String, required: false },
         fileType: { type: String, required: false },
         latestDocumentId: { type: String, required: false },
-        sharepointStatus: { type: String, required: false },
-        sharePointFolderPath: { type: String, required: false },
+       // sharepointStatus: { type: String, required: false },
+     //   sharePointFolderPath: { type: String, required: false },
+///    changing sharePointFolderPath to S3 hosted 
+        S3Folder__c : {type: String, required: false },
+        S3_DMS_URL__c :  {type: String, required: false },
+
+
+        
     },
+
+
+
+
     { timestamps: true }
 );
 

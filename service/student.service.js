@@ -16,29 +16,20 @@ const {sendToSF} = require("./salesforce.service");
 const Staff = require("../models/Staff");
 
 
+
+
+
+
 const PreferredCountries = {
   Australia: "Australia",
-  Austria: "Austria",
-  Belgium: "Belgium",
   Canada: "Canada",
-  Cyprus: "Cyprus",
-  Czech_Republic: "Czech Republic",
-  Estonia: "Estonia",
   France: "France",
   Germany: "Germany",
-  Hungary: "Hungary",
   Ireland: "Ireland",
-  Latvia: "Latvia",
-  Lithuania: "Lithuania",
-  Malaysia: "Malaysia",
-  Netherlands: "Netherlands",
   New_Zealand: "New Zealand",
   Poland: "Poland",
   Portugal: "Portugal",
   Singapore: "Singapore",
-  Spain: "Spain",
-  Sweden: "Sweden",
-  Switzerland: "Switzerland",
   United_Arab_Emirates: "United Arab Emirates",
   United_Kingdom: "United Kingdom",
   United_States: "United States",
@@ -55,6 +46,9 @@ class StudentService {
     this.taskService = new TaskService();
     this.commentService = new CommentService();
     this.applicationService = new ApplicationService();
+
+
+    /// to confirm with nilesh on flow with creation of student ////
     this.programService = new ProgramService();
     this.schoolService = new SchoolService();
   }

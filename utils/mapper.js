@@ -10,6 +10,11 @@ function mapStudent(id, agentId, body) {
       lastName: body.LastName,
       source: body.Source__c,
       passportNumber: body.Passport_Number__c,
+      PreferredCountry:body.Preferred_Country__c,
+    
+     
+      // added PassportExpiryDate to modal and mapper new field text input type date
+      PassportExpiryDate :body.PassportExpiryDate__c,
       mobile: body.MobilePhone,
       whatsappNumber: body.Whatsapp_No__c,
       countryOfInterest,
@@ -17,7 +22,8 @@ function mapStudent(id, agentId, body) {
       staffId: body.Partner_Account_Id__c,
       counsellorId: body.Doc_Verification_Officer_Id__c,
       intakePreferred: body.Intake_Preferred__c,
-      dp: body.BDM_User_Id__c
+      dp: body.DisplayPicture__c
+
     },
     demographicInformation: {
       medicalHistoryDetails: body.Medical_History_Detail__c,
@@ -51,7 +57,9 @@ function mapStudent(id, agentId, body) {
     salesforceId: body.Id,
     externalId: body.ExternalId__c,
     modifiedBy: id,
-    createdBy: id
+    createdBy: id,
+    // added BDMUserId -mapperfiles to check Db with BDMUserId
+    BDMUserId: body.BDM_User_Id__c
   };
 }
 
