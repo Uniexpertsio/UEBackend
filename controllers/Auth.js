@@ -38,8 +38,8 @@ Auth.get.config = async (req, res, next) => {
 
 Auth.post.login = async (req, res) => {
 	try{
-		
-		const tokens = await generateToken();
+	console.log("Request: ", req.body)
+	//const tokens = await generateToken();
 	const email = req.body.email;
 	const password = req.body.password;
 	let staff = await Staff.findOne({ email: email });
@@ -75,7 +75,7 @@ Auth.post.login = async (req, res) => {
 		}
 	}
 	} catch (err) {
-
+		console.log("Request: ", err)
 		return res.status(400).json({
 			"statusCode": 400,
 			"message": err.message,
