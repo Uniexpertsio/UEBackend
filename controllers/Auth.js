@@ -25,10 +25,10 @@ Auth.get.background = async (req, res, next) => {
 Auth.get.config = async (req, res, next) => {
 	try {
 		let bankFields = await Config.findOne({ type: "AUTH_BACKGROUND_IMG" });
-		if (!bankFields) {
+		if (!bankFields?.value[req.query.country]) {
 			bankFields = { key: "bank_code", value: "Bank Code" };
 		} else {
-			bankFields = bankFields[req.query.country]
+			bankFields = bankFields.value[req.query.country]
 		}
 		return res.status(200).json({ data: bankFields, statusCode: 200 })
 	} catch (err) {
