@@ -63,6 +63,19 @@ const getTnc = async () => {
 }
 
 
+const sendDataToSF = async (body, url) => {
+  const token = await generateToken();
+  const headers = generateHeaders(token);
+  try {
+      const { data } = await axios.post(url, body, { headers });
+      return data;
+  
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  } 
+}
+
 const sendToSF = async (fileName, rawBody) => {
   const token = await generateToken();
   const headers = generateHeaders(token);
@@ -132,5 +145,6 @@ module.exports = {
   generateHeaders,
   getMapperPath,
   generateToken,
-  getTnc
+  getTnc,
+  sendDataToSF
 }

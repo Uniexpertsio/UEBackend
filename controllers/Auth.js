@@ -9,9 +9,85 @@ const Document = require("../models/Document");
 const Config = require("../models/Config");
 const Agent = require("../models/Agent");
 const Staff = require("../models/Staff");
-const { sendToSF, generateToken } = require("../service/salesforce.service");
+const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
+
+
+function convertToCompanyData(inputData) {
+    const outputData = {
+        "RecordTypeId": "0125g0000003I7FAAU",
+        "Company_Logo__c": inputData.company.companyLogo,
+        "Country_Code__c": inputData.personalDetails.countryCode,
+        "Timezone_UTC__c": inputData.personalDetails.timezone.utc_offset,
+        "Same_As_Billing_Address__c": false,
+        "Timezone_Region__c": inputData.personalDetails.timezone.name,
+        "Name": "Test overseas Hello 1.",
+        "Lock_Record__c": true,
+        "BDM_User__c": "",
+        //"Parent": "",
+        //"PrimaryContact__r": "",
+        "Students_Per_Year__c": inputData.company.studentPerYear.replace("+", ""),
+        "CurrencyIsoCode": "GBP",
+        "Year_Founded__c": inputData.company.yearFounded,
+        "Website": inputData.company.website,
+        "MaxActiveUsersAllowed__c": 1,
+        "Country__c": inputData.company.country,
+        "Phone": inputData.personalDetails.phone,
+        "EntityType__c": inputData.company.entityType,
+        "Tax_Number__c": inputData.company.taxNumber,
+        "Onboarding_Status__c": "New",
+        "PartnerNotified__c": false,
+        "Bypass_Documentation__c": false,
+        "FinalDocumentStatus__c": "Approved",
+        "Agreement_signed_time_stamp__c": "2023-01-24T06:30:00.000+0000",
+        "Terms_Conditions_Agreed__c": "nnk",
+        "Latitude__c": "90",
+        "Longitude__c": "89",
+        "IP_Address__c": "kn",
+        "Acknowledgement_Acceptance__c": false,
+        "BillingCity": inputData.address.city,
+        "BillingCountry": inputData.address.country,
+        "BillingState": inputData.address.state,
+        "BillingStreet": inputData.address.address,
+        "BillingPostalCode": inputData.address.zipCode,
+        "ShippingCity": inputData.shippingAddress.city,
+        "ShippingCountry": inputData.shippingAddress.country,
+        "ShippingState": inputData.shippingAddress.state,
+        "ShippingStreet": inputData.shippingAddress.address,
+        "ShippingPostalCode": inputData.shippingAddress.zipCode,
+        "Type": "Customer",
+        "NumberOfEmployees": parseInt(inputData.company.employeeCount),
+        "Description": "hello"
+    };
+
+    return outputData;
+}
+
+function convertToAgentData(inputData, id) {
+    const outputData = {
+        "RecordTypeId": "0125g00000020HQAAY",
+        "FirstName": inputData.personalDetails.firstName,
+        "LastName": inputData.personalDetails.lastName,
+        "Passport_Number__c": "8787678765",
+        "MobilePhone": inputData.personalDetails.phone,
+        "Whatsapp_No__c": inputData.company.whatsappId,
+        "Email": inputData.personalDetails.email,
+        "Gender__c": "Male", // Assuming a default value
+        "Birthdate": "2022-07-11", // Assuming a default value
+        "Country_of_Citizenship__c": "Albania", // Assuming a default value
+        "AccountId": id? id: "001Hy000016qOBKIA2", // Assuming a default value
+        //"Partner_Account__c": "001Hy000016qOBKIA2", // Assuming a default value
+        "EmergencyContactName__c": "dcvderfverw", // Assuming a default value
+        "Relationship__c": "Mother", // Assuming a default value
+        "EmergencyContactEmail__c": inputData.personalDetails.email, // Assuming a default value
+        "Phone": inputData.personalDetails.phone, // Assuming a default value
+        "Country__c": inputData.address.country // Assuming a default value
+    };
+
+    return outputData;
+}
+
 
 Auth.get.background = async (req, res, next) => {
 	try {
@@ -87,7 +163,7 @@ Auth.post.login = async (req, res) => {
 
 Auth.post.signup = async (req, res, next) => {
 	try {
-		const externalId = uuid();
+				const externalId = uuid();
 		const agentData = req.body;
 		const email = req.body.personalDetails.email;
 		let agent = await Agent.findOne({"personalDetails.email": email});
@@ -139,7 +215,14 @@ Auth.post.signup = async (req, res, next) => {
 		);
 			//console.log("sf::: ", sf);
 		// sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
-
+		const companyData = convertToCompanyData(req.body);
+		const companyUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account";
+		const sfCompanyData = await sendDataToSF(companyData, companyUrl);
+		console.log("sf company data:  ", sfCompanyData);
+		const agentsData = convertToAgentData(req.body, sfCompanyData.id);
+		const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
+		const sfAgentData = await sendDataToSF(agentsData, agentUrl);
+		console.log("sf agent data:  ", sfAgentData);
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
 
 	} catch (err) {
