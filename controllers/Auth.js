@@ -17,7 +17,7 @@ const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 function convertToCompanyData(inputData) {
     const outputData = {
         "RecordTypeId": "0125g0000003I7FAAU",
-        "Company_Logo__c": inputData.company.companyLogo,
+        "Company_Logo__c": "+91",
         "Country_Code__c": inputData.personalDetails.countryCode,
         "Timezone_UTC__c": inputData.personalDetails.timezone.utc_offset,
         "Same_As_Billing_Address__c": false,
@@ -202,7 +202,7 @@ Auth.post.signup = async (req, res, next) => {
 			},
 		});
 		const url = "Contact/ExternalId__c/2573t236423e";
-		const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
+		//const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
 		const token = jwt.sign(
 			{
 				id: staff._id,
@@ -219,10 +219,13 @@ Auth.post.signup = async (req, res, next) => {
 		const companyUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account";
 		const sfCompanyData = await sendDataToSF(companyData, companyUrl);
 		console.log("sf company data:  ", sfCompanyData);
-		const agentsData = convertToAgentData(req.body, sfCompanyData.id);
-		const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
-		const sfAgentData = await sendDataToSF(agentsData, agentUrl);
-		console.log("sf agent data:  ", sfAgentData);
+		if(sfCompanyData && sfCompanyData.success){
+			const agentsData = convertToAgentData(req.body, sfCompanyData.id);
+			const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
+			const sfAgentData = await sendDataToSF(agentsData, agentUrl);
+			console.log("sf agent data:  ", sfAgentData);
+		}
+		
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
 
 	} catch (err) {
