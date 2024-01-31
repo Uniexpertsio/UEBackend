@@ -72,7 +72,7 @@ const sendDataToSF = async (body, url) => {
   
   } catch (err) {
     console.error("Error: " + err);
-    handleSfError(err);
+    //handleSfError(err);
   } 
 }
 
