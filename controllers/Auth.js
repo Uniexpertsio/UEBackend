@@ -22,7 +22,7 @@ function convertToCompanyData(inputData) {
         "Timezone_UTC__c": inputData.personalDetails.timezone.utc_offset,
         "Same_As_Billing_Address__c": false,
         "Timezone_Region__c": inputData.personalDetails.timezone.name,
-        "Name": "Test overseas Hello 1.",
+        "Name": inputData.company.companyName,
         "Lock_Record__c": true,
         "BDM_User__c": "",
         //"Parent": "",
@@ -40,11 +40,11 @@ function convertToCompanyData(inputData) {
         "PartnerNotified__c": false,
         "Bypass_Documentation__c": false,
         "FinalDocumentStatus__c": "Approved",
-        "Agreement_signed_time_stamp__c": "2023-01-24T06:30:00.000+0000",
-        "Terms_Conditions_Agreed__c": "nnk",
-        "Latitude__c": "90",
-        "Longitude__c": "89",
-        "IP_Address__c": "kn",
+        "Agreement_signed_time_stamp__c": new Date(),
+        "Terms_Conditions_Agreed__c": "",
+        "Latitude__c": "",
+        "Longitude__c": "",
+        "IP_Address__c": "",
         "Acknowledgement_Acceptance__c": false,
         "BillingCity": inputData.address.city,
         "BillingCountry": inputData.address.country,
@@ -58,7 +58,7 @@ function convertToCompanyData(inputData) {
         "ShippingPostalCode": inputData.address.zipCode,
         "Type": "Customer",
         "NumberOfEmployees": parseInt(inputData.company.employeeCount),
-        "Description": "hello"
+        "Description": "Description"
     };
 
     return outputData;
@@ -75,10 +75,10 @@ function convertToAgentData(inputData, id) {
         "Email": inputData.personalDetails.email,
         "Gender__c": "Male", // Assuming a default value
         "Birthdate": "2022-07-11", // Assuming a default value
-        "Country_of_Citizenship__c": "Albania", // Assuming a default value
+        "Country_of_Citizenship__c": inputData.company.country, // Assuming a default value
         "AccountId": id? id: "001Hy000016qOBKIA2", // Assuming a default value
         //"Partner_Account__c": "001Hy000016qOBKIA2", // Assuming a default value
-        "EmergencyContactName__c": "dcvderfverw", // Assuming a default value
+        "EmergencyContactName__c": inputData.personalDetails.firstName, // Assuming a default value
         "Relationship__c": "Mother", // Assuming a default value
         "EmergencyContactEmail__c": inputData.personalDetails.email, // Assuming a default value
         "Phone": inputData.personalDetails.phone, // Assuming a default value
