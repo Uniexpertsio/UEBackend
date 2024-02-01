@@ -90,22 +90,7 @@ const updateBankInformation = async(req, res)=> {
     if (result.modifiedCount === 0) {
         return res.status(200).json({ statusCode: 400, message: "Agent not found" })
     }
-    // {
-    //     "Name":"From Postman Bank",
-    //     "Account__r":{
-    //         "ExternalId__c":"e4433a12-51b8-1adc-c4f5-0f1f0842a973"
-    //     },
-    //     "AccountHolderName__c":"test holder",
-    //     "SwiftCode__c":"AERDFG093RT",
-    //     "AccountNumber__c":"234543234434",
-    //     "BankCode__c":"wref34fgrevse",
-    //     "AccountNumberConfirm__c":"234543234434",
-    //     "Status__c":"New"
-    //     }
-        // EndPointUrl:https://uniexperts--dev.sandbox.my.salesforce.com/services/data/v55.0/sobjects/BankDetail__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973
-        //  Headers:
-        //         Content-Type:-application/json
-        //         Authorization:- Bearer 00DN0000000cDM4!ASAAQCPueQ1kguX04emRQIWIniLncCALulkTnxpFZRfmwXZYpD2UGMiCr.NyZzgt0_eK_lJd0SHibPrHZksH7eOPpncSXTX2
+    
 
     const url = "BankDetail__c/ExternalId__c/"+result.commonId
     const data = await sendToSF(MappingFiles.AGENT_bank, { bank: req.body, externalId: result.commonId, _user: { agentId: id } , url });

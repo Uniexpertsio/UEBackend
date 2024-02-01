@@ -13,6 +13,21 @@ const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
+function convertToBankData(inputData) {
+    const outputData = {
+        "Name": inputData.bank.name,
+        "Account__c": "001Hy000016qOBKIA2",
+        "AccountHolderName__c": inputData.bank.name,
+        "SwiftCode__c": inputData.bank.swiftCode,
+        "AccountNumber__c": inputData.bank.accountNumber,
+        "BankCode__c": inputData.bank.swiftCode, // Assuming a default value
+        "AccountNumberConfirm__c": inputData.bank.accountNumber,
+        "Status__c": "New" // Assuming a default value
+    };
+
+    return outputData;
+}
+
 
 function convertToCompanyData(inputData) {
     const outputData = {
@@ -224,6 +239,11 @@ Auth.post.signup = async (req, res, next) => {
 			const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
 			const sfAgentData = await sendDataToSF(agentsData, agentUrl);
 			console.log("sf agent data:  ", sfAgentData);
+
+			const bankUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c";
+			const bankData = convertToBankData(req.body)
+			const sfBankData = await sendDataToSF(bankData, bankUrl);
+			console.log("sf bank data:  ", sfBankData);
 		}
 		
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
