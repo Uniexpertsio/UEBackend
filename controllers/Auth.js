@@ -13,10 +13,10 @@ const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
-function convertToBankData(inputData) {
+function convertToBankData(inputData, id) {
     const outputData = {
         "Name": inputData.bank.name,
-        "Account__c": "001Hy000016qOBKIA2",
+        "Account__c": id,
         "AccountHolderName__c": inputData.bank.name,
         "SwiftCode__c": inputData.bank.swiftCode,
         "AccountNumber__c": inputData.bank.accountNumber,
@@ -235,13 +235,15 @@ Auth.post.signup = async (req, res, next) => {
 		const sfCompanyData = await sendDataToSF(companyData, companyUrl);
 		console.log("sf company data:  ", sfCompanyData);
 		if(sfCompanyData && sfCompanyData.success){
+			const updatedAgent = await Agent.findByIdAndUpdate(agent.id, {commonId: sfCompanyData.id}, {new: true});
 			const agentsData = convertToAgentData(req.body, sfCompanyData.id);
 			const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
 			const sfAgentData = await sendDataToSF(agentsData, agentUrl);
 			console.log("sf agent data:  ", sfAgentData);
 
 			const bankUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c";
-			const bankData = convertToBankData(req.body)
+			const bankData = convertToBankData(req.body, sfCompanyData.id)
+			console.log("Bank data: ", bankData);
 			const sfBankData = await sendDataToSF(bankData, bankUrl);
 			console.log("sf bank data:  ", sfBankData);
 		}
