@@ -17,8 +17,8 @@ const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 function convertToCompanyData(inputData) {
     const outputData = {
         "RecordTypeId": "0125g0000003I7FAAU",
-        "Company_Logo__c": "+91",
-        "Country_Code__c": inputData.personalDetails.countryCode,
+        "Company_Logo__c": "",
+        "Country_Code__c": "+91",
         "Timezone_UTC__c": inputData.personalDetails.timezone.utc_offset,
         "Same_As_Billing_Address__c": false,
         "Timezone_Region__c": inputData.personalDetails.timezone.name,
