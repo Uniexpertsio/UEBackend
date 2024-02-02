@@ -26,10 +26,10 @@ class AgentService{
         if (!agent) throw "Agent not found";
         documents.forEach(async (doc) => {
           let dtype = await this.documentTypeService.findById(doc.documentTypeId);
-
+         // console.log("doc: " + doc)
           
           const data = {
-            "Name": agent.personalDetails.firstName + " " + agent.personalDetails.lastName,
+            "Name": doc.name,
             "Lock_Record__c": false,
             "Active__c":"",
             "LatestDocumentId__c": "",
