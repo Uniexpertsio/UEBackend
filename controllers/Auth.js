@@ -9,7 +9,7 @@ const Document = require("../models/Document");
 const Config = require("../models/Config");
 const Agent = require("../models/Agent");
 const Staff = require("../models/Staff");
-const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
+const { sendToSF, sendDataToSF, getTnc } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -355,8 +355,10 @@ Auth.post.resetPassword = async (req, res) => {
 
 
 Auth.get.tnc = async (req, res) => {
-	const tnc = await await Config.findOne({ type: "AUTH_TNC" })
-	return res.status(200).json({ data: tnc, statusCode: 200 });
+	const tncSf = await getTnc();
+	// console.log("TNC SF: ", tncSf)
+	// const tnc = await Config.findOne({ type: "AUTH_TNC" })
+	return res.status(200).json({ data: tncSf, statusCode: 200 });
 }
 
 
