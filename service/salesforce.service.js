@@ -52,7 +52,7 @@ const getTnc = async () => {
   try{
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/query?q=SELECT Term_Condition__c FROM Website_Config__c WHERE Type__c='Sign Up' AND Active__c = TRUE LIMIT 1`
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getpdf?id=0036D00000mEoFiQAK&param1=122.161.29.89`
     const { data } = await axios.get(url, { headers });
     return data;
 
