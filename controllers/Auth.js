@@ -46,7 +46,7 @@ function convertToCompanyData(inputData) {
         "CurrencyIsoCode": "GBP",
         "Year_Founded__c": inputData.company.yearFounded,
         "Website": inputData.company.website,
-        "MaxActiveUsersAllowed__c": 1,
+        "MaxActiveUsersAllowed__c": 5,
         "Country__c": inputData.company.country,
         "Phone": inputData.personalDetails.phone,
         "EntityType__c": inputData.company.entityType,
@@ -54,7 +54,7 @@ function convertToCompanyData(inputData) {
         "Onboarding_Status__c": "New",
         "PartnerNotified__c": false,
         "Bypass_Documentation__c": false,
-        "FinalDocumentStatus__c": "Approved",
+        "FinalDocumentStatus__c": "Pending",
         "Agreement_signed_time_stamp__c": new Date(),
         "Terms_Conditions_Agreed__c": "",
         "Latitude__c": "",
@@ -71,9 +71,9 @@ function convertToCompanyData(inputData) {
         "ShippingState": inputData.address.state,
         "ShippingStreet": inputData.address.address,
         "ShippingPostalCode": inputData.address.zipCode,
-        "Type": "Customer",
+        "Type": "Partner",
         "NumberOfEmployees": parseInt(inputData.company.employeeCount),
-        "Description": "Description"
+        "Description": ""
     };
 
     return outputData;
@@ -81,23 +81,38 @@ function convertToCompanyData(inputData) {
 
 function convertToAgentData(inputData, id) {
     const outputData = {
+	// 	"RecordTypeId":"0125g00000020HQAAY",
+    // "FirstName": "Testing1 2Postman",
+    // "LastName": "Integration",
+    // "MobilePhone": "+917876567876",
+    // "Whatsapp_No__c": "+917876567876",
+    // "Email": "ank@gmail.com",
+    // "Birthdate": "2022-07-11",
+    // "AccountId": "001Hy000016u1y9IAA", //tag company
+    // "Phone": "8987678987",
+    // "Active__c":true,//Boolean Value(true/false)
+    // "MailingCity":"Test",
+    // "MailingState":"dummy delhi",
+    // "MailingCountry":"",
+    // "MailingStreet":"", 
+    // "MailingPostalCode":""
+
+
         "RecordTypeId": "0125g00000020HQAAY",
         "FirstName": inputData.personalDetails.firstName,
         "LastName": inputData.personalDetails.lastName,
-        "Passport_Number__c": "8787678765",
         "MobilePhone": inputData.personalDetails.phone,
-        "Whatsapp_No__c": inputData.company.whatsappId,
+        "Whatsapp_No__c": inputData.personalDetails.phone,
         "Email": inputData.personalDetails.email,
-        "Gender__c": "Male", // Assuming a default value
+		"Phone": "8987678987",
         "Birthdate": "2022-07-11", // Assuming a default value
-        "Country_of_Citizenship__c": inputData.company.country, // Assuming a default value
         "AccountId": id? id: "001Hy000016qOBKIA2", // Assuming a default value
-        //"Partner_Account__c": "001Hy000016qOBKIA2", // Assuming a default value
-        "EmergencyContactName__c": inputData.personalDetails.firstName, // Assuming a default value
-        "Relationship__c": "Mother", // Assuming a default value
-        "EmergencyContactEmail__c": inputData.personalDetails.email, // Assuming a default value
-        "Phone": inputData.personalDetails.phone, // Assuming a default value
-        "Country__c": inputData.address.country // Assuming a default value
+        "Active__c":true,
+		"MailingCity": inputData.address.city,
+		"MailingState": inputData.address.state,
+		"MailingCountry": inputData.address.country,
+		"MailingStreet":inputData.address.address, 
+		"MailingPostalCode": inputData.address.zipCode
     };
 
     return outputData;
