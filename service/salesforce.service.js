@@ -52,7 +52,21 @@ const getTnc = async () => {
   try{
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getpdf?id=0036D00000mEoFiQAK&param1=122.161.29.89`
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementContent?id=0036D00000mEoFiQAK`
+    const { data } = await axios.get(url, { headers });
+    return data;
+
+  }catch(err){
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+}
+
+const downloadTnc = async () => {
+  try{
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementLink?id=0036D00000mEoFiQAK&param1=122.161.29.89`
     const { data } = await axios.get(url, { headers });
     return data;
 
@@ -146,5 +160,6 @@ module.exports = {
   getMapperPath,
   generateToken,
   getTnc,
-  sendDataToSF
+  sendDataToSF,
+  downloadTnc
 }
