@@ -262,6 +262,8 @@ Auth.post.signup = async (req, res, next) => {
 			console.log("Bank data: ", bankData);
 			const sfBankData = await sendDataToSF(bankData, bankUrl);
 			console.log("sf bank data:  ", sfBankData);
+		}else{
+			throw "Salesforce Error, while pushing company data";
 		}
 		
 		return res.status(200).json({ data: generateAuthResponse(staff, agent, token, sfAgentId), statusCode: 201 });
