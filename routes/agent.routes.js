@@ -4,14 +4,14 @@ const Middleware = require("../controllers/Middleware");
 
 const router = Router();
 
-router.get("/tnc", getTnC);
+router.get("/tnc/:sfId", getTnC);
 
 ///to add a route to send /accept-tnc to salesforce 
 
 
 
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
-router.get("/download-tnc", downloadTncData);
+router.get("/download-tnc/:sfId", downloadTncData);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
 router.patch("/general-information",  Middleware.checkAuth, updateGeneralInformation);
 router.get("/bank-information", Middleware.checkAuth, getBankInformation);

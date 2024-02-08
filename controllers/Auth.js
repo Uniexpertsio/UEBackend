@@ -171,7 +171,7 @@ Auth.post.login = async (req, res) => {
 			if(docs.length > 0) {
 				docUploaded = true;
 			}
-			return res.status(200).json({ data: {docUploaded, ...generateAuthResponse(staff, agent, token)}, statusCode: 200, tokens: token });
+			return res.status(200).json({ data: {docUploaded, ...generateAuthResponse(staff, agent, token, "")}, statusCode: 200, tokens: token });
 		} else {
 			res.status(403).json({
 				"statusCode": 401,
@@ -263,7 +263,7 @@ Auth.post.signup = async (req, res, next) => {
 			console.log("sf bank data:  ", sfBankData);
 		}
 		
-		return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 201 });
+		return res.status(200).json({ data: generateAuthResponse(staff, agent, token, sfCompanyData.id), statusCode: 201 });
 
 	} catch (err) {
 
@@ -390,13 +390,14 @@ Auth.get.profile = async (req, res) => {
 			expiresIn: "24d",
 		}
 	);
-	return res.status(200).json({ data: generateAuthResponse(staff, agent, token), statusCode: 200 });
+	return res.status(200).json({ data: generateAuthResponse(staff, agent, token, ""), statusCode: 200 });
 
 }
 
-function generateAuthResponse(staff, agent, token) {
+function generateAuthResponse(staff, agent, token, sfId) {
 	return {
 		token: token,
+		sfId,
 		isDocumentsRequired: agent.documents.length === 0,
 		isTncAccepted: agent.tncMeta ? (agent.tncMeta.isAccepted ? agent.tncMeta.isAccepted : false) : false,
 		status: agent.verificationStatus,

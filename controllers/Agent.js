@@ -37,7 +37,7 @@ const acceptTnc = async (req, res, next) => {
 const getTnC = async (req, res, next) => {
 	try{
        
-        const data = await getTnc();
+        const data = await getTnc(req.params.sfId);
 
 		return res.status(200).json(data);
 	}catch(err){
@@ -48,7 +48,7 @@ const getTnC = async (req, res, next) => {
 const downloadTncData = async (req, res, next) => {
 	try{
        
-        const data = await downloadTnc();
+        const data = await downloadTnc(req.params.sfId);
 
 		return res.status(200).json(data);
 	}catch(err){

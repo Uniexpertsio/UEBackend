@@ -48,11 +48,11 @@ const filterUndefined = (body) => {
   });
 }
 
-const getTnc = async () => {
+const getTnc = async (sfId) => {
   try{
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementContent?id=0036D00000mEoFiQAK`
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementContent?id=${sfId}`
     const { data } = await axios.get(url, { headers });
     return data;
 
@@ -62,11 +62,11 @@ const getTnc = async () => {
   }
 }
 
-const downloadTnc = async () => {
+const downloadTnc = async (sfId) => {
   try{
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementLink?id=0036D00000mEoFiQAK&param1=122.161.29.89`
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementLink?id=${sfId}&param1=122.161.29.89`
     const { data } = await axios.get(url, { headers });
     return data;
 
