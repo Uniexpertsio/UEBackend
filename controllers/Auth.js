@@ -249,13 +249,14 @@ Auth.post.signup = async (req, res, next) => {
 		const companyUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account";
 		const sfCompanyData = await sendDataToSF(companyData, companyUrl);
 		console.log("sf company data:  ", sfCompanyData);
+		let sfAgentId = "";
 		if(sfCompanyData && sfCompanyData.success){
 			const updatedAgent = await Agent.findByIdAndUpdate(agent.id, {commonId: sfCompanyData.id}, {new: true});
 			const agentsData = convertToAgentData(req.body, sfCompanyData.id);
 			const agentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
 			const sfAgentData = await sendDataToSF(agentsData, agentUrl);
 			console.log("sf agent data:  ", sfAgentData);
-
+			sfAgentId = sfAgentData.id;
 			const bankUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c";
 			const bankData = convertToBankData(req.body, sfCompanyData.id)
 			console.log("Bank data: ", bankData);
@@ -263,7 +264,7 @@ Auth.post.signup = async (req, res, next) => {
 			console.log("sf bank data:  ", sfBankData);
 		}
 		
-		return res.status(200).json({ data: generateAuthResponse(staff, agent, token, sfCompanyData.id), statusCode: 201 });
+		return res.status(200).json({ data: generateAuthResponse(staff, agent, token, sfAgentId), statusCode: 201 });
 
 	} catch (err) {
 
