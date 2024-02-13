@@ -90,6 +90,23 @@ const sendDataToSF = async (body, url) => {
   } 
 }
 
+
+const updateDataToSF = async (body, url) => {
+  const token = await generateToken();
+  console.log(url,body);
+  const headers = generateHeaders(token);
+  try {
+      const { data } = await axios.patch(url, body, { headers });
+      console.log("Yaha a rh ahu main",data);
+      return data;
+  
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  } 
+}
+
+
 const sendToSF = async (fileName, rawBody) => {
   const token = await generateToken();
   const headers = generateHeaders(token);
@@ -161,5 +178,6 @@ module.exports = {
   generateToken,
   getTnc,
   sendDataToSF,
+  updateDataToSF,
   downloadTnc
 }
