@@ -4,11 +4,6 @@ const axios = require("axios");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const querystring = require("querystring");
-// # client_id :-3MVG9z6NAroNkeMkQIYXpSeRyrHQJBbNMH21xAcoifdreqdFHYR8fLkvuY3gk_J1_Whm2yTcL5ayH1fZEKs2c
-// # client_secret :- EA815585901C63B5DD57335043FA94957708F3D7B4BD7B6F53908E739ED6A921
-// # username :- ashok1@uniexperts.io.uxuat
-// # password :-Rathi$1949
-// # grant_type :-password
 
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
@@ -17,9 +12,9 @@ const generateToken = async () => {
   // Add two hours (2 * 3600 seconds) to the timestamp
   const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600;
   const payload = {
-    iss:process.env.SF_ISS,
-    sub:process.env.SF_SUB,
-    aud:process.env.SF_URL,
+    iss: process.env.SF_ISS,
+    sub: process.env.SF_SUB,
+    aud: process.env.SF_URL,
     exp: newTimestampInSeconds,
   };
   // // Create the token
@@ -86,7 +81,7 @@ const getTnc = async (sfId) => {
   try {
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementContent?id=${sfId}`;
+    const url = `${process.env.SF_APEXREST_URL}getAgreementContent?id=${sfId}`;
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
@@ -99,7 +94,7 @@ const downloadTnc = async (sfId) => {
   try {
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/apexrest/getAgreementLink?id=${sfId}&param1=122.161.29.89`;
+    const url = `${process.env.SF_APEXREST_URL}getAgreementLink?id=${sfId}&param1=122.161.29.89`;
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
