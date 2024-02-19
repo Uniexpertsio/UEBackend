@@ -12,12 +12,8 @@ const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
-const {sendToSF} = require("./salesforce.service");
+const {sendToSF, sendDataToSF} = require("./salesforce.service");
 const Staff = require("../models/Staff");
-
-
-
-
 
 
 const PreferredCountries = {
@@ -53,6 +49,194 @@ class StudentService {
     this.schoolService = new SchoolService();
   }
 
+  converttoSfBody(data) {
+    const convertedData = {
+      "Salutation": data.studentInformation.salutation,
+      "FirstName": data.studentInformation.firstName,
+      "LastName": data.studentInformation.lastName,
+      "DocumentCreated__c": true,
+      "Task_Created__c": true,
+      "Partner_Account__c": "0016D00000eKbyjQAC",
+      "Partner_User__c": "",
+      "Counsellor__c": "",
+      "Student_Status__c": "",
+      "Processing_Officer__c": "",
+      "BDM_User__c": "",
+      "Source__c": data.studentInformation.source,
+      "Passport_Number__c": data.studentInformation.passportNumber,
+      "MobilePhone": "+" + data.studentInformation.mobile,
+      "Whatsapp_No__c": "+" + data.studentInformation.whatsappNumber,
+      "Email": data.studentInformation.email,
+      "Preferred_Country__c": data.studentInformation.countryOfInterest.join(';'),
+      "Intake_Preferred__c": data.studentInformation.intakePreferred,
+      "Medical_History_Detail__c": data.demographicInformation.medicalHistoryDetails,
+      "Medical_History__c": data.demographicInformation.haveMedicalHistory ? "Yes" : "No",
+      "Martial_Status__c": data.demographicInformation.maritalStatus,
+      "Gender__c": data.demographicInformation.gender,
+      "Birthdate": data.demographicInformation.dateOfBirth.split("T")[0],
+      "First_Language__c": data.demographicInformation.firstLanguage,
+      "Country_of_Citizenship__c": data.demographicInformation.country,
+      "MailingStreet": data.address.address,
+      "MailingCity": data.address.city,
+      "MailingState": data.address.state,
+      "MailingCountry": data.address.country,
+      "MailingPostalCode": data.address.zipCode,
+      "EmergencyContactName__c": data.emergencyContact.name,
+      "Relationship__c": data.emergencyContact.relationship,
+      "EmergencyContactEmail__c": data.emergencyContact.email,
+      "Phone": data.emergencyContact.phoneNumber,
+      "Country__c": data.emergencyContact.country,
+      "Have_you_been_refused_a_visa__c": data.backgroundInformation.isRefusedVisa ? "Yes" : "No",
+      "Do_you_have_a_valid_Study_Permit_Visa__c": data.backgroundInformation.haveStudyPermit,
+      "Study_Permit_Visa_Details__c": data.backgroundInformation.studyPermitDetails,
+      "Lock_Record__c": true,
+      "RecordTypeId": "0125g00000020HRAAY"
+    };
+
+    return convertedData;
+  }
+
+  convertEducationData(data) {
+    const convertedData = {
+      "Name_of_Institution__c": data.institutionName,
+      "Lock_Record__c": "true",
+      "ShowInProfile__c": "true",
+      "Level_of_Education__c": data.level,
+      "Degree_Awarded_On__c": data.degreeAwardedOn.split("T")[0],
+      "Degree_Awarded__c": data.isDegreeAwarded ? "Yes" : "No",
+      "Name": data.degree,
+      "Country_of_Institution__c": data.country,
+      "Class__c": data.class,
+      "Score__c": parseFloat(data.cgpa),
+      "Attended_Institution_To__c": data.attendedTo.split("T")[0],
+      "Attended_Institution_From__c": data.attendedFrom.split("T")[0],
+      "Affiliated_University__c": data.affiliatedUniversity,
+      "Verification_Status__c": "",
+      "Student__c": "0036D00000pHIZNQA4",
+      "Primary_Language_of_Instruction__c": data.instituteLanguage
+    };
+
+    return convertedData;
+  }
+
+  convertEducationData(data) {
+    const convertedData = {
+      "Name_of_Institution__c": data.institutionName,
+      "Lock_Record__c": "true",
+      "ShowInProfile__c": "true",
+      "Level_of_Education__c": data.level,
+      "Degree_Awarded_On__c": data.degreeAwardedOn.split("T")[0],
+      "Degree_Awarded__c": data.isDegreeAwarded ? "Yes" : "No",
+      "Name": data.degree,
+      "Country_of_Institution__c": data.country,
+      "Class__c": data.class,
+      "Score__c": parseFloat(data.cgpa),
+      "Attended_Institution_To__c": data.attendedTo.split("T")[0],
+      "Attended_Institution_From__c": data.attendedFrom.split("T")[0],
+      "Affiliated_University__c": data.affiliatedUniversity,
+      "Verification_Status__c": "", // You may update this based on your specific logic
+      "Student__c": "0036D00000pHIZNQA4", // Replace with the actual student ID
+      "Primary_Language_of_Instruction__c": data.instituteLanguage
+    };
+
+    return convertedData;
+  }
+
+  convertWorkHistoryData(data) {
+    const convertedData = {
+      "Name": data.employerName,
+      "Designation__c": data.designation,
+      "Date_of_Joining__c": data.doj.split("T")[0],
+      "Date_of_relieving__c": data.dor.split("T")[0],
+      "Signing_Contact_Email__c": data.email,
+      "Signing_Contact_Phone__c": data.signingAuthority.phone,
+      "Signing_Contact_Name__c": data.signingAuthority.name,
+      "Student__c": "003Hy00000tPfkUIAS",
+      "Lock_Record__c": ""
+    };
+
+    return convertedData;
+  }
+
+  convertTestScoreData(data) {
+    let convertedData = {
+        "RecordTypeId": "", // Fill this value based on the examType
+        "Student__c": "0036D00000UPLRIQA5", 
+        "ShowInProfile__c": true,
+        "Lock_Record__c": true,
+        "English_Exam_Type__c": data.examType,
+        "Date_of_Exam__c": data.doe.split("T")[0],
+        "ID_Certificate_No__c": data.certificateNo,
+        "Quantitative_reasoning_Percentile__c": "", // Placeholder
+        "Total_Score__c": "", // Placeholder
+        "ExternalId__c": "", // Placeholder
+    };
+
+    // Mapping record type IDs based on the examType
+    switch(data.examType) {
+        case "GRE":
+            convertedData.RecordTypeId = "0125g0000000zo0AAA";
+            convertedData.Analytical_reasoning_Percentile__c = ""; // Placeholder
+            convertedData.Analytical_reasoning_Score__c = ""; // Placeholder
+            convertedData.Quantitative_reasoning_Score__c = ""; // Placeholder
+            convertedData.Verbal_Reasoning_Percentile__c = ""; // Placeholder
+            convertedData.Verbal_Reasoning_Score__c = ""; // Placeholder
+            break;
+        case "GMAT":
+            convertedData.RecordTypeId = "0125g0000000znzAAA";
+            convertedData.Integrated_Listening_Percentile__c = ""; // Placeholder
+            convertedData.Integrated_Listening_Score__c = ""; // Placeholder
+            convertedData.Quantitative_Percentile__c = ""; // Placeholder
+            convertedData.Quantitative_Score__c = ""; // Placeholder
+            convertedData.Total_Percentile__c = ""; // Placeholder
+            convertedData.Verbal_Percentile__c = ""; // Placeholder
+            convertedData.Verbal_Score1__c = ""; // Placeholder
+            break;
+        case "Duolingo English Test":
+            convertedData.RecordTypeId = "0125g0000000znyAAA";
+            convertedData.Comprehension__c = ""; // Placeholder
+            convertedData.Conversation__c = ""; // Placeholder
+            convertedData.Literacy__c = ""; // Placeholder
+            convertedData.Overall__c = ""; // Placeholder
+            convertedData.Production__c = ""; // Placeholder
+            break;
+        default:
+            break;
+    }
+
+    return convertedData;
+}
+
+  convertTaskData(data) {
+    const convertedData = {
+      "RecordTypeId": "0125g0000003r8xAAA",
+      "Name": data.name,
+      "Sequence__c": "2",
+      "TaskMaster__c": "",
+      "DocumentId__c": "",
+      "ContactId__c": "0036D00000p36F3QAI", // Dynamic for student
+      "Status__c": "New", // Enum: New, In Progress, Due, Completed
+      "Lock_Record__c": false,
+      "Type__c": "Question", // Enum: Question, Clarification, Request Document, Interview, Appointment, Pre-Screening Documents, Verify Document, Re-upload Document, Re-verify Document, Agent Training
+      "CompletedDate__c": "2023-02-09",
+      "Mandatory__c": true,
+      "Publish_To_Portal__c": true,
+      "IsArchived__c": true,
+      "Priority__c": "High", // Enum: High, Normal, Low
+      "Description__c": data.description,
+      "CommentUniexperts__c": "asrftrf",
+      "IsReminderSet__c": true,
+      "ApplicationStages__c": "Pre-Submission", // Enum: Pre-Submission, Application Submitted, Accepted(Conditional), Accepted(Unconditional), Payment, Visa Letter Requested
+      "RecurrenceInterval__c": 2,
+      "Start_Date__c": "",
+      "Task_End_Date__c": "2023-08-17T09:43:56.000+0000",
+      "Student_stages__c": "" // Enum: New Student, General, Educational, Work History, Documents Received, Pre Screening Interview, Pre Documents Verification, Document Verified, Application, Visa Approved, Enrolled, Commission, Rejected
+    };
+
+    return convertedData;
+  }
+
+
   async createStudent(modifiedBy, agentId, studentInformation) {
     await this.checkForValidUsers(
       studentInformation.studentInformation.staffId,
@@ -68,60 +252,14 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
-    
-    // {
-    //   "attributes": {
-    //     "type": "Contact",
-    //     "url": "/services/data/v55.0/sobjects/Contact/003N000001vT1EDIA0"
-    //   },
-    //   "RecordTypeId":"0125g00000020HRAAY",
-    //   "FirstName": "efvknfvjknr",
-    //   "LastName": "rtjgtr",
-    //   "Lock_Record__c":"true,"
-    //   "Source__c": "Partner",
-    //   "Passport_Number__c": "8787678765",
-    //   "MobilePhone": "+917876567876",
-    //   "Whatsapp_No__c": "+917876567876",
-    //   "Preferred_Country__c": "Austria;Cyprus",
-    //   "Email": "ank@gmail.com",
-    //   "Medical_History_Detail__c": "sjkchsduiwv",
-    //   "Medical_History__c": "No",
-    //   "Account_Name_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Application_Submitted_By_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "BDM_User_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "MC_Subscriber_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Partner_Account_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Processing_Officer_Id__c:"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Partner_User_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Reports_To_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "School_Id__c":"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Martial_Status__c": "Married",
-    //   "Gender__c": "Male",
-    //   "Birthdate": "2022-07-11",
-    //   "First_Language__c": "iohdwef",
-    //   "Country_of_Citizenship__c": "Albania",
-    //   "EmergencyContactName__c": "dcvderfverw",
-    //   "Relationship__c": "Mother",
-    //   "EmergencyContactEmail__c": "ank@gmail.com",
-    //   "Phone": "8987678987",
-    //   "Country__c": "Aland Islands",
-    //   "Have_you_been_refused_a_visa__c": "No",
-    //   "Do_you_have_a_valid_Study_Permit_Visa__c": "No",
-    //   "Study_Permit_Visa_Details__c": "wefwer",
-    //   "Id": "003N000001vT1EDIA0",
-    //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30"
-    // }		
-   
-    const url = "Contact/0036D00000pHIZNQA4"
-    const sf = await sendToSF(MappingFiles.STUDENT_student, {
-      ...studentInformation,
-      externalId: externalId,
-      _user: { agentId, id: modifiedBy },
-      url
-    });
+  
+    const studentData = this.converttoSfBody(studentInformation)
+    console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
+    const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
+   const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
 
-    console.log("sf 222: ", sf);
-    return { id: student.id, sf };
+   console.log("sfStudentResponse: ", sfStudentResponse);
+    return { id: student.id, sf: sfStudentResponse };
   }
 
   async preferredCountries() {
@@ -224,58 +362,12 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    // {
-    //   "attributes": {
-    //     "type": "Education__c",
-    //     "url": "/services/data/v55.0/sobjects/Education__c/a02N000000N8POMIA3"
-    //   },
-    //   "Name_of_Institution__c": "Miet",
-    //   "Lock_Record__c":"true",
-    //   "ShowInProfile__c":"true",
-    //   "Level_of_Education__c": "Grade 1",
-    //   "Degree_Awarded_On__c": "2022-10-30",
-    //   "Degree_Awarded__c": "Yes",
-    //   "Name": "Salesforce Platform123",
-    //   "Country_of_Institution__c": "Aland Islands",
-    //   "Class__c": "First Class",
-    //   "Score__c": 10,
-    //   "Attended_Institution_To__c": "2022-10-27",
-    //   "Attended_Institution_From__c": "2022-10-12",
-    //   "Affiliated_University__c": "AKTU",
-    //   "Id": "a02N000000N8POMIA3",
-    //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Student_Id__c": "7fe359b1-81a5-4a0e-7 (16 more) ..."
-    // }
-  		
-  //   "{
-  //     "Name_of_Institution__c": "Miet",
-  //     "Lock_Record__c":"true",
-  //     "ShowInProfile__c":"true",
-  //     "Level_of_Education__c": "Grade 1",
-  //     "Degree_Awarded_On__c": "2022-10-30",
-  //     "Degree_Awarded__c": "Yes",
-  //     "Name": "salesforce Sample",
-  //     "Country_of_Institution__c": "Aland Islands",
-  //     "Class__c": "First Class",
-  //     "Score__c": 10,
-  //     "Attended_Institution_To__c": "2022-10-27",
-  //     "Attended_Institution_From__c": "2022-10-12",
-  //     "Affiliated_University__c": "AKTU",
-  //      "Student__r" : 
-  //     {
-  //          "ExternalId__c" : "0c5f938b-7a34-0ed2-914b-9c60970bb40e"
-  //     }
-  //   }
-      
-  // EndPointUrl For Patch:-- https://uniexperts--dev.my.salesforce.com/services/data/v55.0/sobjects/Education__c/ExternalId__c/11996  
-  //   Headers:
-  //         Content-Type:-application/json
-  //         Authorization:- Bearer 00DN0000000cDM4!ASAAQCPueQ1kguX04emRQIWIniLncCALulkTnxpFZRfmwXZYpD2UGMiCr.NyZzgt0_eK_lJd0SHibPrHZksH7eOPpncSXTX2			  
-  
-    const url = "Education__c/a02N000000N8POMIA3"
-    // const sf = await sendToSF(MappingFiles.STUDENT_education_history, { ...body, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
-    // console.log("sf: ", sf)
-    return { id: education.id };
+    const educationData = this.convertEducationData(body)
+    const educationUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c"
+    const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
+
+    console.log("sfEducationResponse: ", sfEducationResponse);
+    return { id: education.id, sf: sfEducationResponse };
   }
 
   async addEducationToStudent(studentId, educationData) {
@@ -332,7 +424,6 @@ class StudentService {
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
     await this.findById(studentId);
-    console.log("student work history: ")
     const workHistory = await this.workHistoryService.add(studentId, modifiedBy, body);
 
     const result = await StudentModel.updateOne(
@@ -343,28 +434,11 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
     }
+    const workHistoryData = this.convertWorkHistoryData(body)
+    const workHistoryUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Work_history__c"
+    const sfWorkHistoryResponse = await sendDataToSF(workHistoryData, workHistoryUrl);
 
-    // {
-    //   "attributes": {
-    //     "type": "Work_history__c",
-    //     "url": "/services/data/v55.0/sobjects/Work_history__c/a0EN000000K7HBUMA3"
-    //   },
-    //   "Name": "Ankit",
-    //   "Designation__c": "Developer",
-    //   "Lock_Record__c":"true",
-    //   "Date_of_Joining__c": "2022-10-12",
-    //   "Date_of_relieving__c": "2022-10-13",
-    //   "Contact_info__c": "wehf",
-    //   "Email_Id__c": "ank@gmail.com",
-    //   "Id": "a0EN000000K7HBUMA3",
-    //   "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30",
-    //   "Student_Id__c": "7fe359b1-81a5-4a0e-7 (16 more) ..."
-    // }
-    const url = "Work_history__c/ExternalId__c/11995"
-
-  //const url = "Work_history__c/a0EN000000K7HBUMA3"
-  const sf = await sendToSF(MappingFiles.STUDENT_work_history, { ...workHistory, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy, agentId }, url });
-  console.log("sf: ", sf);
+    console.log("sfWorkHistoryResponse: ", sfWorkHistoryResponse);
 
     return workHistory;
   }
@@ -420,8 +494,11 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    // await sendToSF(MappingFiles.STUDENT_test_score, { ...testScore, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
+    const testScoreSfData = this.convertTestScoreData(body)
+    const testScoreUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c"
+    const testScoreSfResponse = await sendDataToSF(testScoreSfData, testScoreUrl);
 
+    console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
   }
 
@@ -896,6 +973,12 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
     }
+
+    const taskSfData = this.convertTaskData(body)
+    const taskSfUrl = `${process.env.SF_OBJECT_URL}RelatedTask__c`;
+    const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
+
+    console.log("taskSFResponse: ", taskSFResponse);
 
     return { id: task.id };
   }

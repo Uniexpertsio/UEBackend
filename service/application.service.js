@@ -11,6 +11,7 @@ const CurrencyService = require("./currency.service");
 const Student = require("../models/Student");
 const School = require("../models/School");
 const Application = require("../models/Application");
+const { sendDataToSF } = require("./salesforce.service");
 
 const ApplicationStatus = {
     NEW : "New",
@@ -53,6 +54,26 @@ class ApplicationService {
     this.currencyService= new CurrencyService();
   }
 
+  convertApplicationData(data) {
+    const convertedData = {
+        "Student__c": "003Hy00000tONeRIAW",
+        "Partner_Account__c": "", // Pass agent company Id
+        "Partner_User__c": "", // Pass agent Id
+        "Processing_Officer__c": "", 
+        "BDM_User__c": "", // Pass BDM user Id
+        "School__c": data.schoolId, // Pass School Id
+        "Programme__c": data.programId, // Pass programme Id
+        "Intake__c": data.intakeId, // Pass Intake Id
+        "DocumentCreated__c": true,
+        "Current_Stage__c": "Pre-Submission", // This will be enum please refer CAP-27 On Jira
+        "Source__c": "Sales",
+        "EntryRequirement__c": false
+    };
+
+    return convertedData;
+}
+
+
   async addApplication(id, agentId, body) {
     let applicationCount = 1;
     try {
@@ -78,7 +99,15 @@ class ApplicationService {
     await this.intakeService.findById(body.intakeId);
 
     const externalId = uuid.v4();
-    return Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
+    const application =  Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
+
+    const applicationSfData = this.convertApplicationData(body)
+    const applicationSfUrl =`${process.env.SF_OBJECT_URL}Application__c`
+    const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
+
+    console.log("applicationSfResponse: ", applicationSfResponse);
+
+    return application;
   }
 
   async getApplicationById(id){

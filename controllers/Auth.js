@@ -2,7 +2,7 @@ const config = require("../config/config");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid/v4");
 const Common = require("./Common");
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 const { MappingFiles } = require("./../constants/Agent.constants");
 const Document = require("../models/Document");
 
@@ -84,41 +84,25 @@ function convertToCompanyData(inputData) {
 }
 
 function convertToAgentData(inputData, id) {
-  const outputData = {
-    // 	"RecordTypeId":"0125g00000020HQAAY",
-    // "FirstName": "Testing1 2Postman",
-    // "LastName": "Integration",
-    // "MobilePhone": "+917876567876",
-    // "Whatsapp_No__c": "+917876567876",
-    // "Email": "ank@gmail.com",
-    // "Birthdate": "2022-07-11",
-    // "AccountId": "001Hy000016u1y9IAA", //tag company
-    // "Phone": "8987678987",
-    // "Active__c":true,//Boolean Value(true/false)
-    // "MailingCity":"Test",
-    // "MailingState":"dummy delhi",
-    // "MailingCountry":"",
-    // "MailingStreet":"",
-    // "MailingPostalCode":""
+    const outputData = {
+        "RecordTypeId": "0125g00000020HQAAY",
+        "FirstName": inputData.personalDetails.firstName,
+        "LastName": inputData.personalDetails.lastName,
+        "MobilePhone": inputData.personalDetails.phone,
+        "Whatsapp_No__c": inputData.personalDetails.phone,
+        "Email": inputData.personalDetails.email,
+		"Phone": "8987678987",
+        "Birthdate": "2022-07-11", // Assuming a default value
+        "AccountId": id? id: "001Hy000016qOBKIA2", // Assuming a default value
+        "Active__c":true,
+		"MailingCity": inputData.address.city,
+		"MailingState": inputData.address.state,
+		"MailingCountry": inputData.address.country,
+		"MailingStreet":inputData.address.address, 
+		"MailingPostalCode": inputData.address.zipCode
+    };
 
-    RecordTypeId: "0125g00000020HQAAY",
-    FirstName: inputData.personalDetails.firstName,
-    LastName: inputData.personalDetails.lastName,
-    MobilePhone: inputData.personalDetails.phone,
-    Whatsapp_No__c: inputData.personalDetails.phone,
-    Email: inputData.personalDetails.email,
-    Phone: "8987678987",
-    Birthdate: "2022-07-11", // Assuming a default value
-    AccountId: id ? id : "001Hy000016qOBKIA2", // Assuming a default value
-    Active__c: true,
-    MailingCity: inputData.address.city,
-    MailingState: inputData.address.state,
-    MailingCountry: inputData.address.country,
-    MailingStreet: inputData.address.address,
-    MailingPostalCode: inputData.address.zipCode,
-  };
-
-  return outputData;
+    return outputData;
 }
 
 Auth.get.background = async (req, res, next) => {
@@ -273,7 +257,7 @@ Auth.post.signup = async (req, res, next) => {
     // sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
     const companyData = convertToCompanyData(req.body);
     const companyUrl =
-      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account";
+      `${process.env.SF_OBJECT_URL}Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
@@ -284,12 +268,12 @@ Auth.post.signup = async (req, res, next) => {
       );
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl =
-        "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
+        `${process.env.SF_OBJECT_URL}Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
 
       const bankUrl =
-        "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c";
+        `${process.env.SF_OBJECT_URL}BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
@@ -372,16 +356,16 @@ Auth.patch.signup = async (req, res, next) => {
     );
 
     const companyData = convertToCompanyData(requestData);
-    const companyUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account/${idsCollection?.companyId}`;
+    const companyUrl = `${process.env.SF_OBJECT_URL}Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
     if (sfCompanyData && sfCompanyData.success) {
       const agentsData = convertToAgentData(
         requestData,
         idsCollection?.companyId
       );
-      const agentUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact/${idsCollection?.contactId}`;
+      const agentUrl = `${process.env.SF_OBJECT_URL}Contact/${idsCollection?.contactId}`;
       await updateDataToSF(agentsData, agentUrl);
-      const bankUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c/${idsCollection?.bankId}`;
+      const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
       const bankData = convertToBankData(requestData, idsCollection?.companyId);
       await updateDataToSF(bankData, bankUrl);
     }
