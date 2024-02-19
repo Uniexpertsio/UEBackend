@@ -301,7 +301,6 @@ Auth.post.signup = async (req, res, next) => {
         agentId: agent?._id,
       };
     }
-
     return res.status(200).json({
       data: {
         idsCollection,

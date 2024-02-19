@@ -12,11 +12,14 @@ const jwt = require("jsonwebtoken");
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
   const publicKey = fs.readFileSync("SFkeys/server.crt", "utf-8");
+  const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
+  // Add two hours (2 * 3600 seconds) to the timestamp
+  const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600;
   const payload = {
-    iss: "3MVG9z6NAroNkeMkQIYXpSeRyrMcF5FO5VC3XvDBxW8pvDL_Mj09BCnL_asA81sqVys7BclNvXiSjkaQA.tYI",
-    sub: "portal.user@uniexperts.io.uxuat",
-    aud: "https://test.salesforce.com",
-    exp: 1707991367,
+    iss:process.env.SF_ISS,
+    sub:process.env.SF_SUB,
+    aud:process.env.SF_URL,
+    exp: newTimestampInSeconds,
   };
   // // Create the token
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
@@ -29,18 +32,17 @@ const generateToken = async () => {
       return false; // Token verification failed
     }
   } catch (error) {
-    console.error('Error generating token:', error.message);
+    console.error("Error generating token:", error.message);
     return false;
   }
-
 };
 
 const verifyToken = async (token, publicKey) => {
   try {
-    await jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+    await jwt.verify(token, publicKey, { algorithms: ["RS256"] });
     return true; // Verification successful
   } catch (err) {
-    console.error('Token verification failed:', err.message);
+    console.error("Token verification failed:", err.message);
     return false; // Verification failed
   }
 };
