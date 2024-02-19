@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const uuid = require("uuid/v4");
 const Common = require("./Common");
 const nodemailer = require('nodemailer');
-const { MappingFiles } = require('./../constants/Agent.constants');
 const Document = require("../models/Document");
 
 const Config = require("../models/Config");
@@ -81,23 +80,6 @@ function convertToCompanyData(inputData) {
 
 function convertToAgentData(inputData, id) {
     const outputData = {
-	// 	"RecordTypeId":"0125g00000020HQAAY",
-    // "FirstName": "Testing1 2Postman",
-    // "LastName": "Integration",
-    // "MobilePhone": "+917876567876",
-    // "Whatsapp_No__c": "+917876567876",
-    // "Email": "ank@gmail.com",
-    // "Birthdate": "2022-07-11",
-    // "AccountId": "001Hy000016u1y9IAA", //tag company
-    // "Phone": "8987678987",
-    // "Active__c":true,//Boolean Value(true/false)
-    // "MailingCity":"Test",
-    // "MailingState":"dummy delhi",
-    // "MailingCountry":"",
-    // "MailingStreet":"", 
-    // "MailingPostalCode":""
-
-
         "RecordTypeId": "0125g00000020HQAAY",
         "FirstName": inputData.personalDetails.firstName,
         "LastName": inputData.personalDetails.lastName,
