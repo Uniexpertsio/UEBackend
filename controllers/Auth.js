@@ -257,7 +257,7 @@ Auth.post.signup = async (req, res, next) => {
     // sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
     const companyData = convertToCompanyData(req.body);
     const companyUrl =
-      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account";
+      `${process.env.SF_OBJECT_URL}Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
@@ -268,12 +268,12 @@ Auth.post.signup = async (req, res, next) => {
       );
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl =
-        "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
+        `${process.env.SF_OBJECT_URL}Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
 
       const bankUrl =
-        "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c";
+        `${process.env.SF_OBJECT_URL}BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
@@ -285,7 +285,6 @@ Auth.post.signup = async (req, res, next) => {
         agentId: agent?._id,
       };
     }
-
     return res.status(200).json({
       data: {
         idsCollection,
@@ -357,16 +356,16 @@ Auth.patch.signup = async (req, res, next) => {
     );
 
     const companyData = convertToCompanyData(requestData);
-    const companyUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Account/${idsCollection?.companyId}`;
+    const companyUrl = `${process.env.SF_OBJECT_URL}Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
     if (sfCompanyData && sfCompanyData.success) {
       const agentsData = convertToAgentData(
         requestData,
         idsCollection?.companyId
       );
-      const agentUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact/${idsCollection?.contactId}`;
+      const agentUrl = `${process.env.SF_OBJECT_URL}Contact/${idsCollection?.contactId}`;
       await updateDataToSF(agentsData, agentUrl);
-      const bankUrl = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/BankDetail__c/${idsCollection?.bankId}`;
+      const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
       const bankData = convertToBankData(requestData, idsCollection?.companyId);
       await updateDataToSF(bankData, bankUrl);
     }

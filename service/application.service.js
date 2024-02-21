@@ -102,7 +102,7 @@ class ApplicationService {
     const application =  Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
 
     const applicationSfData = this.convertApplicationData(body)
-    const applicationSfUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Application__c"
+    const applicationSfUrl =`${process.env.SF_OBJECT_URL}Application__c`
     const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
 
     console.log("applicationSfResponse: ", applicationSfResponse);

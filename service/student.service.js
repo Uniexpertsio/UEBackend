@@ -255,7 +255,7 @@ class StudentService {
   
     const studentData = this.converttoSfBody(studentInformation)
     console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
-    const studentUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/Contact";
+    const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
    const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
 
    console.log("sfStudentResponse: ", sfStudentResponse);
@@ -975,7 +975,7 @@ class StudentService {
     }
 
     const taskSfData = this.convertTaskData(body)
-    const taskSfUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/RelatedTask__c"
+    const taskSfUrl = `${process.env.SF_OBJECT_URL}RelatedTask__c`;
     const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
 
     console.log("taskSFResponse: ", taskSFResponse);

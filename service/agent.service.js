@@ -55,7 +55,7 @@ class AgentService{
           }
 
        
-          const url = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/sobjects/DMS_Documents__c";
+          const url = `${process.env.SF_OBJECT_URL}DMS_Documents__c`;
           const sfRes = await sendDataToSF(data, url);
           console.log("sfRes: ", sfRes)
         });
