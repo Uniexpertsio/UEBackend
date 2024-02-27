@@ -10,7 +10,6 @@ class StudentController {
       try {
         const { id, agentId } = req.user;
         const body = req.body;
-       
         const result = await this.studentService.createStudent(id, agentId, body);
         res.status(200).json(result);
       } catch (error) {

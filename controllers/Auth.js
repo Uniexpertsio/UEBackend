@@ -358,7 +358,7 @@ Auth.patch.signup = async (req, res, next) => {
     const companyData = convertToCompanyData(requestData);
     const companyUrl = `${process.env.SF_OBJECT_URL}Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
-    if (sfCompanyData && sfCompanyData.success) {
+    // if (sfCompanyData && sfCompanyData.success) {
       const agentsData = convertToAgentData(
         requestData,
         idsCollection?.companyId
@@ -368,7 +368,7 @@ Auth.patch.signup = async (req, res, next) => {
       const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
       const bankData = convertToBankData(requestData, idsCollection?.companyId);
       await updateDataToSF(bankData, bankUrl);
-    }
+    // }
 
     return res.status(200).json({
       data: {
