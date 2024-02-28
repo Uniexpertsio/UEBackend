@@ -88,11 +88,13 @@ const updateGeneralInformation = async (req, res) => {
       .status(200)
       .json({ statusCode: 400, message: "Agent not found" });
   }
+
+  const externalId = "";
   const url = "Contact/ExternalId__c/2573t236423eva";
   await sendToSF(MappingFiles.AGENT_account, {
     ...req.body,
     externalId,
-    _user: { agentId: id },
+    _user: { agentId },
     url,
   });
 
