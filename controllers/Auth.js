@@ -91,6 +91,7 @@ function convertToAgentData(inputData, id) {
     MobilePhone: inputData.personalDetails.phone,
     Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
+    Password__c:inputData?.password,
     Phone: "8987678987",
     Birthdate: "2022-07-11", // Assuming a default value
     AccountId: id ? id : "001Hy000016qOBKIA2", // Assuming a default value
@@ -101,7 +102,6 @@ function convertToAgentData(inputData, id) {
     MailingStreet: inputData.address.address,
     MailingPostalCode: inputData.address.zipCode,
   };
-
   return outputData;
 }
 
