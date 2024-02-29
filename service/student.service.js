@@ -67,7 +67,7 @@ class StudentService {
       "MobilePhone": "+" + data.studentInformation.mobile,
       "Whatsapp_No__c": "+" + data.studentInformation.whatsappNumber,
       "Email": data.studentInformation.email,
-      "Preferred_Country__c": data.studentInformation.countryOfInterest.join(';'),
+      "Preferred_Country__c": data.studentInformation.countryOfInterest,
       "Intake_Preferred__c": data.studentInformation.intakePreferred,
       "Medical_History_Detail__c": data.demographicInformation.medicalHistoryDetails,
       "Medical_History__c": data.demographicInformation.haveMedicalHistory ? "Yes" : "No",
