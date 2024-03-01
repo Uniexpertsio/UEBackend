@@ -20,12 +20,12 @@ const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
 function convertToBankData(inputData, id) {
   const outputData = {
-    Name: inputData.bank.name,
+    Name: inputData?.bank?.bankName,
     ...(id ? { Account__c: id } : {}),
-    AccountHolderName__c: inputData.bank.name,
+    AccountHolderName__c: inputData?.bank?.name,
     SwiftCode__c: inputData.bank.swiftCode,
     AccountNumber__c: inputData.bank.accountNumber,
-    BankCode__c: inputData.bank.swiftCode, // Assuming a default value
+    BankCode__c: inputData?.bank?.extraField?.data, // Assuming a default value
     AccountNumberConfirm__c: inputData.bank.accountNumber,
     Status__c: "New", // Assuming a default value
   };
