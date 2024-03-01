@@ -2,7 +2,7 @@ const config = require("../config/config");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid/v4");
 const Common = require("./Common");
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const Document = require("../models/Document");
 
@@ -21,7 +21,7 @@ const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 function convertToBankData(inputData, id) {
   const outputData = {
     Name: inputData.bank.name,
-    Account__c: id,
+    ...(id ? { Account__c: id } : {}),
     AccountHolderName__c: inputData.bank.name,
     SwiftCode__c: inputData.bank.swiftCode,
     AccountNumber__c: inputData.bank.accountNumber,
@@ -84,25 +84,25 @@ function convertToCompanyData(inputData) {
 }
 
 function convertToAgentData(inputData, id) {
-    const outputData = {
-        "RecordTypeId": "0125g00000020HQAAY",
-        "FirstName": inputData.personalDetails.firstName,
-        "LastName": inputData.personalDetails.lastName,
-        "MobilePhone": inputData.personalDetails.phone,
-        "Whatsapp_No__c": inputData.personalDetails.phone,
-        "Email": inputData.personalDetails.email,
-		"Phone": "8987678987",
-        "Birthdate": "2022-07-11", // Assuming a default value
-        "AccountId": id? id: "001Hy000016qOBKIA2", // Assuming a default value
-        "Active__c":true,
-		"MailingCity": inputData.address.city,
-		"MailingState": inputData.address.state,
-		"MailingCountry": inputData.address.country,
-		"MailingStreet":inputData.address.address, 
-		"MailingPostalCode": inputData.address.zipCode
-    };
-
-    return outputData;
+  const outputData = {
+    RecordTypeId: "0125g00000020HQAAY",
+    FirstName: inputData.personalDetails.firstName,
+    LastName: inputData.personalDetails.lastName,
+    MobilePhone: inputData.personalDetails.phone,
+    Whatsapp_No__c: inputData.personalDetails.phone,
+    Email: inputData.personalDetails.email,
+    Password__c:inputData?.password,
+    Phone: "8987678987",
+    Birthdate: "2022-07-11", // Assuming a default value
+    AccountId: id ? id : "001Hy000016qOBKIA2", // Assuming a default value
+    Active__c: true,
+    MailingCity: inputData.address.city,
+    MailingState: inputData.address.state,
+    MailingCountry: inputData.address.country,
+    MailingStreet: inputData.address.address,
+    MailingPostalCode: inputData.address.zipCode,
+  };
+  return outputData;
 }
 
 Auth.get.background = async (req, res, next) => {
@@ -256,8 +256,7 @@ Auth.post.signup = async (req, res, next) => {
     //console.log("sf::: ", sf);
     // sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
     const companyData = convertToCompanyData(req.body);
-    const companyUrl =
-      `${process.env.SF_OBJECT_URL}Account`;
+    const companyUrl = `${process.env.SF_OBJECT_URL}Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
@@ -267,13 +266,11 @@ Auth.post.signup = async (req, res, next) => {
         { new: true }
       );
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
-      const agentUrl =
-        `${process.env.SF_OBJECT_URL}Contact`;
+      const agentUrl = `${process.env.SF_OBJECT_URL}Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
 
-      const bankUrl =
-        `${process.env.SF_OBJECT_URL}BankDetail__c`;
+      const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
@@ -359,15 +356,15 @@ Auth.patch.signup = async (req, res, next) => {
     const companyUrl = `${process.env.SF_OBJECT_URL}Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
     // if (sfCompanyData && sfCompanyData.success) {
-      const agentsData = convertToAgentData(
-        requestData,
-        idsCollection?.companyId
-      );
-      const agentUrl = `${process.env.SF_OBJECT_URL}Contact/${idsCollection?.contactId}`;
-      await updateDataToSF(agentsData, agentUrl);
-      const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
-      const bankData = convertToBankData(requestData, idsCollection?.companyId);
-      await updateDataToSF(bankData, bankUrl);
+    const agentsData = convertToAgentData(
+      requestData,
+      idsCollection?.companyId
+    );
+    const agentUrl = `${process.env.SF_OBJECT_URL}Contact/${idsCollection?.contactId}`;
+    await updateDataToSF(agentsData, agentUrl);
+    const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
+    const bankData = convertToBankData(requestData, "");
+    await updateDataToSF(bankData, bankUrl);
     // }
 
     return res.status(200).json({
