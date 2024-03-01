@@ -13,13 +13,13 @@ router.get("/tnc/:sfId", getTnC);
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
 router.get("/download-tnc/:sfId", downloadTncData);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
-router.patch("/general-information",  Middleware.checkAuth, updateGeneralInformation);
+router.put("/general-information",  Middleware.checkAuth, updateGeneralInformation);
 router.get("/bank-information", Middleware.checkAuth, getBankInformation);
-router.patch("/bank-information", Middleware.checkAuth, updateBankInformation);
+router.put("/bank-information", Middleware.checkAuth, updateBankInformation);
 router.get("/account-manager", Middleware.checkAuth, getAccountManager);
 router.get("/documents", Middleware.checkAuth, getDocuments);
-router.patch("/documents", Middleware.checkAuth, updateDocuments);
-router.patch("/document/:documentId", Middleware.checkAuth, updateDocument);
+router.put("/documents", Middleware.checkAuth, updateDocuments);
+router.put("/document/:documentId", Middleware.checkAuth, updateDocument);
 
 
 module.exports = router;
