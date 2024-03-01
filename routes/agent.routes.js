@@ -13,7 +13,7 @@ router.get("/tnc/:sfId", getTnC);
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
 router.get("/download-tnc/:sfId", downloadTncData);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
-router.patch("/general-information",  Middleware.checkAuth, updateGeneralInformation);
+router.post("/general-information",  Middleware.checkAuth, updateGeneralInformation);
 router.get("/bank-information", Middleware.checkAuth, getBankInformation);
 router.patch("/bank-information", Middleware.checkAuth, updateBankInformation);
 router.get("/account-manager", Middleware.checkAuth, getAccountManager);

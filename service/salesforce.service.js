@@ -4,6 +4,7 @@ const axios = require("axios");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const querystring = require("querystring");
+const SFerrorHandler = require("../utils/sfErrorHandeling");
 
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
@@ -104,15 +105,22 @@ const downloadTnc = async (sfId) => {
 };
 
 const sendDataToSF = async (body, url) => {
-  const token = await generateToken();
-  const headers = generateHeaders(token);
-  try {
-    const { data } = await axios.post(url, body, { headers });
-    return data;
-  } catch (err) {
-    console.error("Error: " + err);
-    handleSfError(err);
-  }
+  return new Promise(async (resolve, reject) => {
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    try {
+      if (url.match(/DMS_Documents__c\/.+/)) {
+        const data = await axios.patch(url, body, { headers });
+        await SFerrorHandler(data);
+        return resolve(data);
+      } else {
+        const { data } = await axios.post(url, body, { headers });
+        resolve(data);
+      }
+    } catch (err) {
+        reject(err)
+    }
+  })
 };
 
 const updateDataToSF = async (body, url) => {
