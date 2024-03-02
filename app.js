@@ -34,7 +34,7 @@ module.exports = (port) => {
 	app.use(cors());
 
 	app.get("/.well-known/pki-validation/", (req, res)=> {
-		res.sendFile("/home/ubuntu/uniexperts/9A5B42DF4462E85BB7816F31879DAF26.txt")
+		res.sendFile("/home/ubuntu/uniexperts/135E4208EB87E2EF47A307C964E7C1F3.txt")
 	})
 
 	app.get("/health-check", (req, res)=> {
