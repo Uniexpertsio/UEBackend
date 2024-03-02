@@ -1,4 +1,5 @@
 module.exports = (port) => {
+	let https = require("https")
 	let express = require("express")
 	let cors = require("cors")
 	let app = express();
@@ -31,6 +32,10 @@ module.exports = (port) => {
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
 	app.use(cors());
+
+	app.get("/.well-known/pki-validation/", (req, res)=> {
+		res.sendFile("/home/ubuntu/uniexperts/9A5B42DF4462E85BB7816F31879DAF26.txt")
+	})
 
 	app.use("/api/auth", authRoute);
 	app.use("/api/agent", agentRoute);
