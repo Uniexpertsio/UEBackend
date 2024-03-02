@@ -4,7 +4,7 @@ module.exports = (port) => {
 	let express = require("express")
 	let cors = require("cors")
 	let app = express();
-	port = port || 5000;
+	port = port || 4000;
 	let authRoute = require("./routes/auth.routes");
 	let agentRoute = require("./routes/agent.routes");
 	let documentRoute = require("./routes/document.routes");
