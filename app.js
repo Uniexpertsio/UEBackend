@@ -1,5 +1,6 @@
 module.exports = (port) => {
 	let https = require("https")
+	let fs = require("fs")
 	let express = require("express")
 	let cors = require("cors")
 	let app = express();
@@ -32,6 +33,14 @@ module.exports = (port) => {
 	app.use(express.json());
 	app.use(express.urlencoded({ extended: false }));
 	app.use(cors());
+
+	const key = fs.readFileSync("private.key");
+	const cert = fs.readFileSync("certificate.crt");
+
+	const cred = {
+		key,
+		cert
+	}
 
 	app.get("/.well-known/pki-validation/135E4208EB87E2EF47A307C964E7C1F3.txt", (req, res)=> {
 		res.sendFile("/home/ubuntu/uniexperts/135E4208EB87E2EF47A307C964E7C1F3.txt")
@@ -89,4 +98,7 @@ module.exports = (port) => {
 	app.listen(port, () => {
 		console.table({ Status: "HTTP Server running", Environment: process.env.NODE_ENV, Port: port });
 	});
+
+	const httpsServer = https.createServer(cred, app);
+	httpsServer.listen(8443)
 };
