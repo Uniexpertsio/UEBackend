@@ -37,6 +37,10 @@ module.exports = (port) => {
 		res.sendFile("/home/ubuntu/uniexperts/9A5B42DF4462E85BB7816F31879DAF26.txt")
 	})
 
+	app.get("health-check", (req, res)=> {
+		res.status(200).json({msg: "Chill bro! Server is up!"})
+	})
+
 	app.use("/api/auth", authRoute);
 	app.use("/api/agent", agentRoute);
 	app.use("/api/document", documentRoute);
