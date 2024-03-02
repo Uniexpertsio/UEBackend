@@ -33,7 +33,7 @@ module.exports = (port) => {
 	app.use(express.urlencoded({ extended: false }));
 	app.use(cors());
 
-	app.get("/.well-known/pki-validation/", (req, res)=> {
+	app.get("/.well-known/pki-validation/135E4208EB87E2EF47A307C964E7C1F3.txt", (req, res)=> {
 		res.sendFile("/home/ubuntu/uniexperts/135E4208EB87E2EF47A307C964E7C1F3.txt")
 	})
 
