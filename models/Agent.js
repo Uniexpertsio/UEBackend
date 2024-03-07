@@ -43,6 +43,13 @@ const AgentCompanySchema = {
   country: { type: String, required: true },
   website: { type: String, required: false },
   whatsappId: { type: String, required: false },
+  bdmUser: { type: String, required: false },
+  verificationStatus: {
+    type: String,
+    required: false,
+    enum: ["PENDING", "APPROVED" , "DEACTIVATED" ,"BLACKLISTED"],
+    default: "PENDING",
+  },
   isLocked: { type: Boolean, required: false, default: true },
 };
 
