@@ -79,8 +79,10 @@ const updateGeneralInformation = async (req, res) => {
   console.log(agentId);
   const result = await Agent.findOneAndUpdate(
     { _id: agentId },
-    { $set: { ...req.body } }
+    { $set: { ...req.body } },
+    { new: true }
   );
+  console.log('result----',result,result.modifiedCount)
   if (!result)
     return res.status(200).json({ statusCode: 400, message: "Bad Request" });
 
