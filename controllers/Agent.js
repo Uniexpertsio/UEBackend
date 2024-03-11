@@ -82,7 +82,6 @@ const updateGeneralInformation = async (req, res) => {
     { $set: { ...req.body } },
     { new: true }
   );
-  console.log('result----',result,result.modifiedCount)
   if (!result)
     return res.status(200).json({ statusCode: 400, message: "Bad Request" });
 
