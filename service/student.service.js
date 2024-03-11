@@ -12,7 +12,7 @@ const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
-const {sendToSF, sendDataToSF} = require("./salesforce.service");
+const { sendToSF, sendDataToSF } = require("./salesforce.service");
 const Staff = require("../models/Staff");
 
 
@@ -160,52 +160,52 @@ class StudentService {
 
   convertTestScoreData(data) {
     let convertedData = {
-        "RecordTypeId": "", // Fill this value based on the examType
-        "Student__c": "0036D00000UPLRIQA5", 
-        "ShowInProfile__c": true,
-        "Lock_Record__c": true,
-        "English_Exam_Type__c": data.examType,
-        "Date_of_Exam__c": data.doe.split("T")[0],
-        "ID_Certificate_No__c": data.certificateNo,
-        "Quantitative_reasoning_Percentile__c": "", // Placeholder
-        "Total_Score__c": "", // Placeholder
-        "ExternalId__c": "", // Placeholder
+      "RecordTypeId": "", // Fill this value based on the examType
+      "Student__c": "0036D00000UPLRIQA5",
+      "ShowInProfile__c": true,
+      "Lock_Record__c": true,
+      "English_Exam_Type__c": data.examType,
+      "Date_of_Exam__c": data.doe.split("T")[0],
+      "ID_Certificate_No__c": data.certificateNo,
+      "Quantitative_reasoning_Percentile__c": "", // Placeholder
+      "Total_Score__c": "", // Placeholder
+      "ExternalId__c": "", // Placeholder
     };
 
     // Mapping record type IDs based on the examType
-    switch(data.examType) {
-        case "GRE":
-            convertedData.RecordTypeId = "0125g0000000zo0AAA";
-            convertedData.Analytical_reasoning_Percentile__c = ""; // Placeholder
-            convertedData.Analytical_reasoning_Score__c = ""; // Placeholder
-            convertedData.Quantitative_reasoning_Score__c = ""; // Placeholder
-            convertedData.Verbal_Reasoning_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Reasoning_Score__c = ""; // Placeholder
-            break;
-        case "GMAT":
-            convertedData.RecordTypeId = "0125g0000000znzAAA";
-            convertedData.Integrated_Listening_Percentile__c = ""; // Placeholder
-            convertedData.Integrated_Listening_Score__c = ""; // Placeholder
-            convertedData.Quantitative_Percentile__c = ""; // Placeholder
-            convertedData.Quantitative_Score__c = ""; // Placeholder
-            convertedData.Total_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Score1__c = ""; // Placeholder
-            break;
-        case "Duolingo English Test":
-            convertedData.RecordTypeId = "0125g0000000znyAAA";
-            convertedData.Comprehension__c = ""; // Placeholder
-            convertedData.Conversation__c = ""; // Placeholder
-            convertedData.Literacy__c = ""; // Placeholder
-            convertedData.Overall__c = ""; // Placeholder
-            convertedData.Production__c = ""; // Placeholder
-            break;
-        default:
-            break;
+    switch (data.examType) {
+      case "GRE":
+        convertedData.RecordTypeId = "0125g0000000zo0AAA";
+        convertedData.Analytical_reasoning_Percentile__c = ""; // Placeholder
+        convertedData.Analytical_reasoning_Score__c = ""; // Placeholder
+        convertedData.Quantitative_reasoning_Score__c = ""; // Placeholder
+        convertedData.Verbal_Reasoning_Percentile__c = ""; // Placeholder
+        convertedData.Verbal_Reasoning_Score__c = ""; // Placeholder
+        break;
+      case "GMAT":
+        convertedData.RecordTypeId = "0125g0000000znzAAA";
+        convertedData.Integrated_Listening_Percentile__c = ""; // Placeholder
+        convertedData.Integrated_Listening_Score__c = ""; // Placeholder
+        convertedData.Quantitative_Percentile__c = ""; // Placeholder
+        convertedData.Quantitative_Score__c = ""; // Placeholder
+        convertedData.Total_Percentile__c = ""; // Placeholder
+        convertedData.Verbal_Percentile__c = ""; // Placeholder
+        convertedData.Verbal_Score1__c = ""; // Placeholder
+        break;
+      case "Duolingo English Test":
+        convertedData.RecordTypeId = "0125g0000000znyAAA";
+        convertedData.Comprehension__c = ""; // Placeholder
+        convertedData.Conversation__c = ""; // Placeholder
+        convertedData.Literacy__c = ""; // Placeholder
+        convertedData.Overall__c = ""; // Placeholder
+        convertedData.Production__c = ""; // Placeholder
+        break;
+      default:
+        break;
     }
 
     return convertedData;
-}
+  }
 
   convertTaskData(data) {
     const convertedData = {
@@ -252,13 +252,18 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
-  
+
     const studentData = this.converttoSfBody(studentInformation)
     console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
     const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
-   const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-
-   console.log("sfStudentResponse: ", sfStudentResponse);
+    const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
+    console.log("sfStudentResponse::: ", sfStudentResponse);
+    if (sfStudentResponse?.id) {
+      await StudentModel.findOneAndUpdate(
+        { _id: student._id }, 
+        { $set: { salesforceId: sfStudentResponse.id } }, 
+        { new: true })
+    }
     return { id: student.id, sf: sfStudentResponse };
   }
 
@@ -268,47 +273,47 @@ class StudentService {
 
   async getStudent(agentId, query) {
 
-    const filter = {agentId}
-    const sortByType = query.sortByType === 'Ascending' ? 1 : -1 ;
+    const filter = { agentId }
+    const sortByType = query.sortByType === 'Ascending' ? 1 : -1;
     const sortBy = {}
-    if(query.sortBy){
+    if (query.sortBy) {
       sortBy[`${query.sortBy}`] = sortByType
     }
-    if(query.queryCreatedBy){
-      filter.createdBy=query.queryCreatedBy
+    if (query.queryCreatedBy) {
+      filter.createdBy = query.queryCreatedBy
     }
-    if(query.queryName){
-      filter.studentInformation={firstName: query.queryName}
+    if (query.queryName) {
+      filter.studentInformation = { firstName: query.queryName }
     }
-    if(query.queryEmail){
-      filter.emergencyContact={email: query.queryEmail}
+    if (query.queryEmail) {
+      filter.emergencyContact = { email: query.queryEmail }
     }
-    if(query.queryMobile){
-      filter.emergencyContact={phoneNumber: query.queryMobile}
+    if (query.queryMobile) {
+      filter.emergencyContact = { phoneNumber: query.queryMobile }
     }
-    if(query.queryCountry){
-      filter.demographicInformation={country: query.queryCountry}
+    if (query.queryCountry) {
+      filter.demographicInformation = { country: query.queryCountry }
     }
-    if(query.queryCounsellor){
-      filter.studentInformation={counsellorId: query.queryCounsellor}
+    if (query.queryCounsellor) {
+      filter.studentInformation = { counsellorId: query.queryCounsellor }
     }
     const student = await StudentModel.find(filter)
-    .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
-    .sort(sortBy)
-    .limit(parseInt(query.perPage));
+      .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+      .sort(sortBy)
+      .limit(parseInt(query.perPage));
     const studentList = []
-    for(let i=0;i<student.length;i++){
-            const staff = await Staff.findOne({_id: student[i].createdBy});
-      const counsellor = await Staff.findOne({_id: student[i].studentInformation.counsellorId});
+    for (let i = 0; i < student.length; i++) {
+      const staff = await Staff.findOne({ _id: student[i].createdBy });
+      const counsellor = await Staff.findOne({ _id: student[i].studentInformation.counsellorId });
 
-      if(staff){
+      if (staff) {
         student[i].createdBy = staff.fullName;
       }
 
-      if(counsellor){
+      if (counsellor) {
         student[i].studentInformation.counsellorId = staff.fullName;
       }
-      
+
       studentList.push(student[i])
     }
 
@@ -349,7 +354,7 @@ class StudentService {
     return this.educationService.getByStudentId(studentId);
   }
 
-  
+
   async addStudentEducation(studentId, modifiedBy, body) {
     const education = await this.educationService.add(studentId, modifiedBy, body);
 
@@ -398,7 +403,7 @@ class StudentService {
     await this.checkIfEducationBelongsToStudent(studentId, educationId);
     let updatedEducation = await this.educationService.update(modifiedBy, educationId, body);
     const url = "Education__c/a02N000000N8POMIA3"
-    await sendToSF(MappingFiles.STUDENT_education_history, { ...a, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } , url});
+    await sendToSF(MappingFiles.STUDENT_education_history, { ...a, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
     return updatedEducation;
   }
 
@@ -921,13 +926,13 @@ class StudentService {
       studentId: (await this.findById(studentId)).externalId,
       _user: { id: modifiedBy }
     };
-    if(payment.applicationId){
+    if (payment.applicationId) {
       dt.applicationId = (await this.applicationService.findById(payment.applicationId)).externalId;
     }
-    if(payment.programmeId){
+    if (payment.programmeId) {
       dt.programmeId = (await this.programService.findById(payment.programmeId)).externalId;
     }
-    if(payment.schoolId){
+    if (payment.schoolId) {
       dt.schoolId = (await this.schoolService.findById(payment.schoolId)).externalId;
     }
     // await sendToSF(MappingFiles.STUDENT_payment, dt);
@@ -1066,16 +1071,16 @@ class StudentService {
     if (student.studentInformation) {
       progress++;
     }
-    if ((student.educations.length ?student.educations.length: 0) > 0) {
+    if ((student.educations.length ? student.educations.length : 0) > 0) {
       progress++;
     }
-    if ((student.workHistory.length ?student.workHistory.length: 0) > 0) {
+    if ((student.workHistory.length ? student.workHistory.length : 0) > 0) {
       progress++;
     }
-    if ((student.testScore.length ?student.testScore.length: 0) > 0) {
+    if ((student.testScore.length ? student.testScore.length : 0) > 0) {
       progress++;
     }
-    if ((student.documents.length ?student.documents.length: 0) > 0) {
+    if ((student.documents.length ? student.documents.length : 0) > 0) {
       progress++;
     }
     return (progress / total) * 100;
@@ -1129,15 +1134,14 @@ class StudentService {
       this.staffService.findById(staffId),
       this.staffService.findById(counsellorId),
     ]);
-
     if (!staff || !counsellor) {
+      console.log('errorrrrr',)
       throw new Error("Student not found");
     }
   }
 
   async findById(studentId) {
     const student = await StudentModel.findById(studentId);
-
     if (!student) {
       throw new Error("Student not found");
     }
