@@ -167,6 +167,28 @@ const getExternalIdFuncs = () => {
   };
 };
 
+
+// Get External IDs of documents
+const getPartnerId = async(sfId) => {
+  try {
+    // const mapper = require(flPath);
+    // let body = await mapper(rawBody, rawBody.commonId);
+    // filterUndefined(body);
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    console.log("headers ---",headers);
+    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Account/${sfId}`;
+    const { data } = await axios.get(url,{headers});
+    return data;
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+  //  finally {
+    // delete require.cache[require.resolve(flPath)];
+  // }
+};
+
 const handleSfError = (err) => {
   if (err.response) {
     console.log("Error Response", err.response);
@@ -205,4 +227,5 @@ module.exports = {
   sendDataToSF,
   updateDataToSF,
   downloadTnc,
+  getPartnerId
 };

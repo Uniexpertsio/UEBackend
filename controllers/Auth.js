@@ -14,6 +14,7 @@ const {
   sendDataToSF,
   updateDataToSF,
   getTnc,
+  getPartnerId,
 } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
@@ -275,13 +276,18 @@ Auth.post.signup = async (req, res, next) => {
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
       console.log("sf bank data:  ", sfBankData);
+      const data=await getPartnerId(sfCompanyData?.id);
+    console.log("xxxxxxxx",data);
       idsCollection = {
         bankId: sfBankData?.id,
         contactId: sfAgentData?.id,
         companyId: sfCompanyData?.id,
         agentId: agent?._id,
+        partnerId:data?.Partner_Id__c
       };
     }
+    
+
     return res.status(200).json({
       data: {
         idsCollection,
