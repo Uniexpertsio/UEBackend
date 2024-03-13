@@ -11,10 +11,9 @@ const CommentService = require("../service/comment.service");
 const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
-const { MappingFiles } = require('./../constants/Agent.constants');
-const {sendToSF, sendDataToSF} = require("./salesforce.service");
+const { MappingFiles } = require("./../constants/Agent.constants");
+const { sendToSF, sendDataToSF } = require("./salesforce.service");
 const Staff = require("../models/Staff");
-
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -43,7 +42,6 @@ class StudentService {
     this.commentService = new CommentService();
     this.applicationService = new ApplicationService();
 
-
     /// to confirm with nilesh on flow with creation of student ////
     this.programService = new ProgramService();
     this.schoolService = new SchoolService();
@@ -51,46 +49,95 @@ class StudentService {
 
   converttoSfBody(data) {
     const convertedData = {
-      "Salutation": data.studentInformation.salutation,
-      "FirstName": data.studentInformation.firstName,
-      "LastName": data.studentInformation.lastName,
-      "DocumentCreated__c": true,
-      "Task_Created__c": true,
-      "Partner_Account__c": "0016D00000eKbyjQAC",
-      "Partner_User__c": "",
-      "Counsellor__c": "",
-      "Student_Status__c": "",
-      "Processing_Officer__c": "",
-      "BDM_User__c": "",
-      "Source__c": data.studentInformation.source,
-      "Passport_Number__c": data.studentInformation.passportNumber,
-      "MobilePhone": "+" + data.studentInformation.mobile,
-      "Whatsapp_No__c": "+" + data.studentInformation.whatsappNumber,
-      "Email": data.studentInformation.email,
-      "Preferred_Country__c": data.studentInformation.countryOfInterest,
-      "Intake_Preferred__c": data.studentInformation.intakePreferred,
-      "Medical_History_Detail__c": data.demographicInformation.medicalHistoryDetails,
-      "Medical_History__c": data.demographicInformation.haveMedicalHistory ? "Yes" : "No",
-      "Martial_Status__c": data.demographicInformation.maritalStatus,
-      "Gender__c": data.demographicInformation.gender,
-      "Birthdate": data.demographicInformation.dateOfBirth.split("T")[0],
-      "First_Language__c": data.demographicInformation.firstLanguage,
-      "Country_of_Citizenship__c": data.demographicInformation.country,
-      "MailingStreet": data.address.address,
-      "MailingCity": data.address.city,
-      "MailingState": data.address.state,
-      "MailingCountry": data.address.country,
-      "MailingPostalCode": data.address.zipCode,
-      "EmergencyContactName__c": data.emergencyContact.name,
-      "Relationship__c": data.emergencyContact.relationship,
-      "EmergencyContactEmail__c": data.emergencyContact.email,
-      "Phone": data.emergencyContact.phoneNumber,
-      "Country__c": data.emergencyContact.country,
-      "Have_you_been_refused_a_visa__c": data.backgroundInformation.isRefusedVisa ? "Yes" : "No",
-      "Do_you_have_a_valid_Study_Permit_Visa__c": data.backgroundInformation.haveStudyPermit,
-      "Study_Permit_Visa_Details__c": data.backgroundInformation.studyPermitDetails,
-      "Lock_Record__c": true,
-      "RecordTypeId": "0125g00000020HRAAY"
+      Salutation: data.studentInformation.salutation,
+      FirstName: data.studentInformation.firstName,
+      LastName: data.studentInformation.lastName,
+      DocumentCreated__c: true,
+      Task_Created__c: true,
+      Partner_Account__c: "0016D00000eKbyjQAC",
+      Partner_User__c: "",
+      Counsellor__c: "",
+      Student_Status__c: "",
+      Processing_Officer__c: "",
+      BDM_User__c: "",
+      Source__c: data.studentInformation.source,
+      Passport_Number__c: data.studentInformation.passportNumber,
+      MobilePhone: "+" + data.studentInformation.mobile,
+      Whatsapp_No__c: "+" + data.studentInformation.whatsappNumber,
+      Email: data.studentInformation.email,
+      Preferred_Country__c: data.studentInformation.countryOfInterest,
+      Intake_Preferred__c: data.studentInformation.intakePreferred,
+      Medical_History_Detail__c:
+        data.demographicInformation.medicalHistoryDetails,
+      Medical_History__c: data.demographicInformation.haveMedicalHistory
+        ? "Yes"
+        : "No",
+      Martial_Status__c: data.demographicInformation.maritalStatus,
+      Gender__c: data.demographicInformation.gender,
+      Birthdate: data.demographicInformation.dateOfBirth.split("T")[0],
+      First_Language__c: data.demographicInformation.firstLanguage,
+      Country_of_Citizenship__c: data.demographicInformation.country,
+      MailingStreet: data.address.address,
+      MailingCity: data.address.city,
+      MailingState: data.address.state,
+      MailingCountry: data.address.country,
+      MailingPostalCode: data.address.zipCode,
+      EmergencyContactName__c: data.emergencyContact.name,
+      Relationship__c: data.emergencyContact.relationship,
+      EmergencyContactEmail__c: data.emergencyContact.email,
+      Phone: data.emergencyContact.phoneNumber,
+      Country__c: data.emergencyContact.country,
+      Have_you_been_refused_a_visa__c: data.backgroundInformation.isRefusedVisa
+        ? "Yes"
+        : "No",
+      Do_you_have_a_valid_Study_Permit_Visa__c:
+        data.backgroundInformation.haveStudyPermit,
+      Study_Permit_Visa_Details__c:
+        data.backgroundInformation.studyPermitDetails,
+      Lock_Record__c: true,
+      RecordTypeId: "0125g00000020HRAAY",
+    };
+
+    return convertedData;
+  }
+
+  setScore(data) {
+    switch (data?.gradingScheme) {
+      case "Percentage":
+        return data?.percentage;
+      case "CGPA":
+        return parseFloat(data?.cgpa);
+      case "GPA":
+        return parseFloat(data?.gpa);
+      case "Grade":
+        return data?.grade;
+      case "Class":
+        return "";
+      case "Score":
+        return data?.score;
+      case "Division":
+        return data?.division;
+    }
+  }
+
+  convertEducationData(data) {
+    const convertedData = {
+      Name_of_Institution__c: data.institutionName,
+      Lock_Record__c: "true",
+      ShowInProfile__c: "true",
+      Level_of_Education__c: data.level,
+      Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
+      Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
+      Name: data.degree,
+      Country_of_Institution__c: data.country,
+      Class__c: data.class,
+      Score__c: this.setScore(data),
+      Attended_Institution_To__c: data.attendedTo.split("T")[0],
+      Attended_Institution_From__c: data.attendedFrom.split("T")[0],
+      Affiliated_University__c: data.affiliatedUniversity,
+      Verification_Status__c: "",
+      Student__c: data?.sfId,
+      Primary_Language_of_Instruction__c: data.instituteLanguage,
     };
 
     return convertedData;
@@ -98,45 +145,22 @@ class StudentService {
 
   convertEducationData(data) {
     const convertedData = {
-      "Name_of_Institution__c": data.institutionName,
-      "Lock_Record__c": "true",
-      "ShowInProfile__c": "true",
-      "Level_of_Education__c": data.level,
-      "Degree_Awarded_On__c": data.degreeAwardedOn.split("T")[0],
-      "Degree_Awarded__c": data.isDegreeAwarded ? "Yes" : "No",
-      "Name": data.degree,
-      "Country_of_Institution__c": data.country,
-      "Class__c": data.class,
-      "Score__c": parseFloat(data.cgpa),
-      "Attended_Institution_To__c": data.attendedTo.split("T")[0],
-      "Attended_Institution_From__c": data.attendedFrom.split("T")[0],
-      "Affiliated_University__c": data.affiliatedUniversity,
-      "Verification_Status__c": "",
-      "Student__c": "0036D00000pHIZNQA4",
-      "Primary_Language_of_Instruction__c": data.instituteLanguage
-    };
-
-    return convertedData;
-  }
-
-  convertEducationData(data) {
-    const convertedData = {
-      "Name_of_Institution__c": data.institutionName,
-      "Lock_Record__c": "true",
-      "ShowInProfile__c": "true",
-      "Level_of_Education__c": data.level,
-      "Degree_Awarded_On__c": data.degreeAwardedOn.split("T")[0],
-      "Degree_Awarded__c": data.isDegreeAwarded ? "Yes" : "No",
-      "Name": data.degree,
-      "Country_of_Institution__c": data.country,
-      "Class__c": data.class,
-      "Score__c": parseFloat(data.cgpa),
-      "Attended_Institution_To__c": data.attendedTo.split("T")[0],
-      "Attended_Institution_From__c": data.attendedFrom.split("T")[0],
-      "Affiliated_University__c": data.affiliatedUniversity,
-      "Verification_Status__c": "", // You may update this based on your specific logic
-      "Student__c": "0036D00000pHIZNQA4", // Replace with the actual student ID
-      "Primary_Language_of_Instruction__c": data.instituteLanguage
+      Name_of_Institution__c: data.institutionName,
+      Lock_Record__c: "true",
+      ShowInProfile__c: "true",
+      Level_of_Education__c: data.level,
+      Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
+      Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
+      Name: data.degree,
+      Country_of_Institution__c: data.country,
+      Class__c: data?.class||'',
+      Score__c: this.setScore(data),
+      Attended_Institution_To__c: data.attendedTo.split("T")[0],
+      Attended_Institution_From__c: data.attendedFrom.split("T")[0],
+      Affiliated_University__c: data.affiliatedUniversity,
+      Verification_Status__c: "", // You may update this based on your specific logic
+      Student__c: data?.sfId, // Replace with the actual student ID
+      Primary_Language_of_Instruction__c: data.instituteLanguage,
     };
 
     return convertedData;
@@ -144,15 +168,15 @@ class StudentService {
 
   convertWorkHistoryData(data) {
     const convertedData = {
-      "Name": data.employerName,
-      "Designation__c": data.designation,
-      "Date_of_Joining__c": data.doj.split("T")[0],
-      "Date_of_relieving__c": data.dor.split("T")[0],
-      "Signing_Contact_Email__c": data.email,
-      "Signing_Contact_Phone__c": data.signingAuthority.phone,
-      "Signing_Contact_Name__c": data.signingAuthority.name,
-      "Student__c": "003Hy00000tPfkUIAS",
-      "Lock_Record__c": ""
+      Name: data?.employerName,
+      Designation__c: data?.designation,
+      Date_of_Joining__c: data?.doj.split("T")[0],
+      Date_of_relieving__c: data?.dor.split("T")[0],
+      Signing_Contact_Email__c: data.email,
+      Signing_Contact_Phone__c: data?.signedPersonPhone,
+      Signing_Contact_Name__c: data?.signedPersonName,
+      Student__c: "003Hy00000tPfkUIAS",
+      Lock_Record__c: "",
     };
 
     return convertedData;
@@ -160,82 +184,101 @@ class StudentService {
 
   convertTestScoreData(data) {
     let convertedData = {
-        "RecordTypeId": "", // Fill this value based on the examType
-        "Student__c": "0036D00000UPLRIQA5", 
-        "ShowInProfile__c": true,
-        "Lock_Record__c": true,
-        "English_Exam_Type__c": data.examType,
-        "Date_of_Exam__c": data.doe.split("T")[0],
-        "ID_Certificate_No__c": data.certificateNo,
-        "Quantitative_reasoning_Percentile__c": "", // Placeholder
-        "Total_Score__c": "", // Placeholder
-        "ExternalId__c": "", // Placeholder
+      RecordTypeId: "", // Fill this value based on the examType
+      Student__c: data?.studentId,
+      Date_of_Exam__c: data.doe.split("T")[0],
+      ID_Certificate_No__c: data.certificateNo,
+      Verification_Status__c: data?.status,
     };
 
     // Mapping record type IDs based on the examType
-    switch(data.examType) {
-        case "GRE":
-            convertedData.RecordTypeId = "0125g0000000zo0AAA";
-            convertedData.Analytical_reasoning_Percentile__c = ""; // Placeholder
-            convertedData.Analytical_reasoning_Score__c = ""; // Placeholder
-            convertedData.Quantitative_reasoning_Score__c = ""; // Placeholder
-            convertedData.Verbal_Reasoning_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Reasoning_Score__c = ""; // Placeholder
-            break;
-        case "GMAT":
-            convertedData.RecordTypeId = "0125g0000000znzAAA";
-            convertedData.Integrated_Listening_Percentile__c = ""; // Placeholder
-            convertedData.Integrated_Listening_Score__c = ""; // Placeholder
-            convertedData.Quantitative_Percentile__c = ""; // Placeholder
-            convertedData.Quantitative_Score__c = ""; // Placeholder
-            convertedData.Total_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Percentile__c = ""; // Placeholder
-            convertedData.Verbal_Score1__c = ""; // Placeholder
-            break;
-        case "Duolingo English Test":
-            convertedData.RecordTypeId = "0125g0000000znyAAA";
-            convertedData.Comprehension__c = ""; // Placeholder
-            convertedData.Conversation__c = ""; // Placeholder
-            convertedData.Literacy__c = ""; // Placeholder
-            convertedData.Overall__c = ""; // Placeholder
-            convertedData.Production__c = ""; // Placeholder
-            break;
-        default:
-            break;
+    switch (data.examType) {
+      case "12th Standard English Mark":
+        convertedData.RecordTypeId = "0125g0000000zo2AAA";
+        convertedData.Quantitative_reasoning_Percentile__c = data?.percentile; // Placeholder
+        convertedData.Total_Score__c = data?.englishMarks; // Placeholder
+        convertedData.English_Exam_Type__c = "12th STD. English mark";
+        break;
+      case "GRE":
+        convertedData.RecordTypeId = "0125g0000000zo0AAA";
+        convertedData.Quantitative_reasoning_Score__c =
+          data?.quantitativeReasoningScore; // Placeholder
+        convertedData.Verbal_Reasoning_Score__c = data?.verbalReasoningScore; // Placeholder
+        convertedData.Analytical_reasoning_Score__c =
+          data?.analyticalReasoningScore; // Placeholder
+        convertedData.Verbal_Reasoning_Percentile__c =
+          data?.verbalReasoningPercentile; // Placeholder
+        convertedData.Analytical_reasoning_Percentile__c =
+          data?.analyticalReasoningPercentile; // Placeholder
+        convertedData.Quantitative_reasoning_Percentile__c = data?.percentile;
+        convertedData.English_Exam_Type__c = "GRE";
+        break;
+      case "GMAT":
+        convertedData.RecordTypeId = "0125g0000000znzAAA";
+        convertedData.Quantitative_Percentile__c = data?.quantitativePercentile; // Placeholder
+        convertedData.Verbal_Score1__c = data?.verbalScore; // Placeholder
+        convertedData.Integrated_Listening_Score__c =
+          data?.integratedListeningScore; // Placeholder
+        convertedData.Verbal_Percentile__c = data?.verbalpercentile; // Placeholder
+        convertedData.Integrated_Listening_Percentile__c =
+          data?.integratedListeningPercentile; // Placeholder
+        convertedData.Gmat_Quantitative_Score__c = data?.quantitativeScore; // Placeholder
+        convertedData.Total_Percentile__c = data?.totalPercentile;
+        convertedData.English_Exam_Type__c = "GMAT";
+        break;
+      case "Duolingo":
+        convertedData.RecordTypeId = "0125g0000000znyAAA";
+        convertedData.Comprehension__c = data?.comprehension; // Placeholder
+        convertedData.Conversation__c = data?.conversation; // Placeholder
+        convertedData.Literacy__c = data?.literacy; // Placeholder
+        convertedData.Overall__c = data?.overall; // Placeholder
+        convertedData.Production__c = data?.production; // Placeholder
+        convertedData.Quantitative_reasoning_Percentile__c = data?.percentile;
+        convertedData.English_Exam_Type__c = "Duolingo English Test";
+        break;
+      case "TOFL / IELTS / PTE":
+        convertedData.RecordTypeId = "0125g0000000zo1AAA";
+        convertedData.Listening__c = data?.listening; // Placeholder
+        convertedData.Reading__c = data?.reading; // Placeholder
+        convertedData.GRE_Writing_Score__c = data?.writing; // Placeholder
+        convertedData.Verbal_Score__c = data?.speaking; // Placeholder
+        convertedData.Overall__c = data?.overall; // Placeholder
+        convertedData.English_Exam_Type__c = data?.selectedType;
+      default:
+        break;
     }
-
-    return convertedData;
-}
-
-  convertTaskData(data) {
-    const convertedData = {
-      "RecordTypeId": "0125g0000003r8xAAA",
-      "Name": data.name,
-      "Sequence__c": "2",
-      "TaskMaster__c": "",
-      "DocumentId__c": "",
-      "ContactId__c": "0036D00000p36F3QAI", // Dynamic for student
-      "Status__c": "New", // Enum: New, In Progress, Due, Completed
-      "Lock_Record__c": false,
-      "Type__c": "Question", // Enum: Question, Clarification, Request Document, Interview, Appointment, Pre-Screening Documents, Verify Document, Re-upload Document, Re-verify Document, Agent Training
-      "CompletedDate__c": "2023-02-09",
-      "Mandatory__c": true,
-      "Publish_To_Portal__c": true,
-      "IsArchived__c": true,
-      "Priority__c": "High", // Enum: High, Normal, Low
-      "Description__c": data.description,
-      "CommentUniexperts__c": "asrftrf",
-      "IsReminderSet__c": true,
-      "ApplicationStages__c": "Pre-Submission", // Enum: Pre-Submission, Application Submitted, Accepted(Conditional), Accepted(Unconditional), Payment, Visa Letter Requested
-      "RecurrenceInterval__c": 2,
-      "Start_Date__c": "",
-      "Task_End_Date__c": "2023-08-17T09:43:56.000+0000",
-      "Student_stages__c": "" // Enum: New Student, General, Educational, Work History, Documents Received, Pre Screening Interview, Pre Documents Verification, Document Verified, Application, Visa Approved, Enrolled, Commission, Rejected
-    };
 
     return convertedData;
   }
 
+  convertTaskData(data) {
+    const convertedData = {
+      RecordTypeId: "0125g0000003r8xAAA",
+      Name: data.name,
+      Sequence__c: "2",
+      TaskMaster__c: "",
+      DocumentId__c: "",
+      ContactId__c: "0036D00000p36F3QAI", // Dynamic for student
+      Status__c: "New", // Enum: New, In Progress, Due, Completed
+      Lock_Record__c: false,
+      Type__c: "Question", // Enum: Question, Clarification, Request Document, Interview, Appointment, Pre-Screening Documents, Verify Document, Re-upload Document, Re-verify Document, Agent Training
+      CompletedDate__c: "2023-02-09",
+      Mandatory__c: true,
+      Publish_To_Portal__c: true,
+      IsArchived__c: true,
+      Priority__c: "High", // Enum: High, Normal, Low
+      Description__c: data.description,
+      CommentUniexperts__c: "asrftrf",
+      IsReminderSet__c: true,
+      ApplicationStages__c: "Pre-Submission", // Enum: Pre-Submission, Application Submitted, Accepted(Conditional), Accepted(Unconditional), Payment, Visa Letter Requested
+      RecurrenceInterval__c: 2,
+      Start_Date__c: "",
+      Task_End_Date__c: "2023-08-17T09:43:56.000+0000",
+      Student_stages__c: "", // Enum: New Student, General, Educational, Work History, Documents Received, Pre Screening Interview, Pre Documents Verification, Document Verified, Application, Visa Approved, Enrolled, Commission, Rejected
+    };
+
+    return convertedData;
+  }
 
   async createStudent(modifiedBy, agentId, studentInformation) {
     await this.checkForValidUsers(
@@ -244,7 +287,7 @@ class StudentService {
     );
 
     const externalId = uuid();
-
+    console.log("====yaha aya===");
     const student = await StudentModel.create({
       ...studentInformation,
       modifiedBy,
@@ -252,64 +295,72 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
-  
-    const studentData = this.converttoSfBody(studentInformation)
-    console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
+    console.log("====student===", student);
+    const studentData = this.converttoSfBody(studentInformation);
+    console.log(
+      "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
+    );
     const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
-   const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-
-   console.log("sfStudentResponse: ", sfStudentResponse);
-    return { id: student.id, sf: sfStudentResponse };
+    const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
+    const sfId = sfStudentResponse?.id;
+    if (sfId) {
+      await StudentModel.updateOne(
+        { _id: student._id },
+        { $set: { salesforceId: sfId } }
+      );
+    }
+    return { id: student._id, sf: sfStudentResponse };
   }
 
   async preferredCountries() {
-    return PreferredCountries
+    return PreferredCountries;
   }
 
   async getStudent(agentId, query) {
-
-    const filter = {agentId}
-    const sortByType = query.sortByType === 'Ascending' ? 1 : -1 ;
-    const sortBy = {}
-    if(query.sortBy){
-      sortBy[`${query.sortBy}`] = sortByType
+    const filter = { agentId };
+    const sortByType = query.sortByType === "Ascending" ? 1 : -1;
+    const sortBy = {};
+    if (query.sortBy) {
+      sortBy[`${query.sortBy}`] = sortByType;
     }
-    if(query.queryCreatedBy){
-      filter.createdBy=query.queryCreatedBy
+    if (query.queryCreatedBy) {
+      filter.createdBy = query.queryCreatedBy;
     }
-    if(query.queryName){
-      filter.studentInformation={firstName: query.queryName}
+    if (query.queryName) {
+      filter.studentInformation = { firstName: query.queryName };
     }
-    if(query.queryEmail){
-      filter.emergencyContact={email: query.queryEmail}
+    if (query.queryEmail) {
+      filter.emergencyContact = { email: query.queryEmail };
     }
-    if(query.queryMobile){
-      filter.emergencyContact={phoneNumber: query.queryMobile}
+    if (query.queryMobile) {
+      filter.emergencyContact = { phoneNumber: query.queryMobile };
     }
-    if(query.queryCountry){
-      filter.demographicInformation={country: query.queryCountry}
+    if (query.queryCountry) {
+      filter.demographicInformation = { country: query.queryCountry };
     }
-    if(query.queryCounsellor){
-      filter.studentInformation={counsellorId: query.queryCounsellor}
+    if (query.queryCounsellor) {
+      filter.studentInformation = { counsellorId: query.queryCounsellor };
     }
     const student = await StudentModel.find(filter)
-    .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
-    .sort(sortBy)
-    .limit(parseInt(query.perPage));
-    const studentList = []
-    for(let i=0;i<student.length;i++){
-            const staff = await Staff.findOne({_id: student[i].createdBy});
-      const counsellor = await Staff.findOne({_id: student[i].studentInformation.counsellorId});
+      .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+      .sort(sortBy)
+      .limit(parseInt(query.perPage));
+    const studentList = [];
+    for (let i = 0; i < student.length; i++) {
+      const staff = await Staff.findOne({ _id: student[i].createdBy });
+      const counsellor = await Staff.findOne({
+        _id: student[i].studentInformation.counsellorId,
+      });
 
-      if(staff){
+      if (staff) {
         student[i].createdBy = staff.fullName;
       }
 
-      if(counsellor){
+      if (counsellor) {
         student[i].studentInformation.counsellorId = staff.fullName;
       }
-      
-      studentList.push(student[i])
+
+      studentList.push(student[i]);
     }
 
     return studentList;
@@ -318,7 +369,7 @@ class StudentService {
   async getStudentGeneralInformation(studentId) {
     const student = await StudentModel.findOne({ _id: studentId });
     if (!student) throw new Error("Student not found");
-    return student.getGeneralInformation();
+    return student;
   }
 
   async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails) {
@@ -349,10 +400,12 @@ class StudentService {
     return this.educationService.getByStudentId(studentId);
   }
 
-  
   async addStudentEducation(studentId, modifiedBy, body) {
-    const education = await this.educationService.add(studentId, modifiedBy, body);
-
+    const education = await this.educationService.add(
+      studentId,
+      modifiedBy,
+      body
+    );
     const result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { educations: education.id }, $set: { modifiedBy } }
@@ -362,8 +415,10 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const educationData = this.convertEducationData(body)
-    const educationUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c"
+    const educationData = this.convertEducationData(body);
+    console.log("educationData----->", educationData);
+    const educationUrl =
+      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c";
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
 
     console.log("sfEducationResponse: ", sfEducationResponse);
@@ -396,9 +451,18 @@ class StudentService {
 
   async updateStudentEducation(studentId, modifiedBy, educationId, body) {
     await this.checkIfEducationBelongsToStudent(studentId, educationId);
-    let updatedEducation = await this.educationService.update(modifiedBy, educationId, body);
-    const url = "Education__c/a02N000000N8POMIA3"
-    await sendToSF(MappingFiles.STUDENT_education_history, { ...a, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } , url});
+    let updatedEducation = await this.educationService.update(
+      modifiedBy,
+      educationId,
+      body
+    );
+    const url = "Education__c/a02N000000N8POMIA3";
+    await sendToSF(MappingFiles.STUDENT_education_history, {
+      ...a,
+      studentId: (await this.findById(studentId)).externalId,
+      _user: { id: modifiedBy },
+      url,
+    });
     return updatedEducation;
   }
 
@@ -424,7 +488,11 @@ class StudentService {
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
     await this.findById(studentId);
-    const workHistory = await this.workHistoryService.add(studentId, modifiedBy, body);
+    const workHistory = await this.workHistoryService.add(
+      studentId,
+      modifiedBy,
+      body
+    );
 
     const result = await StudentModel.updateOne(
       { _id: studentId },
@@ -434,9 +502,13 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
     }
-    const workHistoryData = this.convertWorkHistoryData(body)
-    const workHistoryUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Work_history__c"
-    const sfWorkHistoryResponse = await sendDataToSF(workHistoryData, workHistoryUrl);
+    const workHistoryData = this.convertWorkHistoryData(body);
+    const workHistoryUrl =
+      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Work_history__c";
+    const sfWorkHistoryResponse = await sendDataToSF(
+      workHistoryData,
+      workHistoryUrl
+    );
 
     console.log("sfWorkHistoryResponse: ", sfWorkHistoryResponse);
 
@@ -445,9 +517,18 @@ class StudentService {
 
   async updateStudentWorkHistory(studentId, modifiedBy, workHistoryId, body) {
     await this.checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId);
-    const wh = await this.workHistoryService.update(modifiedBy, workHistoryId, body);
-    const url = "Work_history__c/a0EN000000K7HBUMA3"
-    await sendToSF(MappingFiles.STUDENT_work_history, { ...wh, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy }, url });
+    const wh = await this.workHistoryService.update(
+      modifiedBy,
+      workHistoryId,
+      body
+    );
+    const url = "Work_history__c/a0EN000000K7HBUMA3";
+    await sendToSF(MappingFiles.STUDENT_work_history, {
+      ...wh,
+      studentId: (await this.findById(studentId)).externalId,
+      _user: { id: modifiedBy },
+      url,
+    });
     return wh;
   }
 
@@ -472,19 +553,28 @@ class StudentService {
   }
 
   async addStudentTestScore(studentId, modifiedBy, body, agentId) {
+    console.log("Ajaaaa bhai");
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
-        if (['Total Percentile', 'Percentile', 'Total Score', ''].includes(key)) {
+        if (
+          ["Total Percentile", "Percentile", "Total Score", ""].includes(key)
+        ) {
           body.scoreInformation.push({
-            key: 'ts',
-            value: body.scoreInformation[i].value
+            key: "ts",
+            value: body.scoreInformation[i].value,
           });
         }
       }
     }
-    const testScore = await this.testScoreService.add(studentId, modifiedBy, body, agentId);
-
+    console.log("AgentId===========>", agentId);
+    const testScore = await this.testScoreService.add(
+      studentId,
+      modifiedBy,
+      body,
+      agentId
+    );
+    console.log("testScore", testScore);
     const result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { testScore: testScore.id }, $set: { modifiedBy } }
@@ -494,9 +584,14 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const testScoreSfData = this.convertTestScoreData(body)
-    const testScoreUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c"
-    const testScoreSfResponse = await sendDataToSF(testScoreSfData, testScoreUrl);
+    const testScoreSfData = this.convertTestScoreData(body);
+    console.log("testScoreSf,", testScoreSfData);
+    const testScoreUrl =
+      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c";
+    const testScoreSfResponse = await sendDataToSF(
+      testScoreSfData,
+      testScoreUrl
+    );
 
     console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
@@ -513,7 +608,10 @@ class StudentService {
   async deleteStudentTestScore(studentId, modifiedBy, testScoreId) {
     await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
     await this.testScoreService.delete(testScoreId);
-    return StudentModel.updateOne({ _id: studentId }, { $pull: { testScore: testScoreId }, $set: { modifiedBy } });
+    return StudentModel.updateOne(
+      { _id: studentId },
+      { $pull: { testScore: testScoreId }, $set: { modifiedBy } }
+    );
   }
 
   async checkIfTestScoreBelongsToStudent(studentId, testScoreId) {
@@ -788,32 +886,48 @@ class StudentService {
   //   await school.remove();
   // }
 
-  async addStudentTestScore(studentId, modifiedBy, body) {
+  async addStudentTestScore(studentId, modifiedBy, body, agentId) {
     const externalId = uuid();
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
-        if (['Total Percentile', 'Percentile', 'Total Score', ''].includes(key)) {
+        if (
+          ["Total Percentile", "Percentile", "Total Score", ""].includes(key)
+        ) {
           body.scoreInformation.push({
-            key: 'ts',
-            value: body.scoreInformation[i].value
+            key: "ts",
+            value: body.scoreInformation[i].value,
           });
         }
       }
     }
-    const testScore = await this.testScoreService.add(studentId, modifiedBy, body);
-
+    console.log("Kyu nhi aa rha");
+    const testScore = await this.testScoreService.add(
+      studentId,
+      modifiedBy,
+      body,
+      agentId
+    );
+    console.log("testScore", testScore);
     const result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { testScore: testScore.id }, $set: { modifiedBy } }
     );
-
+    console.log("result", result);
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
     }
 
-    // await sendToSF(MappingFiles.STUDENT_test_score, { ...testScore, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
+    const testScoreSfData = this.convertTestScoreData(body);
+    console.log("testScoreSf,", testScoreSfData);
+    const testScoreUrl =
+      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c";
+    const testScoreSfResponse = await sendDataToSF(
+      testScoreSfData,
+      testScoreUrl
+    );
 
+    console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
   }
 
@@ -829,7 +943,10 @@ class StudentService {
   async deleteStudentTestScore(studentId, modifiedBy, testScoreId) {
     await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
     await this.testScoreService.delete(testScoreId);
-    return StudentModel.updateOne({ _id: studentId }, { $pull: { testScore: testScoreId }, $set: { modifiedBy } });
+    return StudentModel.updateOne(
+      { _id: studentId },
+      { $pull: { testScore: testScoreId }, $set: { modifiedBy } }
+    );
   }
 
   async checkIfTestScoreBelongsToStudent(studentId, testScoreId) {
@@ -844,7 +961,11 @@ class StudentService {
   }
 
   async addStudentDocuments(studentId, modifiedBy, body) {
-    const documents = await this.documentService.addDocuments(modifiedBy, studentId, body);
+    const documents = await this.documentService.addDocuments(
+      modifiedBy,
+      studentId,
+      body
+    );
     const documentIds = documents.map((document) => document.id);
 
     const result = await StudentModel.updateOne(
@@ -857,15 +978,23 @@ class StudentService {
     }
 
     let sid = (await this.findById(studentId)).externalId;
-    documents.forEach(async doc => {
-      await sendToSF(MappingFiles.STUDENT_document, { ...doc, studentId: sid, _user: { id: modifiedBy } });
+    documents.forEach(async (doc) => {
+      await sendToSF(MappingFiles.STUDENT_document, {
+        ...doc,
+        studentId: sid,
+        _user: { id: modifiedBy },
+      });
     });
 
     return documentIds;
   }
 
   async updateStudentDocument(studentId, modifiedBy, body) {
-    const document = await this.documentService.addDocument(modifiedBy, studentId, body);
+    const document = await this.documentService.addDocument(
+      modifiedBy,
+      studentId,
+      body
+    );
 
     const result = await StudentModel.updateOne(
       { _id: studentId },
@@ -883,7 +1012,10 @@ class StudentService {
   async deleteStudentDocument(studentId, modifiedBy, documentId) {
     await this.checkIfDocumentBelongsToStudent(studentId, documentId);
     await this.documentService.delete(documentId);
-    return StudentModel.updateOne({ _id: studentId }, { $pull: { documents: documentId }, $set: { modifiedBy } });
+    return StudentModel.updateOne(
+      { _id: studentId },
+      { $pull: { documents: documentId }, $set: { modifiedBy } }
+    );
   }
 
   async checkIfDocumentBelongsToStudent(studentId, documentId) {
@@ -898,7 +1030,9 @@ class StudentService {
   }
 
   async addStudentPayment(studentId, modifiedBy, body) {
-    const application = await this.applicationService.findById(body.applicationId);
+    const application = await this.applicationService.findById(
+      body.applicationId
+    );
     const payment = await this.studentPaymentService.add(
       studentId,
       application.programId,
@@ -919,16 +1053,22 @@ class StudentService {
     let dt = {
       ...payment,
       studentId: (await this.findById(studentId)).externalId,
-      _user: { id: modifiedBy }
+      _user: { id: modifiedBy },
     };
-    if(payment.applicationId){
-      dt.applicationId = (await this.applicationService.findById(payment.applicationId)).externalId;
+    if (payment.applicationId) {
+      dt.applicationId = (
+        await this.applicationService.findById(payment.applicationId)
+      ).externalId;
     }
-    if(payment.programmeId){
-      dt.programmeId = (await this.programService.findById(payment.programmeId)).externalId;
+    if (payment.programmeId) {
+      dt.programmeId = (
+        await this.programService.findById(payment.programmeId)
+      ).externalId;
     }
-    if(payment.schoolId){
-      dt.schoolId = (await this.schoolService.findById(payment.schoolId)).externalId;
+    if (payment.schoolId) {
+      dt.schoolId = (
+        await this.schoolService.findById(payment.schoolId)
+      ).externalId;
     }
     // await sendToSF(MappingFiles.STUDENT_payment, dt);
 
@@ -937,7 +1077,11 @@ class StudentService {
 
   async updateStudentPayment(studentId, modifiedBy, paymentId, body) {
     await this.checkIfPaymentBelongsToStudent(studentId, paymentId);
-    let a = await this.studentPaymentService.update(modifiedBy, paymentId, body);
+    let a = await this.studentPaymentService.update(
+      modifiedBy,
+      paymentId,
+      body
+    );
     // await sendToSF(MappingFiles.STUDENT_payment, {
     //   ...a,
     //   _user: { id: modifiedBy }
@@ -948,7 +1092,10 @@ class StudentService {
   async deleteStudentPayment(studentId, modifiedBy, paymentId) {
     await this.checkIfPaymentBelongsToStudent(studentId, paymentId);
     await this.studentPaymentService.delete(paymentId);
-    return StudentModel.updateOne({ _id: studentId }, { $pull: { payment: paymentId }, $set: { modifiedBy } });
+    return StudentModel.updateOne(
+      { _id: studentId },
+      { $pull: { payment: paymentId }, $set: { modifiedBy } }
+    );
   }
 
   async checkIfPaymentBelongsToStudent(studentId, paymentId) {
@@ -963,7 +1110,12 @@ class StudentService {
   }
 
   async addStudentTask(studentId, agentId, modifiedBy, body) {
-    const task = await this.taskService.add(studentId, agentId, modifiedBy, body);
+    const task = await this.taskService.add(
+      studentId,
+      agentId,
+      modifiedBy,
+      body
+    );
 
     const result = await StudentModel.updateOne(
       { _id: studentId },
@@ -974,7 +1126,7 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const taskSfData = this.convertTaskData(body)
+    const taskSfData = this.convertTaskData(body);
     const taskSfUrl = `${process.env.SF_OBJECT_URL}RelatedTask__c`;
     const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
 
@@ -1000,7 +1152,12 @@ class StudentService {
   }
 
   async addStudentComment(studentId, modifiedBy, body) {
-    const comment = await this.commentService.add(body.message, modifiedBy, studentId, body.attachment);
+    const comment = await this.commentService.add(
+      body.message,
+      modifiedBy,
+      studentId,
+      body.attachment
+    );
 
     const result = await StudentModel.updateOne(
       { _id: studentId },
@@ -1066,16 +1223,16 @@ class StudentService {
     if (student.studentInformation) {
       progress++;
     }
-    if ((student.educations.length ?student.educations.length: 0) > 0) {
+    if ((student.educations.length ? student.educations.length : 0) > 0) {
       progress++;
     }
-    if ((student.workHistory.length ?student.workHistory.length: 0) > 0) {
+    if ((student.workHistory.length ? student.workHistory.length : 0) > 0) {
       progress++;
     }
-    if ((student.testScore.length ?student.testScore.length: 0) > 0) {
+    if ((student.testScore.length ? student.testScore.length : 0) > 0) {
       progress++;
     }
-    if ((student.documents.length ?student.documents.length: 0) > 0) {
+    if ((student.documents.length ? student.documents.length : 0) > 0) {
       progress++;
     }
     return (progress / total) * 100;
@@ -1110,7 +1267,13 @@ class StudentService {
       { $match: { agentId: agentId, createdAt: { $exists: true } } },
       {
         $redact: {
-          $cond: [{ $eq: [{ $year: "$createdAt" }, Number.parseInt(year.toString())] }, "$$KEEP", "$$PRUNE"],
+          $cond: [
+            {
+              $eq: [{ $year: "$createdAt" }, Number.parseInt(year.toString())],
+            },
+            "$$KEEP",
+            "$$PRUNE",
+          ],
         },
       },
       {
@@ -1126,7 +1289,7 @@ class StudentService {
 
   async checkForValidUsers(staffId, counsellorId) {
     const [staff, counsellor] = await Promise.all([
-      this.staffService.findById(staffId),
+      this.staffService.findByAgentId(staffId),
       this.staffService.findById(counsellorId),
     ]);
 

@@ -23,16 +23,17 @@ class TestScoreService {
 
  async add(studentId, modifiedBy, body, agentId) {
     const externalId = uuid.v4();
+    console.log("AgentIdXXXXXXXXXXXX",agentId)
     const testScore = this.testScoreModel.create({ ...body, studentId, modifiedBy, createdBy: modifiedBy, externalId });
-    const url = "Test_Score__c/ExternalId__c/2573t236423ev"
-    const sf = await sendToSF(MappingFiles.STUDENT_test_score, {
-      ...testScore,
-      externalId: externalId,
-      _user: { agentId, id: modifiedBy },
-      url
-    });
+    // const url = "Test_Score__c/ExternalId__c/2573t236423ev"
+    // const sf = await sendToSF(MappingFiles.STUDENT_test_score, {
+    //   ...testScore,
+    //   externalId: externalId,
+    //   _user: { agentId, id: modifiedBy },
+    //   url
+    // });
 
-    console.log("sf test score: "+sf);
+    // console.log("sf test score: "+sf);
     return testScore;
   }
 

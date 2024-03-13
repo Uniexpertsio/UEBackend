@@ -106,6 +106,15 @@ class StaffService {
 
     return user;
   }
+  async findByAgentId(agentId){
+    const user = await this.staffModel.find({agentId});
+
+    if (!user) {
+      throw new Error(id);
+    }
+
+    return user;
+  }
 
   queryByName(name) {
     return this.staffModel.find({ fullName: { $regex: name } });

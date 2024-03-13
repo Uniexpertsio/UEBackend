@@ -114,10 +114,12 @@ const sendDataToSF = async (body, url) => {
         await SFerrorHandler(data);
         return resolve(data);
       } else {
-        const { data } = await axios.post(url, body, { headers });
+        const {data}  = await axios.post(url, body, { headers });
+        console.log(data,"======================");
         resolve(data);
       }
     } catch (err) {
+      console.log("==========err",err);
         reject(err)
     }
   })
@@ -143,6 +145,8 @@ const sendToSF = async (fileName, rawBody) => {
 
   try {
     const mapper = require(flPath);
+    console.log("Filename",fileName);
+    console.log("rawBody",rawBody)
     let body = await mapper(rawBody, rawBody.commonId);
     // filterUndefined(body);
     const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;
