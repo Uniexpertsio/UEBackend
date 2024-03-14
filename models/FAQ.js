@@ -1,22 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const FAQschema = new mongoose.Schema(
-    {
-        type: { type: String, default: 'FrequentlyAskedQuestion__c' },
-        id: String,
-        url: String,
-        name: String,
-        question__c: String,
-        solution__c: String,
-        category__c: String,
-        subCategory__c: String,
-        type_c: String,
-        descriptive_Answer__c: String,
-        url_c: String
+  {
+    attributes: {
+      type: { type: String },
+      url: String,
     },
-    { timestamps: true } // Adds createdAt and updatedAt fields
+    Id: String,
+    url: String,
+    Name: String,
+    Question__c: String,
+    Answer__c: String,
+    Type__c: String,
+    URL__c: String,
+  },
+  { timestamps: true } // Adds createdAt and updatedAt fields
 );
-
-const FAQ = mongoose.model('Case', FAQschema);
+FAQschema.index({Name:'text'});
+const FAQ = mongoose.model("faqs", FAQschema);
 
 module.exports = FAQ;
