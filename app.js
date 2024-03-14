@@ -28,6 +28,7 @@ module.exports = (port) => {
 	let invoiceRoute = require("./routes/invoice.routes");
 	let dashboardRoute = require("./routes/dashboard.routes");
 	let notificationRoute = require("./routes/notification.routes");
+	let faqRoute = require("./routes/faq.routes");
 	let caseRoute = require("./routes/case.routes");
 
 	app.use(express.json());
@@ -74,7 +75,7 @@ module.exports = (port) => {
 	app.use("/api/dashboard", dashboardRoute);
 	app.use("/api/notification", notificationRoute);
 	app.use("/api/case", caseRoute);
-
+	app.use("/api/faq",faqRoute);
 	app.use( (req, res, next) => {
 		res.status(404).send({
 			message: "No such api endpoint found.",

@@ -189,6 +189,22 @@ const getPartnerId = async(sfId) => {
   // }
 };
 
+
+
+// Get External IDs of documents
+const getFaqDataFromSF = async(url) => {
+  try {
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const { data } = await axios.get(url,{headers});
+    return data;
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+};
+
+
 const handleSfError = (err) => {
   if (err.response) {
     console.log("Error Response", err.response);
@@ -227,5 +243,6 @@ module.exports = {
   sendDataToSF,
   updateDataToSF,
   downloadTnc,
+  getFaqDataFromSF,
   getPartnerId
 };
