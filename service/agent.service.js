@@ -56,6 +56,7 @@ class AgentService {
               Application__c: "",
               Programme__c: "",
               S3_DMS_URL__c: doc.url,
+              ContentUrl__c: doc.url
             };
             let sfIdFound = false;
 
