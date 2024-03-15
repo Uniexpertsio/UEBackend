@@ -18,15 +18,15 @@ class CaseController {
 
   async createCase(req, res) {
     const caseData = req.body;
-    const newCase = await this.caseService.createCase(caseData);
-    res.status(201).json(newCase);
+    const newCase = await this.caseService.createCase(caseData,res);
+    // res.status(201).json(newCase);
   }
 
   async updateCase(req, res) {
     const { id } = req.params;
     const caseData = req.body;
-    const updatedCase = await this.caseService.updateCase(id, caseData);
-    res.json(updatedCase);
+    const updatedCase = await this.caseService.updateCase(id, caseData, res);
+    // res.json(updatedCase);
   }
 
   async deleteCase(req, res) {

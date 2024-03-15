@@ -2,17 +2,23 @@ const mongoose = require('mongoose');
 
 const caseSchema = new mongoose.Schema(
   {
-    accountName: { type: String, required: true },
-    contactName: { type: String, required: true },
-    origin: { type: String, required: false },
-    type: { type: String, required: true },
-    subType: { type: String },
-    description: { type: String },
-    comments: { type: String },
-    priority: { type: String, required: true },
-    status: { type: String, default: 'New'},
-    subject: { type: String },
-    attachment: { type: String}
+    attributes: {
+      type: String,
+      url: String
+    },
+    accountId: String,
+    id: String,
+    caseNumber: String,
+    origin: String,
+    reason: String,
+    case_Sub_Reason_c: String,
+    isClosed:{ type: Boolean,default: false },
+    isClosedOnCreate: {type: Boolean,default: false},
+    description: String,
+    priority: String,
+    status: String,
+    subject: String,
+    type: String
   },
   { timestamps: true } // Adds createdAt and updatedAt fields
 );
