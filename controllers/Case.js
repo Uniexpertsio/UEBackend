@@ -16,6 +16,17 @@ class CaseController {
     res.json(caseData);
   }
 
+  async getReason(req,res){
+    const caseData = await this.caseService.getReasonService();
+    res.json(caseData);
+  }
+
+  async getSubReason(req,res){
+    console.log("Aya")
+    const caseData = await this.caseService.getSubReasonService();
+    res.json(caseData);
+  }
+
   async createCase(req, res) {
     const caseData = req.body;
     const newCase = await this.caseService.createCase(caseData,res);

@@ -1,4 +1,5 @@
-const Case = require('../models/Case');
+const Case = require("../models/Case");
+const { getDataFromSF } = require("../service/salesforce.service");
 
 class CaseService {
   async getAllCases() {
@@ -13,16 +14,48 @@ class CaseService {
   //   return await Case.create(caseData);
   // }
 
+  async getReasonService() {
+    try{
+        const url=`${process.env.SF_DEFAULT_URL}ui-api/object-info/Case/picklist-values/012000000000000AAA/Reason`;
+        const sfData = await getDataFromSF(url);
+        return sfData;
+    }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+  async getSubReasonService() {
+    try{
+      const url=`${process.env.SF_DEFAULT_URL}ui-api/object-info/Case/picklist-values/012000000000000AAA/Case_Sub_Reason__c`
+      const sfData = await getDataFromSF(url);
+      return sfData;
+  }
+  catch(err){
+    console.log(err);
+  }
+  }
+
   async createCase(caseData, res) {
     try {
-      let createCase = await new Case(caseData).save();
+      // let createCase = await new Case(caseData).save();
+      console.log(caseData);
+      let createCase='';
       if (!createCase) {
-        return res.status(404).send({ statuscode: 404, message: 'not created' })
+        return res
+          .status(404)
+          .send({ statuscode: 404, message: "not created" });
       }
-      res.status(201).send({ statuscode: 201, message: "Case created successfully", data: createCase });
+      res
+        .status(201)
+        .send({
+          statuscode: 201,
+          message: "Case created successfully",
+          data: createCase,
+        });
     } catch (err) {
       res.status(400).send({ statuscode: 400, message: err.message });
-      console.log('create case error', err);
+      console.log("create case error", err);
     }
   }
 
@@ -31,20 +64,34 @@ class CaseService {
   // }
 
   async updateCase(id, caseData, res) {
-    try { 
-      let cases = await Case.findOne({_id: id});
-      if(!cases) {
-          return res.status(404).send({statuscode: 404, message: `No case data with this ${id}`});
+    try {
+      let cases = await Case.findOne({ _id: id });
+      if (!cases) {
+        return res
+          .status(404)
+          .send({ statuscode: 404, message: `No case data with this ${id}` });
       }
-      cases = await Case.findOneAndUpdate({ _id: id },{ $set: caseData },{ new: true });
-      if(!cases) {
-          return res.status(400).send({statuscode: 400, message: 'case data not updated'});
+      cases = await Case.findOneAndUpdate(
+        { _id: id },
+        { $set: caseData },
+        { new: true }
+      );
+      if (!cases) {
+        return res
+          .status(400)
+          .send({ statuscode: 400, message: "case data not updated" });
       }
-      return res.status(200).send({statuscode: 200, message: 'Case data updated succesfully',data: cases});
-  } catch(err) {
-      res.status(500).send({statuscode: 500, message: constants.SERVER_ERR});
-      console.log('update case error:: ',err);
-  }
+      return res
+        .status(200)
+        .send({
+          statuscode: 200,
+          message: "Case data updated succesfully",
+          data: cases,
+        });
+    } catch (err) {
+      res.status(500).send({ statuscode: 500, message: constants.SERVER_ERR });
+      console.log("update case error:: ", err);
+    }
   }
 
   async deleteCase(id) {

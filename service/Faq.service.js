@@ -1,5 +1,5 @@
 const Faq = require("../models/FAQ");
-const { getFaqDataFromSF } = require("../service/salesforce.service");
+const { getDataFromSF } = require("../service/salesforce.service");
 
 async function getFaqData(query) {
   try {
@@ -10,7 +10,7 @@ async function getFaqData(query) {
       return data;
     } else {
       const url = `${process.env.SF_QUERY_URL}?q=SELECT+Id,Name,Question__c,Type__c,Answer__c,URL__c+FROM+FrequentlyAskedQuestion__c+LIMIT+200`;
-      const sfData = await getFaqDataFromSF(url);
+      const sfData = await getDataFromSF(url);
 
       if (sfData && sfData.records.length > 0) {
         const operations = sfData.records.map(async (data) => {
