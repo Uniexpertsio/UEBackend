@@ -176,7 +176,6 @@ const getPartnerId = async(sfId) => {
     // filterUndefined(body);
     const token = await generateToken();
     const headers = generateHeaders(token);
-    console.log("headers ---",headers);
     const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Account/${sfId}`;
     const { data } = await axios.get(url,{headers});
     return data;

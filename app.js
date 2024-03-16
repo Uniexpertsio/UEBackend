@@ -31,6 +31,7 @@ module.exports = (port) => {
   let faqRoute = require("./routes/faq.routes");
   let caseRoute = require("./routes/case.routes");
   let reasonRouter = require("./routes/reason.routes");
+  let attachmentRouter=require("./routes/attachment.routes");
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cors());
@@ -82,6 +83,7 @@ module.exports = (port) => {
   app.use("/api/case", caseRoute);
   app.use("/api/faq", faqRoute);
   app.use("/api/reason", reasonRouter);
+  app.use("/api/attachment", attachmentRouter);
   app.use((req, res, next) => {
     res.status(404).send({
       message: "No such api endpoint found.",

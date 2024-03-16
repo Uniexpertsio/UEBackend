@@ -9,6 +9,4 @@ router.get("/:id", caseController.getCaseById.bind(caseController));
 router.post("/", caseController.createCase.bind(caseController));
 router.put("/:id", caseController.updateCase.bind(caseController));
 router.delete("/:id", caseController.deleteCase.bind(caseController));
-router.get("/reason", caseController.getReason.bind(caseController));
-router.get("/subReason", caseController.getSubReason.bind(caseController));
 module.exports = router;
