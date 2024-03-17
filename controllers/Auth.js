@@ -261,11 +261,7 @@ Auth.post.signup = async (req, res, next) => {
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
-      const updatedAgent = await Agent.findByIdAndUpdate(
-        agent.id,
-        { commonId: sfCompanyData.id },
-        { new: true }
-      );
+   
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_OBJECT_URL}Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
@@ -277,7 +273,7 @@ Auth.post.signup = async (req, res, next) => {
       const sfBankData = await sendDataToSF(bankData, bankUrl);
       console.log("sf bank data:  ", sfBankData);
       const data=await getPartnerId(sfCompanyData?.id);
-    console.log("xxxxxxxx",data);
+
       idsCollection = {
         bankId: sfBankData?.id,
         contactId: sfAgentData?.id,
@@ -285,6 +281,11 @@ Auth.post.signup = async (req, res, next) => {
         agentId: agent?._id,
         partnerId:data?.Partner_Id__c
       };
+      const updatedAgent = await Agent.findByIdAndUpdate(
+        agent.id,
+        { commonId: sfCompanyData.id,contactId: sfAgentData?.id },
+        { new: true }
+      );
     }
     
 

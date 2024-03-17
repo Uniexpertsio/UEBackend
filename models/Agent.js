@@ -99,7 +99,8 @@ const AgentSchema = new mongoose.Schema(
     partnerNotified: { type: Boolean, required: false },
     bypassDoc: { type: Boolean, required: false },
     finalDocStatus: { type: String, required: false },
-    noOfEmployees: { type: Number, required: false }
+    noOfEmployees: { type: Number, required: false },
+    contactId:{type:String,required:false}
   },
   { timestamps: true }
 );
