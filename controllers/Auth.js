@@ -14,6 +14,7 @@ const {
   sendDataToSF,
   updateDataToSF,
   getTnc,
+  getPartnerId,
 } = require("../service/salesforce.service");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
@@ -260,11 +261,7 @@ Auth.post.signup = async (req, res, next) => {
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
-      const updatedAgent = await Agent.findByIdAndUpdate(
-        agent.id,
-        { commonId: sfCompanyData.id },
-        { new: true }
-      );
+   
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_OBJECT_URL}Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
@@ -275,13 +272,23 @@ Auth.post.signup = async (req, res, next) => {
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
       console.log("sf bank data:  ", sfBankData);
+      const data=await getPartnerId(sfCompanyData?.id);
+
       idsCollection = {
         bankId: sfBankData?.id,
         contactId: sfAgentData?.id,
         companyId: sfCompanyData?.id,
         agentId: agent?._id,
+        partnerId:data?.Partner_Id__c
       };
+      const updatedAgent = await Agent.findByIdAndUpdate(
+        agent.id,
+        { commonId: sfCompanyData.id,contactId: sfAgentData?.id },
+        { new: true }
+      );
     }
+    
+
     return res.status(200).json({
       data: {
         idsCollection,
@@ -510,7 +517,7 @@ function generateAuthResponse(staff, agent, token, sfId) {
     token: token,
     sfId,
     agent,
-    isDocumentsRequired: agent.documents.length === 0,
+    isDocumentsRequired: agent?.documents.length === 0,
     isTncAccepted: agent.tncMeta
       ? agent.tncMeta.isAccepted
         ? agent.tncMeta.isAccepted

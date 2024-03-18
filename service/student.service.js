@@ -1292,15 +1292,14 @@ class StudentService {
       this.staffService.findByAgentId(staffId),
       this.staffService.findById(counsellorId),
     ]);
-
     if (!staff || !counsellor) {
+      console.log('errorrrrr',)
       throw new Error("Student not found");
     }
   }
 
   async findById(studentId) {
     const student = await StudentModel.findById(studentId);
-
     if (!student) {
       throw new Error("Student not found");
     }

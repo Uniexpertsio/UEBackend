@@ -68,7 +68,7 @@ const getGeneralInformation = async (req, res, next) => {
     if (!agent) throw "Agent not found";
     return res
       .status(200)
-      .json({ statusCode: 200, data: agent.getGeneralInformation() });
+      .json({ statusCode: 200, data: agent});
   } catch (err) {
     return res.status(200).json({ statusCode: 400, message: err.message });
   }
@@ -79,7 +79,8 @@ const updateGeneralInformation = async (req, res) => {
   console.log(agentId);
   const result = await Agent.findOneAndUpdate(
     { _id: agentId },
-    { $set: { ...req.body } }
+    { $set: { ...req.body } },
+    { new: true }
   );
   if (!result)
     return res.status(200).json({ statusCode: 400, message: "Bad Request" });
