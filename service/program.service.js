@@ -384,8 +384,6 @@ class ProgramService {
     const scoreRequired = program.requirementScoreInformation || [];
 
     const testScores = await this.testScoreModel.findOne({ studentId, examType: examTypeRequired });
-    console.log("testScores: ", testScores)
-    console.log("StudentId: ", studentId)
         return true;
     if (!testScores) return false;
     const studentScores = testScores.scoreInformation || [];

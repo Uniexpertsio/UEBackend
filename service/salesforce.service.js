@@ -96,7 +96,6 @@ const downloadTnc = async (sfId,ipAddress) => {
     const token = await generateToken();
     const headers = generateHeaders(token);
     const url = `${process.env.SF_APEXREST_URL}getAgreementLink?id=${sfId}&param1=${ipAddress}`;
-    console.log(url);
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
@@ -116,11 +115,9 @@ const sendDataToSF = async (body, url) => {
         return resolve(data);
       } else {
         const {data}  = await axios.post(url, body, { headers });
-        console.log(data,"======================");
         resolve(data);
       }
     } catch (err) {
-      console.log("==========err",err);
         reject(err)
     }
   })
@@ -146,8 +143,6 @@ const sendToSF = async (fileName, rawBody) => {
 
   try {
     const mapper = require(flPath);
-    console.log("Filename",fileName);
-    console.log("rawBody",rawBody)
     let body = await mapper(rawBody, rawBody.commonId);
     // filterUndefined(body);
     const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;

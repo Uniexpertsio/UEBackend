@@ -145,7 +145,6 @@ class StudentService {
   }
 
   convertEducationData(data) {
-    console.log(data);
     const convertedData = {
       Name_of_Institution__c: data.institutionName,
       Lock_Record__c: "true",
@@ -291,7 +290,6 @@ class StudentService {
     );
 
     const externalId = uuid();
-    console.log("====yaha aya===");
     const student = await StudentModel.create({
       ...studentInformation,
       modifiedBy,
@@ -299,11 +297,7 @@ class StudentService {
       externalId,
       createdBy: modifiedBy,
     });
-    console.log("====student===", student);
     const studentData = this.converttoSfBody(studentInformation);
-    console.log(
-      "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
-    );
     const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
     const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
     const sfId = sfStudentResponse?.id;
@@ -420,12 +414,9 @@ class StudentService {
     }
 
     const educationData = this.convertEducationData(body);
-    console.log("educationData----->", educationData);
     const educationUrl =
       "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c";
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
-
-    console.log("sfEducationResponse: ", sfEducationResponse);
     return { id: education.id, sf: sfEducationResponse };
   }
 
@@ -513,9 +504,6 @@ class StudentService {
       workHistoryData,
       workHistoryUrl
     );
-
-    console.log("sfWorkHistoryResponse: ", sfWorkHistoryResponse);
-
     return workHistory;
   }
 
@@ -557,7 +545,6 @@ class StudentService {
   }
 
   async addStudentTestScore(studentId, modifiedBy, body, agentId) {
-    console.log("Ajaaaa bhai");
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
@@ -571,14 +558,12 @@ class StudentService {
         }
       }
     }
-    console.log("AgentId===========>", agentId);
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
       body,
       agentId
     );
-    console.log("testScore", testScore);
     const result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { testScore: testScore.id }, $set: { modifiedBy } }
@@ -589,15 +574,12 @@ class StudentService {
     }
 
     const testScoreSfData = this.convertTestScoreData(body);
-    console.log("testScoreSf,", testScoreSfData);
     const testScoreUrl =
       "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c";
     const testScoreSfResponse = await sendDataToSF(
       testScoreSfData,
       testScoreUrl
     );
-
-    console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
   }
 
@@ -905,33 +887,27 @@ class StudentService {
         }
       }
     }
-    console.log("Kyu nhi aa rha");
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
       body,
       agentId
     );
-    console.log("testScore", testScore);
     const result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { testScore: testScore.id }, $set: { modifiedBy } }
     );
-    console.log("result", result);
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
     }
 
     const testScoreSfData = this.convertTestScoreData(body);
-    console.log("testScoreSf,", testScoreSfData);
     const testScoreUrl =
       "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c";
     const testScoreSfResponse = await sendDataToSF(
       testScoreSfData,
       testScoreUrl
     );
-
-    console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
   }
 
@@ -1133,9 +1109,6 @@ class StudentService {
     const taskSfData = this.convertTaskData(body);
     const taskSfUrl = `${process.env.SF_OBJECT_URL}RelatedTask__c`;
     const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
-
-    console.log("taskSFResponse: ", taskSFResponse);
-
     return { id: task.id };
   }
 
@@ -1297,7 +1270,6 @@ class StudentService {
       this.staffService.findById(counsellorId),
     ]);
     if (!staff || !counsellor) {
-      console.log('errorrrrr',)
       throw new Error("Student not found");
     }
   }

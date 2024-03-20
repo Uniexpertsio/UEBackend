@@ -105,7 +105,7 @@ class ApplicationService {
     const applicationSfUrl =`${process.env.SF_OBJECT_URL}Application__c`
     const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
 
-    console.log("applicationSfResponse: ", applicationSfResponse);
+    console.log("applicationSfResponse");
 
     return application;
   }
