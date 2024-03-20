@@ -102,7 +102,7 @@ class DocumentService {
         url: document.url,
         status: document.status,
         remark: document.remark,
-        type: await this.documentTypeService.findById(document.documentTypeId),
+        type: await this.documentTypeService.findByName(document?.name),
       }))
     );
   }
