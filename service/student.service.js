@@ -239,7 +239,7 @@ class StudentService {
         convertedData.Quantitative_reasoning_Percentile__c = data?.percentile;
         convertedData.English_Exam_Type__c = "Duolingo English Test";
         break;
-      case "TOFL / IELTS / PTE":
+      case "TOEFL / IELTS / PTE":
         convertedData.RecordTypeId = "0125g0000000zo1AAA";
         convertedData.Listening__c = data?.listening; // Placeholder
         convertedData.Reading__c = data?.reading; // Placeholder
@@ -250,7 +250,6 @@ class StudentService {
       default:
         break;
     }
-
     return convertedData;
   }
 

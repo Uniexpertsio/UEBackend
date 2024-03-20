@@ -178,7 +178,6 @@ class StudentController {
             const { studentId } = req.params;
             const { body } = req;
             const { id, agentId } = req.user;
-            console.log("Ittthhe")
             const result = await this.studentService.addStudentTestScore(studentId, id, body, agentId);
             res.status(200).json(result);
           } catch (error) {
