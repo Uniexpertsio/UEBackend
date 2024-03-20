@@ -117,7 +117,8 @@ class CaseService {
   }
 
   async updateCase(id, caseData) {
-    return await Case.findByIdAndUpdate(id, caseData, { new: true });
+    const resp = await Case.updateOne({caseId: id}, caseData, { new: true });
+    return resp;
   }
 
   // async updateCase(id, caseData, res) {

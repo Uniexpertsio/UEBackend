@@ -116,7 +116,7 @@ class StudentService {
       case "Score":
         return data?.score;
       case "Division":
-        return data?.division;
+        return "";
     }
   }
 
@@ -130,7 +130,7 @@ class StudentService {
       Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
       Name: data.degree,
       Country_of_Institution__c: data.country,
-      Class__c: data.class,
+      Class__c: data?.division,
       Score__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
@@ -138,12 +138,14 @@ class StudentService {
       Verification_Status__c: "",
       Student__c: data?.sfId,
       Primary_Language_of_Instruction__c: data.instituteLanguage,
+      Grade__c:data?.grade
     };
 
     return convertedData;
   }
 
   convertEducationData(data) {
+    console.log(data);
     const convertedData = {
       Name_of_Institution__c: data.institutionName,
       Lock_Record__c: "true",
@@ -153,7 +155,7 @@ class StudentService {
       Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
       Name: data.degree,
       Country_of_Institution__c: data.country,
-      Class__c: data?.class||'',
+      Class__c: data?.class||data?.division,
       Score__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
@@ -172,9 +174,11 @@ class StudentService {
       Designation__c: data?.designation,
       Date_of_Joining__c: data?.doj.split("T")[0],
       Date_of_relieving__c: data?.dor.split("T")[0],
-      Signing_Contact_Email__c: data.email,
-      Signing_Contact_Phone__c: data?.signedPersonPhone,
-      Signing_Contact_Name__c: data?.signedPersonName,
+      Email_Id__c: data?.email,
+      Contact_info__c: data?.contactInfo,
+      Phone_Number_of_the_Signed_Person__c:data?.signedPersonPhone,
+      Email_ID_of_the_Signed_Person__c:data?.signedPersonEmail,
+      Name_of_the_Signed_Person__c:data?.signedPersonName,
       Student__c: "003Hy00000tPfkUIAS",
       Lock_Record__c: "",
     };

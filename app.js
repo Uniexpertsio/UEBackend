@@ -104,6 +104,7 @@ module.exports = (port) => {
   app.set("trust proxy", true);
   app.set("port", port);
 
+
   app.listen(port, () => {
     console.table({
       Status: "HTTP Server running",

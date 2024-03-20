@@ -39,7 +39,6 @@ class CaseController {
   async updateCase(req, res) {
     const { id } = req.params;
     const caseData = req.body;
-    console.log(req.params, caseData);
     const updatedCase = await this.caseService.updateCase(id, caseData, res);
     res.status(200).json(updatedCase);
   }

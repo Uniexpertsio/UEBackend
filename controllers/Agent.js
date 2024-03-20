@@ -53,8 +53,8 @@ const getTnC = async (req, res, next) => {
 
 const downloadTncData = async (req, res, next) => {
   try {
-    const data = await downloadTnc(req.params.sfId);
-
+    const {ip}=req.params;
+    const data = await downloadTnc(req.params.sfId,ip);
     return res.status(200).json(data);
   } catch (err) {
     return res.status(200).json({ statusCode: 400, message: err.message });

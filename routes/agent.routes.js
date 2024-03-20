@@ -11,7 +11,7 @@ router.get("/tnc/:sfId", getTnC);
 
 
 router.post("/accept-tnc",  Middleware.checkAuth, acceptTnc);
-router.get("/download-tnc/:sfId", downloadTncData);
+router.get("/download-tnc/:sfId/:ip", downloadTncData);
 router.get("/general-information",  Middleware.checkAuth, getGeneralInformation);
 router.put("/general-information",  Middleware.checkAuth, updateGeneralInformation);
 router.get("/bank-information", Middleware.checkAuth, getBankInformation);
