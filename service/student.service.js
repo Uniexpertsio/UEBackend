@@ -1,5 +1,6 @@
 const uuid = require("uuid");
 const StudentModel = require("../models/Student");
+const Document = require("../models/Document");
 const StaffService = require("./staff.service");
 const EducationService = require("../service/education.service");
 const DocumentService = require("../service/document.service");
@@ -968,24 +969,98 @@ class StudentService {
     return documentIds;
   }
 
+  // async updateStudentDocument(studentId, modifiedBy, body) {
+  //   const document = await this.documentService.addDocument(
+  //     modifiedBy,
+  //     studentId,
+  //     body
+  //   );
+
+  //   const result = await StudentModel.updateOne(
+  //     { _id: studentId },
+  //     { $push: { documents: document.id }, $set: { modifiedBy } }
+  //   );
+
+  //   if (result.modifiedCount === 0) {
+  //     throw new Error("Student not found");
+  //   }
+  //   // await sendToSF(MappingFiles.STUDENT_document, { ...document, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
+
+  //   return document.id;
+  // }
+
   async updateStudentDocument(studentId, modifiedBy, body) {
-    const document = await this.documentService.addDocument(
-      modifiedBy,
-      studentId,
-      body
-    );
+    return new Promise(async (resolve, reject) => {
+      try {
+        const student = await StudentModel.findOne({_id: studentId});
+        if (!student) throw "student not found";
+        const document = await this.documentService.addOrUpdateStudentDocument(
+          modifiedBy,
+          studentId,
+          body
+        );
+        const documentIds = document.map((document) => document.id);
+        await StudentModel.updateOne(
+          { _id: studentId },
+          { $set: { documents: documentIds } }
+        );
+        await Promise.all(
+          document.map(async (doc) => {
+            // let dtype = await this.documentTypeService.findById(doc.documentTypeId);
+            const data = {
+              Name: doc.name,
+              Lock_Record__c: false,
+              Active__c: "",
+              LatestDocumentId__c: "",
+              ReviewRemarks__c: "",
+              BypassDocumentation__c: false,
+              Status__c: doc.status,
+              IsPublic__c: "",
+              IsNewDoc__c: true,
+              FileType__c: "",
+              ExpiryDate__c: "2023-01-25",
+              Is_Downloaded__c: false,
+              Sequence__c: 30,
+              Mandatory__c: true,
+              Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
+              ObjectType__c: "", //Student,Application,Agent
+              Account__c: student.commonId,
+              School__c: "",
+              Student__c: "",
+              Document_Master__c: "",
+              Application__c: "",
+              Programme__c: "",
+              S3_DMS_URL__c: doc.url,
+              ContentUrl__c: doc.url
+            };
+            let sfIdFound = false;
 
-    const result = await StudentModel.updateOne(
-      { _id: studentId },
-      { $push: { documents: document.id }, $set: { modifiedBy } }
-    );
+            for (const document of body.documents) {
+              if (document.sfId) {
+                const url = `${process.env.SF_OBJECT_URL}DMS_Documents__c/${document.sfId}`;
+                const sfRes = await sendDataToSF(data, url);
+                sfIdFound = true; // Set the flag to true if sfId is found
+              }
+            }
 
-    if (result.modifiedCount === 0) {
-      throw new Error("Student not found");
-    }
-    // await sendToSF(MappingFiles.STUDENT_document, { ...document, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
-
-    return document.id;
+            if (!sfIdFound) {
+              const url = `${process.env.SF_OBJECT_URL}DMS_Documents__c`;
+              const sfRes = await sendDataToSF(data, url);
+              doc["sfId"] = sfRes.id;
+              await Document.findOneAndUpdate(
+                { _id: doc._id },
+                { $set: { sfId: sfRes.id } },
+                { new: true }
+              );
+            }
+          })
+        );
+        resolve(document);
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
   }
 
   async deleteStudentDocument(studentId, modifiedBy, documentId) {

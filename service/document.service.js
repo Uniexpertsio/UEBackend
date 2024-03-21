@@ -35,6 +35,50 @@ class DocumentService {
     });
   }
 
+  async addOrUpdateStudentDocument(modifiedBy, userId, body) {
+    try {
+      const updatedDocuments = [];
+
+      for (const document of body.documents) {
+        if (document.sfId && document.sfId.length) {
+          const updatedDoc = await Document.findOneAndUpdate(
+            { sfId: document.sfId },
+            {
+              $set: {
+                ...document,
+                userId,
+                modifiedBy,
+                createdBy: modifiedBy,
+                externalId: uuid.v4(),
+              },
+            },
+            { new: true, upsert: true }
+          );
+
+          updatedDocuments.push(updatedDoc);
+        }
+      }
+
+      if (updatedDocuments.length > 0) {
+        return updatedDocuments;
+      }
+
+      const documentsToInsert = body.documents.map((doc) => ({
+        ...doc,
+        userId,
+        modifiedBy,
+        createdBy: modifiedBy,
+        externalId: uuid.v4(),
+      }));
+
+      const documents = await Document.insertMany(documentsToInsert);
+      return documents;
+    } catch (error) {
+      console.error("Error in add Or Update Student Document:", error);
+      throw new Error("Failed to add or update documents.");
+    }
+  }
+
   async addOrUpdateDocuments(modifiedBy, userId, body) {
     try {
       const updatedDocuments = [];
