@@ -11,7 +11,7 @@ class DocumentTypeService {
     //   isActive: true,
     //   objectType: "Student",
     // });
-    const data=await getDataFromSF("https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/query?q=SELECT+Id,Name+FROM+Document_Master__c+WHERE+ObjectType__c='Student'+LIMIT+200");
+    const data=await getDataFromSF("https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v50.0/query?q=SELECT+Id,Name,Sequence__c,Document_Category__c, Document_Type__c, Mandatory__c+FROM+Document_Master__c+WHERE+ObjectType__c='Student'+LIMIT+200");
     return data;
   }
 
