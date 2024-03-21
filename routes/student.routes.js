@@ -25,7 +25,7 @@ router.patch('/:studentId/test-score/:testScoreId', Middleware.checkAuth, studen
 router.delete('/:studentId/test-score/:testScoreId', Middleware.checkAuth, studentController.deleteStudentTestScore.bind(studentController));
 router.get('/:studentId/document', Middleware.checkAuth, studentController.getStudentDocuments.bind(studentController));
 router.post('/:studentId/document', Middleware.checkAuth, studentController.addStudentDocuments.bind(studentController));
-router.patch('/:studentId/document', Middleware.checkAuth, studentController.updateStudentDocument.bind(studentController));
+router.put('/:studentId/document', Middleware.checkAuth, studentController.updateStudentDocument.bind(studentController));
 router.delete('/:studentId/document/:documentId', Middleware.checkAuth, studentController.deleteStudentDocument.bind(studentController));
 router.get('/:studentId/payment', Middleware.checkAuth, studentController.getStudentPayments.bind(studentController));
 router.post('/:studentId/payment', Middleware.checkAuth, studentController.addStudentPayment.bind(studentController));
