@@ -111,7 +111,7 @@ class StudentService {
       case "GPA":
         return parseFloat(data?.gpa);
       case "Grade":
-        return data?.grade;
+        return "";
       case "Class":
         return "";
       case "Score":
@@ -163,6 +163,7 @@ class StudentService {
       Verification_Status__c: "", // You may update this based on your specific logic
       Student__c: data?.sfId, // Replace with the actual student ID
       Primary_Language_of_Instruction__c: data.instituteLanguage,
+      Grade__c:data?.grade
     };
 
     return convertedData;
@@ -473,9 +474,11 @@ class StudentService {
     }
 
     const educationData = this.convertEducationData(body);
+    console.log(educationData);
     const educationUrl =
       `${process.env.SF_OBJECT_URL}Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
+    console.log(sfEducationResponse);
     return { id: education.id, sf: sfEducationResponse };
   }
 
