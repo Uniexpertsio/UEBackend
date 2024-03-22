@@ -89,6 +89,16 @@ class AgentService {
       }
     });
   }
+
+  async findById(id) {
+    const user = await Agent.findById(id);
+
+    if (!user) {
+      throw new Error(id);
+    }
+
+    return user;
+  }
 }
 
 module.exports = AgentService;
