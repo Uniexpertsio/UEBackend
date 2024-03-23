@@ -1086,6 +1086,25 @@ class StudentService {
     return (progress / total) * 100;
   }
 
+  async createMeeting(id, data) {
+    const staff = await staffService.findById(id); 
+    const agent = await agentService.findById(staff.agentId);
+    const staffIds = [id];
+    if (agent.accountManager) staffIds.push(agent.accountManager);
+    const studentIds = [];
+    if (data.studentId) {
+      studentIds.push(data.studentId);
+    }
+    const interview = await Interview.create({
+      ...data,
+      creatorId: id,
+      creatorType: "AGENT",
+      staffIds: staffIds,
+      studentIds,
+    });
+    return { id: interview._id };
+  }
+
   async findById(id) {
     const student = await StudentModel.findById(id);
 
