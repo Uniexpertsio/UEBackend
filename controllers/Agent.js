@@ -53,7 +53,7 @@ const getTnC = async (req, res, next) => {
 
 const downloadTncData = async (req, res, next) => {
   try {
-    const data = await downloadTnc(req.params.sfId);
+    const data = await downloadTnc(req.params?.sfId,req.params?.ip);
 
     return res.status(200).json(data);
   } catch (err) {
