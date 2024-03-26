@@ -56,11 +56,11 @@ class StudentService {
       DocumentCreated__c: true,
       Task_Created__c: true,
       Partner_Account__c: "0016D00000eKbyjQAC",
-      Partner_User__c: "",
+      // Partner_User__c: "",
       Counsellor__c: "",
       Student_Status__c: "",
-      Processing_Officer__c: "",
-      BDM_User__c: "",
+      // Processing_Officer__c: "",
+      // BDM_User__c: "",
       Source__c: data.studentInformation.source,
       Passport_Number__c: data.studentInformation.passportNumber,
       MobilePhone: "+" + data.studentInformation.mobile,
@@ -422,7 +422,6 @@ class StudentService {
   }
 
   async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails) {
-    console.log('request--',studentId, modifiedBy, studentDetails)
     if (studentDetails.studentInformation) {
       await this.checkForValidUsers(
         studentDetails.studentInformation.staffId,
@@ -431,7 +430,6 @@ class StudentService {
     }
 
     const student = await this.findById(studentId);
-    console.log('student...',student)
 
     student.set({
       ...studentDetails,
@@ -441,11 +439,9 @@ class StudentService {
     await student.save();
     
     const studentData = this.converttoSfBody(studentDetails);
-    console.log('studentData',studentData)
     const studentUrl = `${process.env.SF_OBJECT_URL}Contact/${student?.salesforceId}`;
-    console.log('studentUrl',studentUrl)
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    console.log('sfCompanyData--442',sfCompanyData)
+    console.log('sf Company Data',sfCompanyData)
 
     return { id: student.id };
   }
@@ -523,6 +519,7 @@ class StudentService {
 
     const studentData = this.convertEducationData(body);
     const studentUrl = `${process.env.SF_OBJECT_URL}Education__c/${student?.salesforceId}`;
+    console.log('student url--',studentUrl)
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
     console.log('sfCompanyData--442',sfCompanyData)
 
@@ -539,6 +536,7 @@ class StudentService {
   }
 
   async checkIfEducationBelongsToStudent(studentId, educationId) {
+    console.log('student request---539',studentId,educationId)
     const student = await StudentModel.findById(studentId);
     if (!student) {
       throw new Error("Student not found");
@@ -547,6 +545,7 @@ class StudentService {
     if (student.educations.indexOf(educationId) == -1) {
       throw new Error("Student does not belong to education");
     }
+    return student;
   }
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
