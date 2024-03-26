@@ -91,11 +91,11 @@ const getTnc = async (sfId) => {
   }
 };
 
-const downloadTnc = async (sfId) => {
+const downloadTnc = async (sfId,ip) => {
   try {
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `${process.env.SF_APEXREST_URL}getAgreementLink?id=${sfId}&param1=122.161.29.89`;
+    const url = `${process.env.SF_APEXREST_URL}getAgreementLink?id=${sfId}&param1=${ip}`;
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
@@ -103,6 +103,7 @@ const downloadTnc = async (sfId) => {
     handleSfError(err);
   }
 };
+
 
 const sendDataToSF = async (body, url) => {
   return new Promise(async (resolve, reject) => {
