@@ -13,7 +13,7 @@ const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
-const { sendToSF, sendDataToSF } = require("./salesforce.service");
+const { sendToSF, sendDataToSF, updateDataToSF } = require("./salesforce.service");
 const Staff = require("../models/Staff");
 
 const PreferredCountries = {
@@ -56,11 +56,11 @@ class StudentService {
       DocumentCreated__c: true,
       Task_Created__c: true,
       Partner_Account__c: "0016D00000eKbyjQAC",
-      Partner_User__c: "",
+      // Partner_User__c: "",
       Counsellor__c: "",
       Student_Status__c: "",
-      Processing_Officer__c: "",
-      BDM_User__c: "",
+      // Processing_Officer__c: "",
+      // BDM_User__c: "",
       Source__c: data.studentInformation.source,
       Passport_Number__c: data.studentInformation.passportNumber,
       MobilePhone: "+" + data.studentInformation.mobile,
@@ -284,6 +284,56 @@ class StudentService {
     return convertedData;
   }
 
+  convertToGeneralInfoData(inputData) {
+    const outputData = {
+      RecordTypeId: "0125g0000003I7FAAU",
+      Company_Logo__c: "",
+      Country_Code__c: "+91",
+      Timezone_UTC__c: inputData.personalDetails.timezone.utc_offset,
+      Same_As_Billing_Address__c: false,
+      Timezone_Region__c: inputData.personalDetails.timezone.name,
+      Name: inputData.company.companyName,
+      Lock_Record__c: true,
+      BDM_User__c: "",
+      //"Parent": "",
+      //"PrimaryContact__r": "",
+      Students_Per_Year__c: inputData.company.studentPerYear.replace("+", ""),
+      CurrencyIsoCode: "GBP",
+      Year_Founded__c: inputData.company.yearFounded,
+      Website: inputData.company.website,
+      MaxActiveUsersAllowed__c: 5,
+      Country__c: inputData.company.country,
+      Phone: inputData.personalDetails.phone,
+      EntityType__c: inputData.company.entityType,
+      Tax_Number__c: inputData.company.taxNumber,
+      Onboarding_Status__c: "New",
+      PartnerNotified__c: false,
+      Bypass_Documentation__c: false,
+      FinalDocumentStatus__c: "Pending",
+      Agreement_signed_time_stamp__c: new Date(),
+      Terms_Conditions_Agreed__c: "",
+      Latitude__c: "",
+      Longitude__c: "",
+      IP_Address__c: "",
+      Acknowledgement_Acceptance__c: false,
+      BillingCity: inputData.address.city,
+      BillingCountry: inputData.address.country,
+      BillingState: inputData.address.state,
+      BillingStreet: inputData.address.address,
+      BillingPostalCode: inputData.address.zipCode,
+      ShippingCity: inputData.address.city,
+      ShippingCountry: inputData.address.country,
+      ShippingState: inputData.address.state,
+      ShippingStreet: inputData.address.address,
+      ShippingPostalCode: inputData.address.zipCode,
+      Type: "Partner",
+      NumberOfEmployees: parseInt(inputData.company.employeeCount),
+      Description: "",
+    };
+  
+    return outputData;
+  }
+
   async createStudent(modifiedBy, agentId, studentInformation) {
     await this.checkForValidUsers(
       studentInformation.studentInformation.staffId,
@@ -387,6 +437,11 @@ class StudentService {
     });
 
     await student.save();
+    
+    const studentData = this.converttoSfBody(studentDetails);
+    const studentUrl = `${process.env.SF_OBJECT_URL}Contact/${student?.salesforceId}`;
+    const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+    console.log('sf Company Data',sfCompanyData)
 
     return { id: student.id };
   }
@@ -417,7 +472,7 @@ class StudentService {
     const educationData = this.convertEducationData(body);
     console.log(educationData);
     const educationUrl =
-      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c";
+      `${process.env.SF_OBJECT_URL}Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
     console.log(sfEducationResponse);
     return { id: education.id, sf: sfEducationResponse };
@@ -448,19 +503,26 @@ class StudentService {
   }
 
   async updateStudentEducation(studentId, modifiedBy, educationId, body) {
-    await this.checkIfEducationBelongsToStudent(studentId, educationId);
+    const student = await this.checkIfEducationBelongsToStudent(studentId, educationId);
     let updatedEducation = await this.educationService.update(
       modifiedBy,
       educationId,
       body
     );
-    const url = "Education__c/a02N000000N8POMIA3";
-    await sendToSF(MappingFiles.STUDENT_education_history, {
-      ...a,
-      studentId: (await this.findById(studentId)).externalId,
-      _user: { id: modifiedBy },
-      url,
-    });
+    // const url = "Education__c/a02N000000N8POMIA3";
+    // await sendToSF(MappingFiles.STUDENT_education_history, {
+    //   ...a,
+    //   studentId: (await this.findById(studentId)).externalId,
+    //   _user: { id: modifiedBy },
+    //   url,
+    // });
+
+    const studentData = this.convertEducationData(body);
+    const studentUrl = `${process.env.SF_OBJECT_URL}Education__c/${student?.salesforceId}`;
+    console.log('student url--',studentUrl)
+    const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+    console.log('sfCompanyData--442',sfCompanyData)
+
     return updatedEducation;
   }
 
@@ -474,6 +536,7 @@ class StudentService {
   }
 
   async checkIfEducationBelongsToStudent(studentId, educationId) {
+    console.log('student request---539',studentId,educationId)
     const student = await StudentModel.findById(studentId);
     if (!student) {
       throw new Error("Student not found");
@@ -482,6 +545,7 @@ class StudentService {
     if (student.educations.indexOf(educationId) == -1) {
       throw new Error("Student does not belong to education");
     }
+    return student;
   }
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
@@ -511,19 +575,25 @@ class StudentService {
   }
 
   async updateStudentWorkHistory(studentId, modifiedBy, workHistoryId, body) {
-    await this.checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId);
+    const student = await this.checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId);
     const wh = await this.workHistoryService.update(
       modifiedBy,
       workHistoryId,
       body
     );
-    const url = "Work_history__c/a0EN000000K7HBUMA3";
-    await sendToSF(MappingFiles.STUDENT_work_history, {
-      ...wh,
-      studentId: (await this.findById(studentId)).externalId,
-      _user: { id: modifiedBy },
-      url,
-    });
+    // const url = "Work_history__c/a0EN000000K7HBUMA3";
+    // await sendToSF(MappingFiles.STUDENT_work_history, {
+    //   ...wh,
+    //   studentId: (await this.findById(studentId)).externalId,
+    //   _user: { id: modifiedBy },
+    //   url,
+    // });
+
+    const studentData = this.convertWorkHistoryData(body);
+    const studentUrl = `${process.env.SF_OBJECT_URL}Work_history__c/${student?.salesforceId}`;
+    const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+    console.log('sfCompanyData--442',sfCompanyData);
+
     return wh;
   }
 
@@ -588,9 +658,12 @@ class StudentService {
   }
 
   async updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
-    await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
+    const student = await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
     let a = await this.testScoreService.update(modifiedBy, testScoreId, body);
-
+    const studentData = this.convertTestScoreData(body);
+    const studentUrl = `${process.env.SF_OBJECT_URL}Test_Score__c/${student?.salesforceId}`;
+    const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+    console.log('sfCompanyData--442',sfCompanyData)
     //// await sendToSF(MappingFiles.STUDENT_test_score, { ...a, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
     return a;
   }
@@ -1134,7 +1207,7 @@ class StudentService {
   }
 
   async updateStudentPayment(studentId, modifiedBy, paymentId, body) {
-    await this.checkIfPaymentBelongsToStudent(studentId, paymentId);
+    const student = await this.checkIfPaymentBelongsToStudent(studentId, paymentId);
     let a = await this.studentPaymentService.update(
       modifiedBy,
       paymentId,
@@ -1144,6 +1217,10 @@ class StudentService {
     //   ...a,
     //   _user: { id: modifiedBy }
     // });
+    const studentData = this.converttoSfBody(body);
+    const studentUrl = `${process.env.SF_OBJECT_URL}STUDENT_payment/${student?.salesforceId}`;
+    const sfCompanyData = await updateDataToSF(body, studentUrl);
+    console.log('sfCompanyData--442',sfCompanyData)
     return a;
   }
 
