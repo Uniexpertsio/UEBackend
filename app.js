@@ -32,6 +32,7 @@ module.exports = (port) => {
   let caseRoute = require("./routes/case.routes");
   let reasonRouter = require("./routes/reason.routes");
   let attachmentRouter=require("./routes/attachment.routes");
+  let scheduleMeeting = require("./routes/scheduleMeeting.routes");
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cors());
@@ -84,6 +85,7 @@ module.exports = (port) => {
   app.use("/api/faq", faqRoute);
   app.use("/api/reason", reasonRouter);
   app.use("/api/attachment", attachmentRouter);
+  app.use("/api/scheduleMeeting",scheduleMeeting);
   app.use((req, res, next) => {
     res.status(404).send({
       message: "No such api endpoint found.",
