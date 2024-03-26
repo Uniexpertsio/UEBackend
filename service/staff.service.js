@@ -8,37 +8,40 @@ const { MappingFiles } = require('./../constants/Agent.constants');
 class StaffService {
   constructor() {
     this.staffModel = StaffModel;
-    this.branchService = BranchService;
+    this.branchService = new BranchService;
     this.salesforceService = SalesforceService;
   }
 
   async addStaff(agentId, staffDetails) {
+    console.log(staffDetails,agentId);
     if (staffDetails.branchId) {
       await this.branchService.findById(staffDetails.branchId);
     }
     const externalId = uuidv4();
+    let password = await Common.hashPassword(staffDetails.password);
+    let notifications = {
+      student: true,
+      comments: true,
+      commissions: true,
+      agent: true,
+      case: true,
+      invoice: true,
+      application: true,
+      payments: true,
+      schools: true,
+      intake: true,
+      document: true,
+    }
     return this.staffModel
       .create({
         ...staffDetails,
         externalId,
         agentId,
-        password: await Common.hashPassword(staffDetails.password),
-        notifications: {
-          student: true,
-          comments: true,
-          commissions: true,
-          agent: true,
-          case: true,
-          invoice: true,
-          application: true,
-          payments: true,
-          schools: true,
-          intake: true,
-          document: true,
-        },
+        password,
+        notifications
       })
       .then(async (staff) => {
-       // this.salesforceService.sendToSF(MappingFiles.AGENT_staff, staff);
+        // this.salesforceService.sendToSF(MappingFiles.AGENT_staff, staff);
         return staff;
       })
       .catch((error) => {
@@ -48,14 +51,15 @@ class StaffService {
 
   async updateStaff(agentId, staffId, staffDetails) {
     await this.checkIfStaffBelongsToAgent(agentId, staffId);
+    console.log("empty")
     if (staffDetails.branchId) {
       await this.branchService.findById(staffDetails.branchId);
     }
-
     //this.salesforceService.sendToSF(MappingFiles.AGENT_staff, staffDetails);
-
     return this.staffModel.updateOne({ _id: staffId }, { ...staffDetails });
   }
+
+
 
   async getStaff(agentId, staffId) {
     const staff = await this.findById(staffId);
@@ -117,9 +121,8 @@ class StaffService {
       { email: email.toLowerCase().trim() },
       { $set: { passwordResetOtp: otp } }
     );
-
     // Send email with OTP
-    if (result.modifiedCount === 0) {
+    if (result.modifiedCount === 0) { 
       throw new Error(email);
     }
   }

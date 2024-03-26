@@ -16,6 +16,7 @@ module.exports = (port) => {
   let programRoute = require("./routes/program.routes");
   let studentRoute = require("./routes/student.routes");
   let staffRoute = require("./routes/staff.routes");
+  let branchRoute = require("./routes/branch.routes");
   let intakeRoute = require("./routes/intake.routes");
   let testScoreRoute = require("./routes/testScore.routes");
   let applicationRoute = require("./routes/application.routes");
@@ -69,6 +70,7 @@ module.exports = (port) => {
   app.use("/api/program", programRoute);
   app.use("/api/student", studentRoute);
   app.use("/api/staff", staffRoute);
+  app.use("/api/branch", branchRoute);
   app.use("/api/intake", intakeRoute);
   app.use("/api/test-score", testScoreRoute);
   app.use("/api/application", applicationRoute);
