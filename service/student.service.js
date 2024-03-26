@@ -561,6 +561,7 @@ class StudentService {
         }
       }
     }
+  
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
