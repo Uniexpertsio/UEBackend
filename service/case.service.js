@@ -20,7 +20,7 @@ class CaseService {
 
   async getReasonService() {
     try {
-      const url = `${process.env.SF_DEFAULT_URL}ui-api/object-info/Case/picklist-values/012000000000000AAA/Reason`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Reason`;
       const sfData = await getDataFromSF(url);
       return sfData;
     } catch (err) {
@@ -30,7 +30,7 @@ class CaseService {
 
   async getSubReasonService() {
     try {
-      const url = `${process.env.SF_DEFAULT_URL}ui-api/object-info/Case/picklist-values/012000000000000AAA/Case_Sub_Reason__c`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Case_Sub_Reason__c`;
       const sfData = await getDataFromSF(url);
       return sfData;
     } catch (err) {
@@ -54,13 +54,13 @@ class CaseService {
   async createCase(caseData, res) {
     try {
       let createCase = await new Case(caseData).save();
-      const url = `${process.env.SF_DEFAULT_URL}sobjects/Case`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
       const data = this.convertToCaseData(caseData);
       const sfRes = await sendDataToSF(data, url);
       let caseDatafromSf;
       if (sfRes && sfRes.success) {
         caseDatafromSf = await getDataFromSF(
-          `${process.env.SF_DEFAULT_URL}sobjects/Case/${sfRes.id}`
+          `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${sfRes.id}`
         );
         if (caseDatafromSf && caseDatafromSf?.CaseNumber) {
           createCase = await  Case.findOneAndUpdate(
@@ -99,7 +99,7 @@ class CaseService {
         },
         { new: true }
       );
-      const url = `${process.env.SF_DEFAULT_URL}sobjects/Case/${id}`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${id}`;
       const sfRes = await updateDataToSF(
         { Attachment__c: caseData?.attachment },
         url
@@ -137,7 +137,7 @@ class CaseService {
   //       },
   //       { new: true }
   //     );
-  //     const url = `${process.env.SF_DEFAULT_URL}sobjects/Case/${caseData?.id}`;
+  //     const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${caseData?.id}`;
   //     const sfRes = await updateDataToSF(
   //       { Attachment__c: caseData?.attachment },
   //       url

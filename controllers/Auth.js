@@ -257,17 +257,17 @@ Auth.post.signup = async (req, res, next) => {
     //console.log("sf::: ", sf);
     // sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
     const companyData = convertToCompanyData(req.body);
-    const companyUrl = `${process.env.SF_OBJECT_URL}Account`;
+    const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
    
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
-      const agentUrl = `${process.env.SF_OBJECT_URL}Contact`;
+      const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
 
-      const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c`;
+      const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
@@ -360,16 +360,16 @@ Auth.patch.signup = async (req, res, next) => {
     );
 
     const companyData = convertToCompanyData(requestData);
-    const companyUrl = `${process.env.SF_OBJECT_URL}Account/${idsCollection?.companyId}`;
+    const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
     // if (sfCompanyData && sfCompanyData.success) {
     const agentsData = convertToAgentData(
       requestData,
       idsCollection?.companyId
     );
-    const agentUrl = `${process.env.SF_OBJECT_URL}Contact/${idsCollection?.contactId}`;
+    const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${idsCollection?.contactId}`;
     await updateDataToSF(agentsData, agentUrl);
-    const bankUrl = `${process.env.SF_OBJECT_URL}BankDetail__c/${idsCollection?.bankId}`;
+    const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c/${idsCollection?.bankId}`;
     const bankData = convertToBankData(requestData, "");
     await updateDataToSF(bankData, bankUrl);
     // }
