@@ -255,7 +255,7 @@ class StudentService {
 
     const studentData = this.converttoSfBody(studentInformation)
     console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
-    const studentUrl = `${process.env.SF_OBJECT_URL}Contact`;
+    const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
     const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
     console.log("sfStudentResponse::: ", sfStudentResponse);
     if (sfStudentResponse?.id) {
@@ -368,7 +368,7 @@ class StudentService {
     }
 
     const educationData = this.convertEducationData(body)
-    const educationUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Education__c"
+    const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
 
     console.log("sfEducationResponse: ", sfEducationResponse);
@@ -440,7 +440,7 @@ class StudentService {
       throw new Error("student not found");
     }
     const workHistoryData = this.convertWorkHistoryData(body)
-    const workHistoryUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Work_history__c"
+    const workHistoryUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Work_history__c`;
     const sfWorkHistoryResponse = await sendDataToSF(workHistoryData, workHistoryUrl);
 
     console.log("sfWorkHistoryResponse: ", sfWorkHistoryResponse);
@@ -500,7 +500,7 @@ class StudentService {
     }
 
     const testScoreSfData = this.convertTestScoreData(body)
-    const testScoreUrl = "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c"
+    const testScoreUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Test_Score__c`;
     const testScoreSfResponse = await sendDataToSF(testScoreSfData, testScoreUrl);
 
     console.log("testScoreSfResponse: ", testScoreSfResponse);
@@ -980,7 +980,7 @@ class StudentService {
     }
 
     const taskSfData = this.convertTaskData(body)
-    const taskSfUrl = `${process.env.SF_OBJECT_URL}RelatedTask__c`;
+    const taskSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/RelatedTask__c`;
     const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
 
     console.log("taskSFResponse: ", taskSFResponse);

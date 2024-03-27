@@ -5,6 +5,7 @@ const {
   sendToSF,
   getTnc,
   downloadTnc,
+  getDataFromSF,
 } = require("../service/salesforce.service");
 const DocumentService = require("../service/document.service");
 const DocumentTypeService = require("../service/documentType.service");
@@ -53,7 +54,7 @@ const getTnC = async (req, res, next) => {
 
 const downloadTncData = async (req, res, next) => {
   try {
-    const data = await downloadTnc(req.params?.sfId,req.params?.ip);
+    const data = await downloadTnc(req.params?.sfId, req.params?.ip);
 
     return res.status(200).json(data);
   } catch (err) {
@@ -65,10 +66,15 @@ const getGeneralInformation = async (req, res, next) => {
   try {
     const { agentId } = req.user;
     const agent = await Agent.findById(agentId);
-    if (!agent) throw "Agent not found";
-    return res
-      .status(200)
-      .json({ statusCode: 200, data: agent});
+    if (!agent) {
+      throw "Agent not found";
+    } else {
+      const moreDetails = await getDataFromSF(
+        `${process.env.SF_API_URL}services/data/v55.0/sobjects/Account/${agent?.commonId}`
+      );
+      const newObj = { ...agent?._doc, ...moreDetails };
+      return res.status(200).json({ statusCode: 200, data: newObj });
+    }
   } catch (err) {
     return res.status(200).json({ statusCode: 400, message: err.message });
   }
