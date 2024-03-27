@@ -30,7 +30,7 @@ class ScheduleMeetingService {
         });
         const convertedData = this.converttoSfBody(data)
         // console.log("\n\nStudent Data: " + JSON.stringify(convertedData)+"\n\n\n\n")
-        const url = `${process.env.SF_OBJECT_URL}Task`;
+        const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Task`;
         const sfResponse = await sendDataToSF(convertedData, url);
         console.log("sfStudentResponse::: ", sfResponse);
         if (sfResponse?.id) {

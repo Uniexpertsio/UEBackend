@@ -2,9 +2,9 @@ const { v4: uuidv4 } = require("uuid");
 const BranchModel = require("../models/Branch");
 
 class BranchService {
-  async addBranch(id, agentId, body) {
+  async addBranch(agentId, body) {
     const externalId = uuidv4();
-    return BranchModel.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
+    return BranchModel.create({ ...body, agentId, modifiedBy: agentId, createdBy: agentId, externalId });
   }
 
   updateActiveStatus(id, branchId, body) {

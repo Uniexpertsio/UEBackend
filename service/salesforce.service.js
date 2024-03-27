@@ -82,7 +82,7 @@ const getTnc = async (sfId) => {
   try {
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `${process.env.SF_APEXREST_URL}getAgreementContent?id=${sfId}`;
+    const url = `${process.env.SF_API_URL}services/apexrest/getAgreementContent?id=${sfId}`;
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
@@ -91,11 +91,11 @@ const getTnc = async (sfId) => {
   }
 };
 
-const downloadTnc = async (sfId,ipAddress) => {
+const downloadTnc = async (sfId,ip) => {
   try {
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `${process.env.SF_APEXREST_URL}getAgreementLink?id=${sfId}&param1=${ipAddress}`;
+    const url = `${process.env.SF_API_URL}services/apexrest/getAgreementLink?id=${sfId}&param1=${ip}`;
     const { data } = await axios.get(url, { headers });
     return data;
   } catch (err) {
@@ -103,6 +103,7 @@ const downloadTnc = async (sfId,ipAddress) => {
     handleSfError(err);
   }
 };
+
 
 const sendDataToSF = async (body, url) => {
   return new Promise(async (resolve, reject) => {
@@ -176,7 +177,7 @@ const getPartnerId = async(sfId) => {
     // filterUndefined(body);
     const token = await generateToken();
     const headers = generateHeaders(token);
-    const url = `https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Account/${sfId}`;
+    const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Account/${sfId}`;
     const { data } = await axios.get(url,{headers});
     return data;
   } catch (err) {
