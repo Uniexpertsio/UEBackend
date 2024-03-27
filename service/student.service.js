@@ -977,7 +977,7 @@ class StudentService {
 
     const testScoreSfData = this.convertTestScoreData(body);
     const testScoreUrl =
-      "https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Test_Score__c";
+      `${process.env.SF_API_URL}services/data/v55.0/sobjects/Test_Score__c`;
     const testScoreSfResponse = await sendDataToSF(
       testScoreSfData,
       testScoreUrl
