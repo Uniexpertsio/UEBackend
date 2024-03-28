@@ -138,7 +138,7 @@ class ReportService {
   }
 
   async getReport(agentId, body) {
-    let url = 'https://uniexperts--uxuat.sandbox.my.salesforce.com/services/data/v56.0/analytics/reports/';
+    let url = `${process.env.SF_API_URL}services/data/v56.0/analytics/reports/`;
     let headers = await getReportHeaders();
 
     switch (body.type) {
