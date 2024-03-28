@@ -9,6 +9,7 @@ const SFerrorHandler = require("../utils/sfErrorHandeling");
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
   const publicKey = fs.readFileSync("SFkeys/server.crt", "utf-8");
+  console.log(privateKey,publicKey);
   const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
   // Add two hours (2 * 3600 seconds) to the timestamp
   const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600;
@@ -195,6 +196,7 @@ const getPartnerId = async(sfId) => {
 const getDataFromSF = async(url) => {
   try {
     const token = await generateToken();
+    console.log(token)
     const headers = generateHeaders(token);
     const { data } = await axios.get(url,{headers});
     return data;

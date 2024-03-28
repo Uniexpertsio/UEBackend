@@ -45,7 +45,6 @@ const acceptTnc = async (req, res, next) => {
 const getTnC = async (req, res, next) => {
   try {
     const data = await getTnc(req.params.sfId);
-
     return res.status(200).json(data);
   } catch (err) {
     return res.status(200).json({ statusCode: 400, message: err.message });
