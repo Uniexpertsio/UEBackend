@@ -1,7 +1,7 @@
 const uuid = require("uuid");
 const School = require("../models/School");
 const Currency = require("../models/Currency");
-const { sendToSF }  = require("../service/salesforce.service");
+const { sendToSF, sendDataToSF }  = require("../service/salesforce.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
 
 class SchoolService {
@@ -111,6 +111,32 @@ class SchoolService {
     return { id: school._id };
   }
 
+  async createOrUpdateSchool(body) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let sfId = body?.School_Id__c;
+
+            const checkSchoolExist = await School.findOne({ School_Id__c: sfId });
+
+            if (checkSchoolExist?.School_Id__c) {
+                await School.updateOne(
+                    { School_Id__c: sfId },
+                    { $set: { ...body } },
+                    { new: true }
+                );
+                resolve({ message: "Success", status: 200, sf: sfId });
+            } else {
+                await School.create({ ...body });
+                resolve({ message: "Success", status: 201, sf: sfId });
+            }
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+}
+
+
   async getAllSchool() {
     const schools = await School.find({});
     return this.parseSchoolList(schools);
@@ -167,7 +193,7 @@ class SchoolService {
   }
 
   async findById(id) {
-    const school = await School.findById(id);
+    const school = await School.findOne({ School_Id__c: id});
 
     if (!school) {
       throw new Error(`No school found for id - ${id}`);

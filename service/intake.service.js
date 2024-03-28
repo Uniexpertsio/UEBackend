@@ -18,20 +18,45 @@ class IntakeService {
     this.programService = new ProgramService();
   }
 
-  async addIntake(id, intakeCreateDto) {
-    const externalId = uuidv4();
-    const intake = new this.intakeModel({ ...intakeCreateDto, createdBy: id, updatedBy: id, externalId });
-    // sendToSF(MappingFiles.SCHOOL_intake, {
-    //   ...intake,
-    //   schoolId: (await this.schoolService.findById(intake.schoolId)).externalId,
-    //   programId: (await this.programService.findById(intake.programId)).externalId,
-    //   _user: { id }
-    // });
-    return intake.save();
+  // async addIntake(id, intakeCreateDto) {
+  //   const externalId = uuidv4();
+  //   const intake = new this.intakeModel({ ...intakeCreateDto, createdBy: id, updatedBy: id, externalId });
+  //   // sendToSF(MappingFiles.SCHOOL_intake, {
+  //   //   ...intake,
+  //   //   schoolId: (await this.schoolService.findById(intake.schoolId)).externalId,
+  //   //   programId: (await this.programService.findById(intake.programId)).externalId,
+  //   //   _user: { id }
+  //   // });
+  //   return intake.save();
+  // }
+
+  async addOrUpdateIntake(intakeCreateDto) {
+    return new Promise(async (resolve, reject) => {
+      let intakeId = intakeCreateDto.Intake_Id__c;
+      try {
+        const checkIntakeExist = await this.intakeModel.findOne({ Intake_Id__c: intakeId })
+        if (checkIntakeExist?.Intake_Id__c) {
+          await this.intakeModel.updateOne(
+            { Intake_Id__c: intakeId },
+            { $set: { ...intakeCreateDto } },
+            { new: true }
+          );
+          return resolve({ message: "Success", status: 200, sf: intakeId });
+        } else {
+          await this.intakeModel.create({
+            ...intakeCreateDto
+          });
+          resolve({ message: "Success", status: 201, sf: intakeId });
+        }
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
   }
 
   async findById(id) {
-    const intake = await this.intakeModel.findById(id);
+    const intake = await this.intakeModel.findOne({ Intake_Id__c: id });
 
     if (!intake) {
       throw new Error(`No intake found for id - ${id}`);
