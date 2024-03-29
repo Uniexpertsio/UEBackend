@@ -1,0 +1,24 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+module.exports = async function (db) {
+    return {
+        "Name":db.bank.bankName,
+        "Account__r":{
+            "ExternalId__c": "2573t236423ev"
+        },
+        "AccountHolderName__c":db.bank.name,
+        "SwiftCode__c":db.bank.swiftCode,
+        "AccountNumber__c":db.bank.accountNumber,
+        "BankCode__c": db.bank.extraField.data,
+        "AccountNumberConfirm__c":db.bank.accountNumber,
+        "Status__c":"New"
+    };
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/

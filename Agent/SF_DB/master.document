@@ -1,0 +1,41 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+
+// to follow below schema 
+
+
+module.exports = async function (db, funcs) {
+    return {
+     "
+for master document
+
+
+https://cloudxpertsco-my.sharepoint.com/:x:/g/personal/kashish_cloudxperts_co_in/ERgWGLQPR4RTT0isPda6rkIBgALy4oWOjP-NawBwwko4Aw?e=IvnTTx
+"attributes": {
+    "type": "Document_Master__c",
+    "url": "/services/data/v56.0/sobjects/Document_Master__c/a0IN000000BLqXwMAL"
+  },
+  "ExternalId__c": "1a5c8566-0e93-c9e7-40a8-47293ae6d7d6",
+  "Active__c": true,
+  "Name": "NEW1",
+  "Contact_Record_Type__c": "Partner",
+  "Country__c": "Australia;New Zealand",
+  "CurrencyIsoCode": "GBP",
+  "Description__c": "axahf3",
+  "Document_Category__c": "Personal",
+  "Mandatory__c": true,
+  "ObjectType__c": "Student",
+  "Sequence__c": 2,
+  "Used_For__c"
+gpo-qjii-xdy
+"       }
+    };
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/

@@ -1,0 +1,43 @@
+const express = require('express');
+const router = express.Router();
+const StudentController = require('../controllers/Student');
+const Middleware = require("../controllers/Middleware");
+
+const studentController = new StudentController();
+
+router.post('/', Middleware.checkAuth, studentController.createStudent.bind(studentController));
+router.get('/', Middleware.checkAuth, studentController.getStudents.bind(studentController));
+router.get('/preferredCountries', Middleware.checkAuth, studentController.getStudentPc.bind(studentController));
+router.delete('/:studentId', Middleware.checkAuth, studentController.deleteStudent.bind(studentController));
+router.get('/:studentId/general-information', Middleware.checkAuth, studentController.getStudentGeneralInformation.bind(studentController));
+router.patch('/:studentId/general-information', Middleware.checkAuth, studentController.updateStudentGeneralInformation.bind(studentController));
+router.get('/:studentId/education', Middleware.checkAuth, studentController.getStudentEducation.bind(studentController));
+router.post('/:studentId/education', Middleware.checkAuth, studentController.addStudentEducation.bind(studentController));
+router.patch('/:studentId/education/:educationId', Middleware.checkAuth, studentController.updateStudentEducation.bind(studentController));
+router.delete('/:studentId/education/:educationId', Middleware.checkAuth, studentController.deleteStudentEducation.bind(studentController));
+router.get('/:studentId/work-history', Middleware.checkAuth, studentController.getStudentWorkHistory.bind(studentController));
+router.post('/:studentId/work-history', Middleware.checkAuth, studentController.addStudentWorkHistory.bind(studentController));
+router.patch('/:studentId/work-history/:workHistoryId', Middleware.checkAuth, studentController.updateStudentWorkHistory.bind(studentController));
+router.delete('/:studentId/work-history/:workHistoryId', Middleware.checkAuth, studentController.deleteStudentWorkHistory.bind(studentController));
+router.get('/:studentId/test-score', Middleware.checkAuth, studentController.getStudentTestScore.bind(studentController));
+router.post('/:studentId/test-score', Middleware.checkAuth, studentController.addStudentTestScore.bind(studentController));
+router.patch('/:studentId/test-score/:testScoreId', Middleware.checkAuth, studentController.updateStudentTestScore.bind(studentController));
+router.delete('/:studentId/test-score/:testScoreId', Middleware.checkAuth, studentController.deleteStudentTestScore.bind(studentController));
+router.get('/:studentId/document', Middleware.checkAuth, studentController.getStudentDocuments.bind(studentController));
+router.post('/:studentId/document', Middleware.checkAuth, studentController.addStudentDocuments.bind(studentController));
+router.patch('/:studentId/document', Middleware.checkAuth, studentController.updateStudentDocument.bind(studentController));
+router.delete('/:studentId/document/:documentId', Middleware.checkAuth, studentController.deleteStudentDocument.bind(studentController));
+router.get('/:studentId/payment', Middleware.checkAuth, studentController.getStudentPayments.bind(studentController));
+router.post('/:studentId/payment', Middleware.checkAuth, studentController.addStudentPayment.bind(studentController));
+router.patch('/:studentId/payment/:paymentId', Middleware.checkAuth, studentController.updateStudentPayment.bind(studentController));
+router.delete('/:studentId/payment/:paymentId', Middleware.checkAuth, studentController.deleteStudentPayment.bind(studentController));
+router.get('/:studentId/task', Middleware.checkAuth, studentController.getStudentTasks.bind(studentController));
+router.post('/:studentId/task', Middleware.checkAuth, studentController.addStudentTask.bind(studentController));
+router.patch('/:studentId/task/:taskId', Middleware.checkAuth, studentController.updateStudentTask.bind(studentController));
+router.get('/:studentId/task/:taskId/comment', Middleware.checkAuth, studentController.getStudentTaskComments.bind(studentController));
+router.post('/:studentId/task/:taskId/comment', Middleware.checkAuth, studentController.addStudentTaskComment.bind(studentController));
+router.get('/:studentId/comment', Middleware.checkAuth, studentController.getStudentComments.bind(studentController));
+router.post('/:studentId/comment', Middleware.checkAuth, studentController.addStudentComment.bind(studentController));
+router.get('/:studentId/progress', Middleware.checkAuth, studentController.getStudentProgress.bind(studentController));
+
+module.exports = router;

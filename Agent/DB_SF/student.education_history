@@ -1,0 +1,29 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+module.exports = async function (db) {
+    return {
+    "Name_of_Institution__c": db.institutionName,
+      "Lock_Record__c": true,
+      "ShowInProfile__c": true,
+      "Level_of_Education__c": db.level,
+      "Degree_Awarded_On__c": db.degree,
+      "Degree_Awarded__c": db.isDegreeAwarded,
+      "Name": "Salesforce Platform123",
+      "Country_of_Institution__c": db.country,
+      "Class__c": db.class,
+      "Score__c": db.cgpa,
+      "Attended_Institution_To__c": "2022-10-27",
+      "Attended_Institution_From__c": "2022-10-12",
+      "Affiliated_University__c": db.affiliatedUniversity,
+      "ExternalId__c" :"401959e7-f3ef-ebfd-4eec-f3590128fd30",
+      "Student_Id__c": db.studentId,
+    };
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/

@@ -1,0 +1,57 @@
+// This is an Example
+// db will contain current object according to database structure
+// funcs will contain helper functions to retrieve External IDs, it is mandatory to use await before calling any functions.
+
+
+//// agent response needs to change to agent.service and agent.constants 
+
+ // agent sync to agent.account and agent.service
+
+
+
+
+
+
+
+
+
+module.exports = async function (db) {
+    return {
+        "RecordTypeId": "0125g00000020HQAAY",
+       "FirstName": db.personalDetails.firstName,
+       "LastName": db.personalDetails.lastName,
+       "Source__c": "Sales",
+       "Passport_Number__c": "583312e41c2-9c42-fc5ce06d1ff5bdshdsbfvsvdhgsh",
+       "MobilePhone": db.personalDetails.countryCode + db.personalDetails.phone,
+       "Whatsapp_No__c":  db.personalDetails.countryCode + db.personalDetails.phone,
+       "Preferred_Country__c": "Austria;Cyprus",
+       "Email": db.personalDetails.email,
+       "Medical_History_Detail__c": "sjkchsduiwv",
+       "Medical_History__c": "No",
+       "Martial_Status__c": "Married",
+       "Gender__c": "Male",
+       "Birthdate": "2022-07-11",
+       "First_Language__c": "iohdwef",
+       "Country_of_Citizenship__c": "Albania",
+       "Account": {
+           "ExternalId__c" :"2573t236423ev"
+       },
+     "Partner_Account__r": {
+           "ExternalId__c" :"juytf567"
+       },
+       "EmergencyContactName__c": "dcvderfverw",
+       "Relationship__c": "Mother",
+       "EmergencyContactEmail__c": "emahhjhcihfhgvmbvhghgf@gmail.com",
+       "Phone": db.personalDetails.phone,
+       "Country__c": db.address.country,
+       "Have_you_been_refused_a_visa__c": "No",
+       "Do_you_have_a_valid_Study_Permit_Visa__c": "No",
+       "Study_Permit_Visa_Details__c": "wefwer"
+    };
+};
+
+
+// Available funcs
+/*
+    getAgentId()
+*/
