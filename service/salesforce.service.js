@@ -9,7 +9,6 @@ const SFerrorHandler = require("../utils/sfErrorHandeling");
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
   const publicKey = fs.readFileSync("SFkeys/server.crt", "utf-8");
-  console.log(privateKey,publicKey);
   const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
   // Add two hours (2 * 3600 seconds) to the timestamp
   const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600;

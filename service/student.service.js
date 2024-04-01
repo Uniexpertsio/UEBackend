@@ -1067,6 +1067,7 @@ class StudentService {
     return new Promise(async (resolve, reject) => {
       try {
         const student = await StudentModel.findOne({_id: studentId});
+        console.log(student);
         if (!student) throw "student not found";
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
@@ -1098,9 +1099,9 @@ class StudentService {
               Mandatory__c: true,
               Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
               ObjectType__c: "", //Student,Application,Agent
-              Account__c: student.commonId,
+              Account__c: "",
               School__c: "",
-              Student__c: "",
+              Student__c:student?.salesforceId,
               Document_Master__c: "",
               Application__c: "",
               Programme__c: "",
@@ -1108,17 +1109,17 @@ class StudentService {
               ContentUrl__c: doc.url
             };
             let sfIdFound = false;
-
+            
             for (const document of body.documents) {
               if (document.sfId) {
-                const url = `${process.env.SF_OBJECT_URL}DMS_Documents__c/${document.sfId}`;
+                const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
                 const sfRes = await sendDataToSF(data, url);
                 sfIdFound = true; // Set the flag to true if sfId is found
               }
             }
 
             if (!sfIdFound) {
-              const url = `${process.env.SF_OBJECT_URL}DMS_Documents__c`;
+              const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
               const sfRes = await sendDataToSF(data, url);
               doc["sfId"] = sfRes.id;
               await Document.findOneAndUpdate(
