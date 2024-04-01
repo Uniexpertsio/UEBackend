@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const DocumentSchema = new mongoose.Schema(
   {
+    name: { type: String, required: false },
     userId: { type: String, required: false },
     documentTypeId: { type: String, required: false },
     remark: { type: String, required: false, default: "" },

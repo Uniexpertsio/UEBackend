@@ -156,8 +156,7 @@ class DocumentService {
 
   async getSfDataStudentId(studentId) {
     const studentData = await Student.findById(studentId);
-    console.log('studentData',studentData.salesforceId)
-    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Sequence__c,Document_Category__c, Document_Type__c, Mandatory__c+FROM+Document_Master__c+WHERE+ObjectType__c='Student'+LIMIT+200`;
+    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Description__c,Document_Category__c,ReviewRemarks__c,Status__c,Used_For__c,Sequence__c,Mandatory__c+FROM+DMS_Documents__c+WHERE+Student__c+=+'${studentData?.salesforceId}'`
     const sfData = await getDataFromSF(url);
     console.log('sfData---', sfData)
     return sfData;

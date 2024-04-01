@@ -195,9 +195,10 @@ const getPartnerId = async(sfId) => {
 const getDataFromSF = async(url) => {
   try {
     const token = await generateToken();
-    console.log(token)
+    console.log("errorrrrrrrrr",token)
     const headers = generateHeaders(token);
     const { data } = await axios.get(url,{headers});
+    console.log("data---",data)
     return data;
   } catch (err) {
     console.error("Error: " + err);
