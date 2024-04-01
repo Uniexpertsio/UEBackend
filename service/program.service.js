@@ -140,6 +140,31 @@ class ProgramService {
     return { id: program._id };
   }
 
+  async createOrUpdateProgram(programCreateDto) {
+    let programId = programCreateDto.Program_Id__c;
+    return new Promise(async (resolve, reject) => {
+      try {
+        const checkProgramExist = await this.programModel.findOne({ Program_Id__c: programId });
+        if (checkProgramExist?.Program_Id__c) {
+          await this.programModel.updateOne(
+            { Program_Id__c: programId },
+            { $set: { ...programCreateDto } },
+            { new: true }
+          );
+          return resolve({ message: "Success", status: 200, sf: programId })
+        } else {
+          await this.programModel.create({
+            ...programCreateDto
+          });
+          resolve({ message: "Success", status: 201, sf: programId });
+        }
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
+  }
+
   getSortingMap() {
     return {
       SchoolRank: { schoolRank: 1 },
@@ -291,7 +316,7 @@ class ProgramService {
   }
 
   async findById(id) {
-    const program = await this.programModel.findById(id);
+    const program = await this.programModel.findOne({ Program_Id__c: id });
 
     if (!program) {
       throw new Error(`No program found for id - ${id}`);
@@ -377,14 +402,14 @@ class ProgramService {
 
 
   // to confirm with nilesh 
-  
+
   async isEligibleForProgram(programId, schoolId, studentId, intakeId) {
     const program = await this.programModel.findById(programId);
     const examTypeRequired = program.requirementExamType;
     const scoreRequired = program.requirementScoreInformation || [];
 
     const testScores = await this.testScoreModel.findOne({ studentId, examType: examTypeRequired });
-        return true;
+    return true;
     if (!testScores) return false;
     const studentScores = testScores.scoreInformation || [];
 

@@ -6,10 +6,10 @@ const Middleware = require("../controllers/Middleware")
 const router = express.Router();
 const programController = new ProgramController();
 
-router.post(
-  "/school/:schoolId",
+router.put(
+  "/",
   Middleware.checkAuth,
-  programController.addProgram
+  programController.addOrUpdateProgram
 );
 
 router.get("/school/:schoolId", Middleware.checkAuth, programController.getPrograms);

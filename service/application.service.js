@@ -77,17 +77,10 @@ class ApplicationService {
   async addApplication(id, agentId, body) {
     let applicationCount = 1;
     try {
-      let x = await Application.find({}, {
-        projection: {
-          'applicationId': 1,
-          '_id': 0
-        },
-        sort: {
-          'applicationId': -1
-        },
-        limit: 1
-      });
-      applicationCount = +((x[0].applicationId).split('-'))[1];
+      let latestApplication = await Application.findOne({}, { applicationId: 1 }, { sort: { 'applicationId': -1 } });
+        if (latestApplication) {
+            applicationCount = parseInt(latestApplication.applicationId.split('-')[1]) + 1;
+        }
     } catch (error) {
       console.log('new Application');
     }
@@ -99,13 +92,20 @@ class ApplicationService {
     await this.intakeService.findById(body.intakeId);
 
     const externalId = uuid.v4();
-    const application =  Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
-
+    const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
     const applicationSfData = this.convertApplicationData(body)
     const applicationSfUrl =`${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`
     const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
-
-    console.log("applicationSfResponse");
+    const sfId = applicationSfResponse?.id;
+    if (sfId) {
+      await Application.updateOne(
+        { _id: application._id },
+        { $set: { salesforceId: sfId } },
+        { new: true }
+      );
+    }
+    application["salesforceId"] = sfId
+    console.log("applicationSfResponse",applicationSfResponse);
 
     return application;
   }
@@ -115,8 +115,7 @@ class ApplicationService {
   }
 
   async findStudentById(id) {
-    const student = await this.studentModel.findById(id);
-
+    const student = await this.studentModel.findOne({salesforceId: id});
     if (!student) {
       throw Error("Student " + id + " does not exist");
     }

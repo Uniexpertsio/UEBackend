@@ -25,6 +25,7 @@ const ApplicationSchema = new mongoose.Schema(
     createdBy: { type: String, required: true },
     externalId: { type: String, required: true },
     modifiedBy: { type: String, required: true },
+    salesforceId: { type: String, required: false, default: "--" },
   },
   { timestamps: true }
 );
