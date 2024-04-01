@@ -1,6 +1,8 @@
 const Document = require("../models/Document");
+const Student = require("../models/Student");
 const DocumentTypeService = require("./documentType.service");
 const uuid = require("uuid");
+const { getDataFromSF } = require("./salesforce.service");
 
 class DocumentService {
   constructor() {
@@ -140,6 +142,7 @@ class DocumentService {
 
   async getByUserId(userId) {
     const documents = await Document.find({ userId });
+    console.log('document---', documents)
     return Promise.all(
       documents.map(async (document) => ({
         id: document._id,
@@ -149,6 +152,15 @@ class DocumentService {
         type: await this.documentTypeService.findByName(document?.name),
       }))
     );
+  }
+
+  async getSfDataStudentId(studentId) {
+    const studentData = await Student.findById(studentId);
+    console.log('studentData',studentData.salesforceId)
+    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Sequence__c,Document_Category__c, Document_Type__c, Mandatory__c+FROM+Document_Master__c+WHERE+ObjectType__c='Student'+LIMIT+200`;
+    const sfData = await getDataFromSF(url);
+    console.log('sfData---', sfData)
+    return sfData;
   }
 
   async findById(id) {

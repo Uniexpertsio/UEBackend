@@ -1319,7 +1319,7 @@ class StudentService {
   }
 
   getStudentDocuments(studentId) {
-    return this.documentService.getByUserId(studentId);
+    return this.documentService.getSfDataStudentId(studentId);
   }
 
   async getStudentPayments(studentId) {
