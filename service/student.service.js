@@ -396,6 +396,7 @@ class StudentService {
       .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
       .sort(sortBy)
       .limit(parseInt(query.perPage));
+      const count=await StudentModel.countDocuments();
     const studentList = [];
     for (let i = 0; i < student.length; i++) {
       const staff = await Staff.findOne({ _id: student[i].createdBy });
@@ -414,7 +415,7 @@ class StudentService {
       studentList.push(student[i]);
     }
 
-    return studentList;
+    return {studentList,count};
   }
 
   async getStudentGeneralInformation(studentId) {
