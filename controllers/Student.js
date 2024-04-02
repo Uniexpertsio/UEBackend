@@ -63,8 +63,8 @@ class StudentController {
         const studentId = req.params.studentId;
         const { id } = req.user;
         const body = req.body;
-        await this.studentService.updateStudentGeneralInformation(studentId, id, body);
-        res.status(200).end();
+        const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body);
+        res.status(200).json(data);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }

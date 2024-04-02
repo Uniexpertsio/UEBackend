@@ -13,8 +13,15 @@ const ApplicationService = require("../service/application.service");
 const ProgramService = require("../service/program.service");
 const SchoolService = require("../service/school.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
-const { sendToSF, sendDataToSF, updateDataToSF } = require("./salesforce.service");
+const {
+  sendToSF,
+  sendDataToSF,
+  updateDataToSF,
+  getPartnerId,
+  getContactId,
+} = require("./salesforce.service");
 const Staff = require("../models/Staff");
+const { parseInMongoObjectId } = require("../utils/sfErrorHandeling");
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -139,7 +146,7 @@ class StudentService {
       Verification_Status__c: "",
       Student__c: data?.sfId,
       Primary_Language_of_Instruction__c: data.instituteLanguage,
-      Grade__c:data?.grade
+      Grade__c: data?.grade,
     };
 
     return convertedData;
@@ -155,7 +162,7 @@ class StudentService {
       Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
       Name: data.degree,
       Country_of_Institution__c: data.country,
-      Class__c: data?.class||data?.division,
+      Class__c: data?.class || data?.division,
       Score__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
@@ -163,7 +170,7 @@ class StudentService {
       Verification_Status__c: "", // You may update this based on your specific logic
       Student__c: data?.sfId, // Replace with the actual student ID
       Primary_Language_of_Instruction__c: data.instituteLanguage,
-      Grade__c:data?.grade
+      Grade__c: data?.grade,
     };
 
     return convertedData;
@@ -177,9 +184,9 @@ class StudentService {
       Date_of_relieving__c: data?.dor.split("T")[0],
       Email_Id__c: data?.email,
       Contact_info__c: data?.contactInfo,
-      Phone_Number_of_the_Signed_Person__c:data?.signedPersonPhone,
-      Email_ID_of_the_Signed_Person__c:data?.signedPersonEmail,
-      Name_of_the_Signed_Person__c:data?.signedPersonName,
+      Phone_Number_of_the_Signed_Person__c: data?.signedPersonPhone,
+      Email_ID_of_the_Signed_Person__c: data?.signedPersonEmail,
+      Name_of_the_Signed_Person__c: data?.signedPersonName,
       Student__c: "003Hy00000tPfkUIAS",
       Lock_Record__c: "",
     };
@@ -330,7 +337,7 @@ class StudentService {
       NumberOfEmployees: parseInt(inputData.company.employeeCount),
       Description: "",
     };
-  
+
     return outputData;
   }
 
@@ -349,18 +356,26 @@ class StudentService {
       createdBy: modifiedBy,
     });
 
-    const studentData = this.converttoSfBody(studentInformation)
-    console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
+    const studentData = this.converttoSfBody(studentInformation);
+    console.log(
+      "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
+    );
     const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
     const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
     const sfId = sfStudentResponse?.id;
+    let contactDetails;
     if (sfId) {
       await StudentModel.updateOne(
         { _id: student._id },
         { $set: { salesforceId: sfId } }
       );
+      contactDetails = await getContactId(sfId);
     }
-    return { id: student._id, sf: sfStudentResponse };
+    return {
+      id: student._id,
+      sf: sfStudentResponse,
+      partnerId: contactDetails?.Student_ID__c,
+    };
   }
 
   async preferredCountries() {
@@ -396,7 +411,7 @@ class StudentService {
       .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
       .sort(sortBy)
       .limit(parseInt(query.perPage));
-      const count=await StudentModel.countDocuments();
+    const count = await StudentModel.countDocuments();
     const studentList = [];
     for (let i = 0; i < student.length; i++) {
       const staff = await Staff.findOne({ _id: student[i].createdBy });
@@ -415,13 +430,69 @@ class StudentService {
       studentList.push(student[i]);
     }
 
-    return {studentList,count};
+    return { studentList, count };
   }
 
   async getStudentGeneralInformation(studentId) {
-    const student = await StudentModel.findOne({ _id: studentId });
+    const objId= parseInMongoObjectId(studentId);
+ 
+    const student = await StudentModel.aggregate([
+      {
+        $match: { _id: objId } // Replace studentId with the specific student ID you're querying
+      },
+      {
+        $lookup: {
+          from: "staffs",
+          let: { councellorId: { $toObjectId: "$studentInformation.counsellorId" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$councellorId"] }
+              }
+            }
+          ],
+          as: "staff"
+        }
+      },
+      {
+        $lookup: {
+          from: "agents",
+          let: { staffId: { $toObjectId: "$studentInformation.staffId" } },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$staffId"] }
+              }
+            }
+          ],
+          as: "agent"
+        }
+      },
+      {
+        $unwind: "$staff"
+      },
+      {
+        $unwind: "$agent"
+      },
+      {
+        $project: {
+          studentData: "$$ROOT",
+          councellorName: "$staff.fullName",
+          agentName: "$agent.company.companyName"
+        }
+      },
+      {
+        $addFields: {
+          "studentData.studentInformation.counsellorName": "$councellorName",
+          "studentData.studentInformation.staffName": "$agentName"
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$studentData" }
+      }
+    ]);
     if (!student) throw new Error("Student not found");
-    return student;
+    return student[0];
   }
 
   async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails) {
@@ -440,13 +511,12 @@ class StudentService {
     });
 
     await student.save();
-    
+
     const studentData = this.converttoSfBody(studentDetails);
     const studentUrl = `${process.env.SF_OBJECT_URL}Contact/${student?.salesforceId}`;
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    console.log('sf Company Data',sfCompanyData)
-
-    return { id: student.id };
+    const contactDetails = await getContactId(student?.salesforceId);
+    return { id: student.id, partnerId: contactDetails?.Student_ID__c };
   }
 
   async deleteStudent(studentId) {
@@ -472,7 +542,7 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const educationData = this.convertEducationData(body)
+    const educationData = this.convertEducationData(body);
     const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
     console.log(sfEducationResponse);
@@ -504,7 +574,10 @@ class StudentService {
   }
 
   async updateStudentEducation(studentId, modifiedBy, educationId, body) {
-    const student = await this.checkIfEducationBelongsToStudent(studentId, educationId);
+    const student = await this.checkIfEducationBelongsToStudent(
+      studentId,
+      educationId
+    );
     let updatedEducation = await this.educationService.update(
       modifiedBy,
       educationId,
@@ -520,9 +593,9 @@ class StudentService {
 
     const studentData = this.convertEducationData(body);
     const studentUrl = `${process.env.SF_OBJECT_URL}Education__c/${student?.salesforceId}`;
-    console.log('student url--',studentUrl)
+    console.log("student url--", studentUrl);
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    console.log('sfCompanyData--442',sfCompanyData)
+    console.log("sfCompanyData--442", sfCompanyData);
 
     return updatedEducation;
   }
@@ -537,7 +610,7 @@ class StudentService {
   }
 
   async checkIfEducationBelongsToStudent(studentId, educationId) {
-    console.log('student request---539',studentId,educationId)
+    console.log("student request---539", studentId, educationId);
     const student = await StudentModel.findById(studentId);
     if (!student) {
       throw new Error("Student not found");
@@ -565,9 +638,12 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
     }
-    const workHistoryData = this.convertWorkHistoryData(body)
+    const workHistoryData = this.convertWorkHistoryData(body);
     const workHistoryUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Work_history__c`;
-    const sfWorkHistoryResponse = await sendDataToSF(workHistoryData, workHistoryUrl);
+    const sfWorkHistoryResponse = await sendDataToSF(
+      workHistoryData,
+      workHistoryUrl
+    );
 
     console.log("sfWorkHistoryResponse: ", sfWorkHistoryResponse);
 
@@ -575,7 +651,10 @@ class StudentService {
   }
 
   async updateStudentWorkHistory(studentId, modifiedBy, workHistoryId, body) {
-    const student = await this.checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId);
+    const student = await this.checkIfWorkHistoryBelongsToStudent(
+      studentId,
+      workHistoryId
+    );
     const wh = await this.workHistoryService.update(
       modifiedBy,
       workHistoryId,
@@ -592,7 +671,7 @@ class StudentService {
     const studentData = this.convertWorkHistoryData(body);
     const studentUrl = `${process.env.SF_OBJECT_URL}Work_history__c/${student?.salesforceId}`;
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    console.log('sfCompanyData--442',sfCompanyData);
+    console.log("sfCompanyData--442", sfCompanyData);
 
     return wh;
   }
@@ -631,7 +710,7 @@ class StudentService {
         }
       }
     }
-  
+
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
@@ -647,21 +726,27 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const testScoreSfData = this.convertTestScoreData(body)
+    const testScoreSfData = this.convertTestScoreData(body);
     const testScoreUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Test_Score__c`;
-    const testScoreSfResponse = await sendDataToSF(testScoreSfData, testScoreUrl);
+    const testScoreSfResponse = await sendDataToSF(
+      testScoreSfData,
+      testScoreUrl
+    );
 
     console.log("testScoreSfResponse: ", testScoreSfResponse);
     return { id: testScore.id };
   }
 
   async updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
-    const student = await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
+    const student = await this.checkIfTestScoreBelongsToStudent(
+      studentId,
+      testScoreId
+    );
     let a = await this.testScoreService.update(modifiedBy, testScoreId, body);
     const studentData = this.convertTestScoreData(body);
     const studentUrl = `${process.env.SF_OBJECT_URL}Test_Score__c/${student?.salesforceId}`;
     const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    console.log('sfCompanyData--442',sfCompanyData)
+    console.log("sfCompanyData--442", sfCompanyData);
     //// await sendToSF(MappingFiles.STUDENT_test_score, { ...a, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
     return a;
   }
@@ -977,8 +1062,7 @@ class StudentService {
     }
 
     const testScoreSfData = this.convertTestScoreData(body);
-    const testScoreUrl =
-      `${process.env.SF_API_URL}services/data/v55.0/sobjects/Test_Score__c`;
+    const testScoreUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Test_Score__c`;
     const testScoreSfResponse = await sendDataToSF(
       testScoreSfData,
       testScoreUrl
@@ -1067,7 +1151,7 @@ class StudentService {
   async updateStudentDocument(studentId, modifiedBy, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = await StudentModel.findOne({_id: studentId});
+        const student = await StudentModel.findOne({ _id: studentId });
         console.log(student);
         if (!student) throw "student not found";
         const document = await this.documentService.addOrUpdateStudentDocument(
@@ -1084,33 +1168,35 @@ class StudentService {
           document.map(async (doc) => {
             // let dtype = await this.documentTypeService.findById(doc.documentTypeId);
             const data = {
-              Name: doc.name,
+              Name: doc?.name,
               Lock_Record__c: false,
               Active__c: "",
               LatestDocumentId__c: "",
               ReviewRemarks__c: "",
               BypassDocumentation__c: false,
-              Status__c: doc.status,
+              Status__c: doc?.status,
               IsPublic__c: "",
               IsNewDoc__c: true,
               FileType__c: "",
               ExpiryDate__c: "2023-01-25",
               Is_Downloaded__c: false,
               Sequence__c: 30,
-              Mandatory__c: true,
+              Mandatory__c: doc?.mandatory,
               Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
-              ObjectType__c: "", //Student,Application,Agent
+              Document_Category__c: doc?.category,
+              ObjectType__c: doc?.objectType, //Student,Application,Agent
               Account__c: "",
               School__c: "",
-              Student__c:student?.salesforceId,
+              Student__c: student?.salesforceId,
               Document_Master__c: "",
               Application__c: "",
               Programme__c: "",
-              S3_DMS_URL__c: doc.url,
-              ContentUrl__c: doc.url
+              Used_For__c:doc?.usedFor,
+              S3_DMS_URL__c: doc?.url,
+              ContentUrl__c: doc?.url,
             };
             let sfIdFound = false;
-            
+            console.log(data);
             for (const document of body.documents) {
               if (document.sfId) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
@@ -1206,7 +1292,10 @@ class StudentService {
   }
 
   async updateStudentPayment(studentId, modifiedBy, paymentId, body) {
-    const student = await this.checkIfPaymentBelongsToStudent(studentId, paymentId);
+    const student = await this.checkIfPaymentBelongsToStudent(
+      studentId,
+      paymentId
+    );
     let a = await this.studentPaymentService.update(
       modifiedBy,
       paymentId,
@@ -1219,7 +1308,7 @@ class StudentService {
     const studentData = this.converttoSfBody(body);
     const studentUrl = `${process.env.SF_OBJECT_URL}STUDENT_payment/${student?.salesforceId}`;
     const sfCompanyData = await updateDataToSF(body, studentUrl);
-    console.log('sfCompanyData--442',sfCompanyData)
+    console.log("sfCompanyData--442", sfCompanyData);
     return a;
   }
 
@@ -1260,7 +1349,7 @@ class StudentService {
       throw new Error("Student not found");
     }
 
-    const taskSfData = this.convertTaskData(body)
+    const taskSfData = this.convertTaskData(body);
     const taskSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/RelatedTask__c`;
     const taskSFResponse = await sendDataToSF(taskSfData, taskSfUrl);
     return { id: task.id };

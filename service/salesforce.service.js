@@ -109,6 +109,7 @@ const sendDataToSF = async (body, url) => {
   return new Promise(async (resolve, reject) => {
     const token = await generateToken();
     const headers = generateHeaders(token);
+    console.log(body,url);
     try {
       if (url.match(/DMS_Documents__c\/.+/)) {
         const data = await axios.patch(url, body, { headers });
@@ -190,6 +191,26 @@ const getPartnerId = async(sfId) => {
 };
 
 
+// Get External IDs of documents
+const getContactId = async(sfId) => {
+  try {
+    // const mapper = require(flPath);
+    // let body = await mapper(rawBody, rawBody.commonId);
+    // filterUndefined(body);
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Contact/${sfId}`;
+    const { data } = await axios.get(url,{headers});
+    return data;
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+  //  finally {
+    // delete require.cache[require.resolve(flPath)];
+  // }
+};
+
 
 // Get External IDs of documents
 const getDataFromSF = async(url) => {
@@ -246,5 +267,6 @@ module.exports = {
   updateDataToSF,
   downloadTnc,
   getDataFromSF,
-  getPartnerId
+  getPartnerId,
+  getContactId
 };
