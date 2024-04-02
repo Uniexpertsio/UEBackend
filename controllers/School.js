@@ -5,9 +5,10 @@ class SchoolController {
     this.schoolService = new SchoolService();
   }
 
-async addOrUpdateSchool(req, res) {
+  async addOrUpdateSchool(req, res) {
     // const { id } = req.user;
-    return res.status(200).json(await this.schoolService.createOrUpdateSchool(req.body));
+    const result = await this.schoolService.createOrUpdateSchool(req.body);
+    res.status(200).json({ success: true, data: result });
   }
 
   async getAllSchool(req, res) {

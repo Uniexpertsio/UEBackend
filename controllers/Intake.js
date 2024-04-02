@@ -8,7 +8,7 @@ async function addOrUpdateIntake(req, res) {
     // const { id } = req.user;
     const body = req.body;
     const intake = await intakeService.addOrUpdateIntake(body);
-    res.status(201).json(intake);
+    res.status(200).json({ success: true, data: intake });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

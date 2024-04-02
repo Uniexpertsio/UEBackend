@@ -134,6 +134,7 @@ class ApplicationController {
       const result = await this.applicationService.getApplication(applicationId);
       res.status(200).json(result);
     } catch (error) {
+      console.log('errrorrr',error)
       res.status(500).json({ error: error.message });
     }
   }
