@@ -62,7 +62,6 @@ class AgentService {
             for (const document of body.documents) {
               if (document.sfId) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
-                console.log(data);
                 const sfRes = await sendDataToSF(data, url);
                 sfIdFound = true; // Set the flag to true if sfId is found
               }
@@ -70,7 +69,6 @@ class AgentService {
 
             if (!sfIdFound) {
               const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
-              console.log(data);
               const sfRes = await sendDataToSF(data, url);
               doc["sfId"] = sfRes.id;
               await Document.findOneAndUpdate(
