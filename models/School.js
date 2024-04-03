@@ -36,45 +36,6 @@ const SchoolFinancialDescriptionSchema = {
   estimatedTotalPerYear: { type: String, required: true },
 };
 
-// const SchoolSchema = new mongoose.Schema(
-//   {
-//     basicDetails: {
-//       type: SchoolBasicDetailSchema,
-//       required: true,
-//       _id: false,
-//     },
-//     address: {
-//       type: AddressSchema,
-//       required: true,
-//       _id: false,
-//     },
-//     about: { type: String, required: true },
-//     features: {
-//       type: [SchoolFeatureSchema],
-//       required: true,
-//       _id: false,
-//     },
-//     financialDescription: {
-//       type: SchoolFinancialDescriptionSchema,
-//       required: true,
-//       _id: false,
-//     },
-//     programmes: { type: [String], required: false, default: [] },
-//     entryRequirements: { type: [String], required: false, default: [] },
-//     isRecommended: { type: Boolean, required: false, default: false },
-//     sequence: { type: Number, required: false, default: 0 },
-//     schoolRank: { type: Number, required: false, default: 0 },
-//     createdBy: { type: String, required: true },
-//     externalId: { type: String, required: true },
-//     modifiedBy: { type: String, required: true },
-//     offerConditionalAdmission: { type: Boolean, required: false, default: false },
-//     currency: { type: String, required: false, default: "USD" },
-//     salesforceId: { type: String, required: false, default: "--" },
-//   },
-//   { timestamps: true }
-// );
-
-
 const SchoolSchema = new mongoose.Schema(
   {
     "School__c": { type: String },
