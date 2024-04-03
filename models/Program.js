@@ -81,7 +81,6 @@ const ProgramSchema = new mongoose.Schema(
     "Admission_Requirements__c": { type: String },
     "Country__c": { type: String },
     "Department__c": { type: String },
-    "Intake__c": { type: String },
     "Master_Commission__c": { type: String },
     "Program_level__c": { type: String },
     "Scholarship__c": { type: String },
