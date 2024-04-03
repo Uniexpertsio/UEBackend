@@ -351,7 +351,6 @@ class StudentService {
     });
 
     const studentData = this.converttoSfBody(studentInformation)
-    console.log('studentttttt>>>',student)
     console.log("\n\nStudent Data: " + JSON.stringify(studentData)+"\n\n\n\n")
     const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
     const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
