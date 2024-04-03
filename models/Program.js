@@ -74,7 +74,7 @@ const FeeSchema = {
 
 const ProgramSchema = new mongoose.Schema(
   {
-    "Program_Id__c": { type: String },
+    "Id": { type: String },
     "Name": { type: String },
     "CurrencyIsoCode": { type: String },
     "School__c": { type: String },

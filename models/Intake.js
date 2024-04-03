@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const IntakeSchema = new mongoose.Schema(
   {
-    "Intake_Id__c": { type: String },
+    "Id": { type: String },
     "Name": { type: String },
     "Programme__c": { type: String },
     "Months__c": { type: String },
