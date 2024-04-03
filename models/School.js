@@ -38,7 +38,7 @@ const SchoolFinancialDescriptionSchema = {
 
 const SchoolSchema = new mongoose.Schema(
   {
-    "School__c": { type: String },
+    // "School__c": { type: String },
     "School_Id__c": { type: String },
     "Name": { type: String, required: true },
     "Founded_Year__c": { type: Number },
