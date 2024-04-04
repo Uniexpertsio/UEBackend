@@ -15,9 +15,8 @@ async function getAllStaff(req, res) {
 
 async function addStaff(req, res) {
   try {
-    const { agentId } = req.user;
     const staffDetails = req.body;
-    const staff = await staffService.addStaff(agentId, staffDetails);
+    const staff = await staffService.addStaff(req.user, staffDetails);
     res.status(201).json({ id: staff._id });
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -6,8 +6,47 @@ const {
 } = require("../service/salesforce.service");
 
 class CaseService {
-  async getAllCases() {
-    return await Case.find();
+  async getAllCases(contactId) {
+    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
+    const sfData = await getDataFromSF(url);
+    console.log("======================>",sfData);
+    if (sfData && sfData?.records?.length > 0) {
+
+      const operations = sfData.records.map(async (data) => {
+        try {
+          const payload={
+            caseId: data?.Id,
+            contactId: data?.ContactId,
+            accountId: data?.AccountId,
+            type: data?.Reason,
+            subject: data?.Subject,
+            priority: data?.Priority,
+            description: data?.Description,
+            subType: data?.Case_Sub_Reason__c,
+            attachment: data?.Attachment__c,
+            status: data?.Status,
+            accountName: data?.Account_Name__c,
+            contactName: data?.Contact_Name__c,
+            caseNumber: data?.CaseNumber,
+          }
+          const ifexist=await Case.find({caseId:data?.Id});
+          if(ifexist && ifexist?.length>0){
+            await Case.updateOne({caseId:data?.Id},payload);
+          }
+          else{
+            await new Case(payload).save();
+          }
+         
+          console.log(`Successfully updated/inserted document with Id`);
+        } catch (error) {
+          console.error(`Error updating`, error);
+        }
+      });
+      // Wait for all update operations to complete
+      await Promise.all(operations);
+      
+    }
+    return await Case.find({contactId});
   }
 
   async getCaseById(id) {
@@ -56,16 +95,18 @@ class CaseService {
       let createCase = await new Case(caseData).save();
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
       const data = this.convertToCaseData(caseData);
+      // console.log(caseData);
       const sfRes = await sendDataToSF(data, url);
       let caseDatafromSf;
       if (sfRes && sfRes.success) {
         caseDatafromSf = await getDataFromSF(
           `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${sfRes.id}`
         );
-        if (caseDatafromSf && caseDatafromSf?.CaseNumber) {
-          createCase = await  Case.findOneAndUpdate(
+        console.log(caseDatafromSf);
+        if (caseDatafromSf && caseDatafromSf?.Id) {
+          createCase = await Case.findOneAndUpdate(
             { _id: createCase._id },
-            { $set: { caseId: caseDatafromSf?.CaseNumber } }
+            { $set: { caseId: caseDatafromSf?.Id } }
           );
         }
       }

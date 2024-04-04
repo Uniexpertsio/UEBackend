@@ -1,3 +1,4 @@
 node_modules/
 mpi.c
 .env
+.env.prod

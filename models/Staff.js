@@ -39,7 +39,7 @@ const StaffSchema = new mongoose.Schema(
     description: { type: String, required: false },
     externalId: { type: String, required: false, default: "" },
     branchId: { type: String, required: false },
-    sf: { type: String, required: false },
+    sfId: { type: String, required: false },
     docVerificationOfficer: { type: String, required: false },
     bdmUserId: { type: String, required: false },
     reportsToId: { type: String, required: false },

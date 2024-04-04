@@ -6,7 +6,9 @@ class CaseController {
   }
 
   async getAllCases(req, res) {
-    const cases = await this.caseService.getAllCases();
+    const {sfId}=req.user;
+    debugger;
+    const cases = await this.caseService.getAllCases(sfId);
     res.json(cases);
   }
 

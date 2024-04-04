@@ -8,6 +8,7 @@ const Document = require("../models/Document");
 
 const Config = require("../models/Config");
 const Agent = require("../models/Agent");
+const { sendEmailWithOTP } = require("../utils/sendMail");
 const Staff = require("../models/Staff");
 const {
   sendToSF,
@@ -56,6 +57,7 @@ function convertToCompanyData(inputData) {
     Phone: inputData.personalDetails.phone,
     EntityType__c: inputData.company.entityType,
     Tax_Number__c: inputData.company.taxNumber,
+    Entity_Registration_Number__c:inputData.company?.entityRegistrationNumber,
     Onboarding_Status__c: "New",
     PartnerNotified__c: false,
     Bypass_Documentation__c: false,
@@ -90,12 +92,12 @@ function convertToAgentData(inputData, id) {
     FirstName: inputData.personalDetails.firstName,
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
-    Whatsapp_No__c: inputData.personalDetails.phone,
+    // Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
     Password__c:inputData?.password,
-    Phone: "8987678987",
-    Birthdate: "2022-07-11", // Assuming a default value
-    AccountId: id ? id : "001Hy000016qOBKIA2", // Assuming a default value
+    // Phone: "8987678987",
+    // Birthdate: "2022-07-11", // Assuming a default value
+    AccountId: id , // Assuming a default value
     Active__c: true,
     MailingCity: inputData.address.city,
     MailingState: inputData.address.state,
@@ -266,7 +268,7 @@ Auth.post.signup = async (req, res, next) => {
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
-
+      await Staff.updateOne({_id:staff._id},{$set:{sfId:sfAgentData?.id}})
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
@@ -405,31 +407,37 @@ Auth.post.forgotPassword = async (req, res) => {
     { email: req.body.email.toLowerCase().trim() },
     { $set: { passwordResetOtp: otp } }
   );
+  const sendMail = await sendEmailWithOTP(req.body.email, otp);
+  if (!sendMail) {
+    return res.status(400).json({ statusCode: 400, message: "Email not sent" });
+  }
+  return res.status(200).json({ statusCode: 200, message: "Email sent successfully" });
 
-  let mailTransporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "tset4598t@gmail.com",
-      pass: "bzvvmohfxolkhnuj",
-    },
-  });
 
-  let mailDetails = {
-    from: "tset4598t@gmail.com",
-    to: req.body.email,
-    subject: "Verify Otp",
-    text: "Your otp to verify is " + otp,
-  };
+  // let mailTransporter = nodemailer.createTransport({
+  //   service: "gmail",
+  //   auth: {
+  //     user: "tset4598t@gmail.com",
+  //     pass: "bzvvmohfxolkhnuj",
+  //   },
+  // });
 
-  mailTransporter.sendMail(mailDetails, function (err, data) {
-    if (err) {
-      console.log("Error Occurs");
-    } else {
-      console.log("Email sent successfully");
-    }
-  });
+  // let mailDetails = {
+  //   from: "tset4598t@gmail.com",
+  //   to: req.body.email,
+  //   subject: "Verify Otp",
+  //   text: "Your otp to verify is " + otp,
+  // };
 
-  return res.status(200).json({ statusCode: 200 });
+  // mailTransporter.sendMail(mailDetails, function (err, data) {
+  //   if (err) {
+  //     console.log("Error Occurs");
+  //   } else {
+  //     console.log("Email sent successfully");
+  //   }
+  // });
+
+  // return res.status(200).json({ statusCode: 200 });
 };
 
 Auth.post.verifyOtp = async (req, res) => {

@@ -7,7 +7,7 @@
 	},
 	"dependencies": {
 		"agentkeepalive": "^4.1.4",
-		"aws-sdk": "^2.735.0",
+		"aws-sdk": "^2.1579.0",
 		"child_process": "^1.0.2",
 		"colors": "^1.4.0",
 		"cookie-parser": "~1.4.4",

@@ -12,7 +12,7 @@ async function getFaqData(query) {
       const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Question__c,Type__c,Answer__c,URL__c+FROM+FrequentlyAskedQuestion__c+LIMIT+200`;
       const sfData = await getDataFromSF(url);
 
-      if (sfData && sfData.records.length > 0) {
+      if (sfData && sfData?.records?.length > 0) {
         const operations = sfData.records.map(async (data) => {
           try {
             const filter = { Id: data.Id };
