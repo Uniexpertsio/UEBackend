@@ -52,7 +52,6 @@ class AgentService {
               Account__c: agent.commonId,
               School__c: "",
               Student__c: "",
-              Document_Master__c: "",
               Application__c: "",
               Programme__c: "",
               S3_DMS_URL__c: doc.url,
