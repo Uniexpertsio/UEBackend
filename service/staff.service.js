@@ -4,6 +4,7 @@ const BranchService = require("../service/branch.service");
 const SalesforceService = require("./salesforce.service");
 const StaffModel = require("../models/Staff");
 const { MappingFiles } = require("./../constants/Agent.constants");
+const Agent = require("../models/Agent");
 
 class StaffService {
   constructor() {
@@ -12,8 +13,32 @@ class StaffService {
     this.salesforceService = SalesforceService;
   }
 
-  async addStaff(agentId, staffDetails) {
-    console.log(staffDetails, agentId);
+
+   convertToAgentData(inputData,agentInfo, id) {
+    console.log(inputData);
+    const nameArr=inputData?.fullName.split(" ");
+    const outputData = {
+      RecordTypeId: "0125g00000020HQAAY",
+      FirstName:nameArr[0],
+      LastName:nameArr[1],
+      MobilePhone: inputData?.phone,
+      Branch__c:inputData?.branchId,
+      // Whatsapp_No__c: inputData.personalDetails.phone,
+      Email: inputData?.email,
+      Password__c:inputData?.password,
+      // Phone: "8987678987",
+      // Birthdate: "2022-07-11", // Assuming a default value
+      AccountId: id , // Assuming a default value
+      Active__c: true,
+      MailingCity: agentInfo?.address?.city,
+      MailingState: agentInfo?.address?.state,
+      MailingCountry: agentInfo?.address?.country,
+      MailingStreet: agentInfo?.address?.address,
+      MailingPostalCode: agentInfo?.address?.zipCode,
+    };
+    return outputData;
+  }
+  async addStaff(agentData, staffDetails,commonId) {
     if (staffDetails.branchId) {
       await this.branchService.findById(staffDetails.branchId);
     }
@@ -36,12 +61,15 @@ class StaffService {
       .create({
         ...staffDetails,
         externalId,
-        agentId,
+       agentId: agentData?.agentId,
         password,
         notifications,
       })
       .then(async (staff) => {
-        // this.salesforceService.sendToSF(MappingFiles.AGENT_staff, staff);
+        const agentInfo=await Agent.findById(agentData?.agentId)
+        const staffData=this.convertToAgentData(staff,agentInfo,agentInfo?.commonId);
+        const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
+        await SalesforceService.sendDataToSF(staffData, agentUrl);
         return staff;
       })
       .catch((error) => {

@@ -14,7 +14,8 @@ const caseSchema = new mongoose.Schema(
     priority: String,
     subject: String,
     attachment: { type: String, required: false },
-    status:{type:String,required:false,default:'New'}
+    status:{type:String,required:false,default:'New'},
+    caseNumber:{type:String,required:false}
   },
   { timestamps: true } // Adds createdAt and updatedAt fields
 );
