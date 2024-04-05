@@ -74,30 +74,6 @@ const FeeSchema = {
 
 const ProgramSchema = new mongoose.Schema(
   {
-<<<<<<< HEAD
-    about: { type: AboutProgramSchema, required: false },
-    requirements: { type: [String], required: false },
-    fee: { type: FeeSchema, required: false },
-    name: { type: String, required: false },
-    city: { type: String, required: false },
-    icon: { type: String, required: false },
-    isRecommended: { type: Boolean, required: false, default: false },
-    discipline: { type: String, required: true },
-    subDiscipline: { type: String, required: true },
-    country: { type: String, required: true },
-    createdBy: { type: String, required: true },
-    externalId: { type: String, required: true },
-    modifiedBy: { type: String, required: true },
-    schoolId: { type: String, required: true },
-    requirementExamType: { type: String, required: true },
-    requirementScoreInformation: { type: [KeyValueSchema], required: false, default: [] },
-    deliveryMethod: {
-      type: String,
-      required: false,
-      enum: ["Online", "Offline"],
-      default: "Offline",
-    },
-=======
     "Id": { type: String },
     "Name": { type: String },
     "CurrencyIsoCode": { type: String },
@@ -190,7 +166,6 @@ const ProgramSchema = new mongoose.Schema(
     "Verbal_Reasoning_Score__c": { type: String },
     "Verbal_Score__c": { type: String },
     "Writing__c": { type: String }
->>>>>>> ThDarkArmyBackend/MergeLatestCode
   },
   { timestamps: true }
 );

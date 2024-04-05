@@ -4,7 +4,7 @@ const axios = require("axios");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const querystring = require("querystring");
-const SFerrorHandler = require("../utils/sfErrorHandeling");
+const {SFerrorHandler} = require("../utils/sfErrorHandeling");
 
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
