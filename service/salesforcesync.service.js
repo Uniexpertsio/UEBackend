@@ -352,7 +352,6 @@ async getDocumentTypeId(externalId) {
   }
 
    async getStaffId(externalId) {
-    console.log("\n\ngetStaffId", externalId)
     const staff = await Staff.findOne({ externalId });
     if (!staff) throw Error("Agent not found");
     return staff.id;

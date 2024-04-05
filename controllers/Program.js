@@ -24,13 +24,13 @@ class ProgramController {
     }
   };
 
-  addProgram = async (req, res) => {
+  addOrUpdateProgram = async (req, res) => {
     try {
-      const { schoolId } = req.params;
+      // const { schoolId } = req.params;
       const programCreateDto = req.body;
-      const { id } = req.user;
+      // const { id } = req.user;
 
-      const result = await this.programService.createProgram(id, schoolId, programCreateDto);
+      const result = await this.programService.createOrUpdateProgram(programCreateDto);
       
       res.status(200).json({ success: true, data: result });
     } catch (error) {

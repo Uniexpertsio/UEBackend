@@ -108,6 +108,10 @@ module.exports = (port) => {
   app.set("trust proxy", true);
   app.set("port", port);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ThDarkArmyBackend/MergeLatestCode
   app.listen(port, () => {
     console.table({
       Status: "HTTP Server running",

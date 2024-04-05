@@ -7,7 +7,11 @@
 	},
 	"dependencies": {
 		"agentkeepalive": "^4.1.4",
+<<<<<<< HEAD
 		"aws-sdk": "^2.1579.0",
+=======
+		"aws-sdk": "^2.735.0",
+>>>>>>> ThDarkArmyBackend/MergeLatestCode
 		"child_process": "^1.0.2",
 		"colors": "^1.4.0",
 		"cookie-parser": "~1.4.4",
@@ -18,6 +22,10 @@
 		"express": "~4.16.1",
 		"express-fileupload": "^1.2.0",
 		"http-errors": "~1.6.3",
+<<<<<<< HEAD
+=======
+		"http-proxy-middleware": "^2.0.6",
+>>>>>>> ThDarkArmyBackend/MergeLatestCode
 		"jsonwebtoken": "^9.0.2",
 		"md5": "^2.2.1",
 		"md5-file": "^5.0.0",

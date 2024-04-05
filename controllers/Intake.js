@@ -3,12 +3,12 @@ const IntakeService = require("../service/intake.service");
 const intakeService = new IntakeService();
 
 // Controller functions
-async function addIntake(req, res) {
+async function addOrUpdateIntake(req, res) {
   try {
-    const { id } = req.user;
+    // const { id } = req.user;
     const body = req.body;
-    const intake = await intakeService.addIntake(id, body);
-    res.status(201).json(intake);
+    const intake = await intakeService.addOrUpdateIntake(body);
+    res.status(200).json({ success: true, data: intake });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -34,7 +34,7 @@ async function getIntake(req, res) {
 }
 
 module.exports = {
-  addIntake,
+  addOrUpdateIntake,
   getIntakeList,
   getIntake,
 };

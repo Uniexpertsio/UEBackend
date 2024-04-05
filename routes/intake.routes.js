@@ -5,8 +5,8 @@ const IntakeController = require("../controllers/Intake");
 const Middleware = require("../controllers/Middleware")
 
 
-// POST /api/intake
-router.post("/", Middleware.checkAuth, IntakeController.addIntake);
+// PUT /api/intake
+router.put("/", Middleware.checkAuth, IntakeController.addOrUpdateIntake);
 
 // GET /api/intake
 router.get("/", Middleware.checkAuth, IntakeController.getIntakeList);
