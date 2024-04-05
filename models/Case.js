@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const caseSchema = new mongoose.Schema(
   {
+    Id:String,
     contactName:String,
     accountName:String,
     caseId:{type:String,required:false},
