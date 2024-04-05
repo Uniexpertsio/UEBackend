@@ -10,6 +10,7 @@ class StudentController {
       try {
         const { id, agentId } = req.user;
         const body = req.body;
+        console.log(req.body,req.user);
         const result = await this.studentService.createStudent(id, agentId, body);
         res.status(200).json(result);
       } catch (error) {
@@ -62,8 +63,8 @@ class StudentController {
         const studentId = req.params.studentId;
         const { id } = req.user;
         const body = req.body;
-        await this.studentService.updateStudentGeneralInformation(studentId, id, body);
-        res.status(200).end();
+        const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body);
+        res.status(200).json(data);
       } catch (error) {
         res.status(500).json({ error: error.message });
       }
@@ -82,9 +83,9 @@ class StudentController {
     async addStudentEducation(req, res) {
       try {
         const studentId = req.params.studentId;
-        const { id, agentId } = req.user;
+        const { _id, agentId } = req.user;
         const body = req.body;
-        const student = await this.studentService.addStudentEducation(studentId, id, body);
+        const student = await this.studentService.addStudentEducation(studentId, _id, body);
         res.status(200).json(student);
       } catch (error) {
         res.status(500).json({ error: error.message });

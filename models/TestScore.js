@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const KeyValueSchema = {
-    key: { type: String, required: true },
-    value: { type: String, required: true },
-  };
+  key: { type: String, required: true },
+  value: { type: String, required: true },
+};
 
 const VerificationPortalSchema = new mongoose.Schema({
   url: { type: String, required: false },
@@ -25,6 +25,7 @@ const TestScoreSchema = new mongoose.Schema(
     createdBy: { type: String, required: true },
     isLocked: { type: Boolean, required: false, default: true },
     verificationPortal: { type: VerificationPortalSchema, required: false },
+    totalMarks: { type: Number, required: true },
   },
   { timestamps: true }
 );

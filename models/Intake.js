@@ -2,17 +2,16 @@ const mongoose = require("mongoose");
 
 const IntakeSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    programId: { type: String, required: true },
-    schoolId: { type: String, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    externalId: { type: String, required: true },
-    status: { type: String, required: false, enum: ["Closed","Open","Closing soon",], default: "Open" },
-    createdBy: { type: String, required: true },
-    updatedBy: { type: String, required: true },
-    month: { type: String, required: true },
-    year: { type: Number, required: true },
+    "Id": { type: String },
+    "Name": { type: String },
+    "Programme__c": { type: String },
+    "Months__c": { type: String },
+    "Session__c": { type: String },
+    "Status__c": { type: String },
+    "Start_Date__c": { type: String },
+    "End_Date__c": { type: String },
+    "School__c": { type: String },
+    "Enrollment_Deadline__c": { type: String }
   },
   { timestamps: true }
 );

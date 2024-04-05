@@ -25,7 +25,7 @@ const StudentInformationSchema = {
   passportNumber: { type: String, required: true },
   mobile: { type: String, required: true },
   whatsappNumber: { type: String, required: true },
-  countryOfInterest: { type: [String], required: true },
+  preferredCountry: { type: [String], required: true },
   intakePreferred: { type: String, required: false },
   email: { type: String, required: false },
   dp: { type: String, required: false },
