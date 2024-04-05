@@ -141,22 +141,22 @@ class ProgramService {
   }
 
   async createOrUpdateProgram(programCreateDto) {
-    let programId = programCreateDto.Program_Id__c;
+    let programSfId = programCreateDto.Id;
     return new Promise(async (resolve, reject) => {
       try {
-        const checkProgramExist = await this.programModel.findOne({ Program_Id__c: programId });
-        if (checkProgramExist?.Program_Id__c) {
+        const checkProgramExist = await this.programModel.findOne({ Id: programSfId });
+        if (checkProgramExist?.Id) {
           await this.programModel.updateOne(
-            { Program_Id__c: programId },
+            { Id: programSfId },
             { $set: { ...programCreateDto } },
             { new: true }
           );
-          return resolve({ message: "Success", status: 200, sf: programId })
+          return resolve({ message: "Success", status: 200, sf: programSfId })
         } else {
           await this.programModel.create({
             ...programCreateDto
           });
-          resolve({ message: "Success", status: 201, sf: programId });
+          resolve({ message: "Success", status: 201, sf: programSfId });
         }
       } catch (error) {
         console.log(error);
@@ -316,7 +316,7 @@ class ProgramService {
   }
 
   async findById(id) {
-    const program = await this.programModel.findOne({ Program_Id__c: id });
+    const program = await this.programModel.findOne({ Id: id });
 
     if (!program) {
       throw new Error(`No program found for id - ${id}`);

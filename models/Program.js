@@ -72,45 +72,15 @@ const FeeSchema = {
   careerAdvisingAndTransitionServices: { type: Number, required: false, defaults: 0 },
 };
 
-// const ProgramSchema = new mongoose.Schema(
-//   {
-//     about: { type: AboutProgramSchema, required: false },
-//     requirements: { type: [String], required: false },
-//     fee: { type: FeeSchema, required: false },
-//     name: { type: String, required: false },
-//     city: { type: String, required: false },
-//     icon: { type: String, required: false },
-//     isRecommended: { type: Boolean, required: false, default: false },
-//     discipline: { type: String, required: true },
-//     subDiscipline: { type: String, required: true },
-//     country: { type: String, required: true },
-//     createdBy: { type: String, required: true },
-//     externalId: { type: String, required: true },
-//     modifiedBy: { type: String, required: true },
-//     schoolId: { type: String, required: true },
-//     requirementExamType: { type: String, required: true },
-//     requirementScoreInformation: { type: [KeyValueSchema], required: false, default: [] },
-//     deliveryMethod: {
-//       type: String,
-//       required: false,
-//       enum: ["Online", "Offline"],
-//       default: "Offline",
-//     },
-//     salesforceId: { type: String, required: false, default: "--" },
-//   },
-//   { timestamps: true }
-// );
-
 const ProgramSchema = new mongoose.Schema(
   {
-    "Program_Id__c": { type: String },
+    "Id": { type: String },
     "Name": { type: String },
     "CurrencyIsoCode": { type: String },
     "School__c": { type: String },
     "Admission_Requirements__c": { type: String },
     "Country__c": { type: String },
     "Department__c": { type: String },
-    "Intake__c": { type: String },
     "Master_Commission__c": { type: String },
     "Program_level__c": { type: String },
     "Scholarship__c": { type: String },

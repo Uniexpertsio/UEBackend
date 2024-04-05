@@ -114,20 +114,20 @@ class SchoolService {
   async createOrUpdateSchool(body) {
     return new Promise(async (resolve, reject) => {
         try {
-            let sfId = body?.School_Id__c;
+            let schoolSfId = body?.Id;
 
-            const checkSchoolExist = await School.findOne({ School_Id__c: sfId });
+            const checkSchoolExist = await School.findOne({ Id: schoolSfId });
 
-            if (checkSchoolExist?.School_Id__c) {
+            if (checkSchoolExist?.Id) {
                 await School.updateOne(
-                    { School_Id__c: sfId },
+                    { Id: schoolSfId },
                     { $set: { ...body } },
                     { new: true }
                 );
-                resolve({ message: "Success", status: 200, sf: sfId });
+                resolve({ message: "Success", status: 200, sf: schoolSfId });
             } else {
                 await School.create({ ...body });
-                resolve({ message: "Success", status: 201, sf: sfId });
+                resolve({ message: "Success", status: 201, sf: schoolSfId });
             }
         } catch (error) {
             console.error(error);
@@ -193,7 +193,7 @@ class SchoolService {
   }
 
   async findById(id) {
-    const school = await School.findOne({ School_Id__c: id});
+    const school = await School.findOne({ Id: id});
 
     if (!school) {
       throw new Error(`No school found for id - ${id}`);
