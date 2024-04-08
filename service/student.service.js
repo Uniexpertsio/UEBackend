@@ -1471,15 +1471,30 @@ class StudentService {
       let query;
       switch (searchType) {
         case 'name':
-          query = {
-            '$or': [
-              { 'studentInformation.firstName': new RegExp(searchTerm, 'i') },
-              { 'studentInformation.middleName': new RegExp(searchTerm, 'i') },
-              { 'studentInformation.lastName': new RegExp(searchTerm, 'i') }
-            ]
-          };
-          console.log('query--',query)
-          break;
+        query = {
+          $or: [
+            { 'studentInformation.firstName': new RegExp(searchTerm, 'i') },
+            { 'studentInformation.middleName': new RegExp(searchTerm, 'i') },
+            { 'studentInformation.lastName': new RegExp(searchTerm, 'i') },
+            {
+              $expr: {
+                $regexMatch: {
+                  input: {
+                    $concat: [
+                      '$studentInformation.firstName',
+                      ' ',
+                      '$studentInformation.middleName',
+                      ' ',
+                      '$studentInformation.lastName'
+                    ]
+                  },
+                  regex: new RegExp(searchTerm, 'i')
+                }
+              }
+            }
+          ]
+        };
+        break;
         case 'email':
           query = { 'studentInformation.email': new RegExp(searchTerm, 'i') };
           break;
