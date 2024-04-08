@@ -83,11 +83,41 @@ const findById = async (req, res) => {
   }
 };
 
+const searchStudentDocument = async (req, res) => {
+  try {
+    const { searchType, searchTerm } = req.query;
+    let query;
+    switch (searchType) {
+      case 'name':
+      query = { name: new RegExp(searchTerm, 'i') };
+      break;
+      case 'category':
+        query = { category: new RegExp(searchTerm, 'i') };
+        break;
+      case 'used for':
+        query = { 'used for': new RegExp(searchTerm, 'i') };
+        break;
+      case 'status':
+        query = { status: new RegExp(searchTerm, 'i') };
+        break;
+      default:
+        console.log('Invalid search type');
+        return;
+    }
+
+    const results = await Document.find(query);
+    res.status(200).json(results);
+  } catch(error) {
+    res.status(500).json({error: error.message});
+  }
+}
+
 module.exports = {
     addDocument,
     addDocuments,
     findById,
     getByUserId,
     deleteDocument,
-    updateDocument
+    updateDocument,
+    searchStudentDocument
 }
