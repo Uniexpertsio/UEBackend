@@ -112,13 +112,15 @@ const sendDataToSF = async (body, url) => {
     try {
       if (url.match(/DMS_Documents__c\/.+/)) {
         const data = await axios.patch(url, body, { headers });
-        await SFerrorHandler(data);
+        const sfResponse = await SFerrorHandler(data);
+        console.log('sfResponse====',sfResponse)
         return resolve(data);
       } else {
         const {data}  = await axios.post(url, body, { headers });
         resolve(data);
       }
     } catch (err) {
+      console.log('errrror--123',err)
         reject(err)
     }
   })

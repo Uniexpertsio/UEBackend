@@ -39,5 +39,6 @@ router.post('/:studentId/task/:taskId/comment', Middleware.checkAuth, studentCon
 router.get('/:studentId/comment', Middleware.checkAuth, studentController.getStudentComments.bind(studentController));
 router.post('/:studentId/comment', Middleware.checkAuth, studentController.addStudentComment.bind(studentController));
 router.get('/:studentId/progress', Middleware.checkAuth, studentController.getStudentProgress.bind(studentController));
+router.get('/search',Middleware.checkAuth, studentController.StudentSearch.bind(studentController));
 
 module.exports = router;

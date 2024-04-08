@@ -343,41 +343,47 @@ class StudentService {
   }
 
   async createStudent(modifiedBy, agentId, studentInformation) {
-    await this.checkForValidUsers(
-      studentInformation.studentInformation.staffId,
-      studentInformation.studentInformation.counsellorId
-    );
-
-    const externalId = uuid();
-    const student = await StudentModel.create({
-      ...studentInformation,
-      modifiedBy,
-      agentId,
-      externalId,
-      createdBy: modifiedBy,
-    });
-
-    const studentData = this.converttoSfBody(studentInformation);
-    console.log(
-      "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
-    );
-    const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-    const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-    const sfId = sfStudentResponse?.id;
-    let contactDetails;
-    if (sfId) {
-      await StudentModel.updateOne(
-        { _id: student._id },
-        { $set: { salesforceId: sfId } }
+    try {
+      await this.checkForValidUsers(
+        studentInformation.studentInformation.staffId,
+        studentInformation.studentInformation.counsellorId
       );
-      contactDetails = await getContactId(sfId);
+
+      const externalId = uuid();
+      const student = await StudentModel.create({
+        ...studentInformation,
+        modifiedBy,
+        agentId,
+        externalId,
+        createdBy: modifiedBy,
+      });
+
+      const studentData = this.converttoSfBody(studentInformation);
+      console.log(
+        "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
+      );
+      const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
+      const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
+      const sfId = sfStudentResponse?.id;
+      let contactDetails;
+      if (sfId) {
+        await StudentModel.updateOne(
+          { _id: student._id },
+          { $set: { salesforceId: sfId } }
+        );
+        contactDetails = await getContactId(sfId);
+      }
+      return {
+        id: student._id,
+        sf: sfStudentResponse,
+        partnerId: contactDetails?.Student_ID__c,
+      };
+    } catch (error) {
+      console.error("Error in createStudent:", error);
+      throw error;
     }
-    return {
-      id: student._id,
-      sf: sfStudentResponse,
-      partnerId: contactDetails?.Student_ID__c,
-    };
   }
+
 
   async preferredCountries() {
     return PreferredCountries;
@@ -435,8 +441,8 @@ class StudentService {
   }
 
   async getStudentGeneralInformation(studentId) {
-    const objId= parseInMongoObjectId(studentId);
- 
+    const objId = parseInMongoObjectId(studentId);
+
     const student = await StudentModel.aggregate([
       {
         $match: { _id: objId } // Replace studentId with the specific student ID you're querying
@@ -1192,7 +1198,7 @@ class StudentService {
               Document_Master__c: "",
               Application__c: "",
               Programme__c: "",
-              Used_For__c:doc?.usedFor,
+              Used_For__c: doc?.usedFor,
               S3_DMS_URL__c: doc?.url,
               ContentUrl__c: doc?.url,
             };
@@ -1457,6 +1463,46 @@ class StudentService {
       progress++;
     }
     return (progress / total) * 100;
+  }
+
+  async getStudentSearchData(req) {
+    try {
+      const { searchType, searchTerm } = req.query;
+      let query;
+      switch (searchType) {
+        case 'name':
+          query = {
+            '$or': [
+              { 'studentInformation.firstName': new RegExp(searchTerm, 'i') },
+              { 'studentInformation.middleName': new RegExp(searchTerm, 'i') },
+              { 'studentInformation.lastName': new RegExp(searchTerm, 'i') }
+            ]
+          };
+          console.log('query--',query)
+          break;
+        case 'email':
+          query = { 'studentInformation.email': new RegExp(searchTerm, 'i') };
+          break;
+        case 'mobile':
+          query = { 'studentInformation.mobile': new RegExp(searchTerm, 'i') };
+          break;
+        case 'country':
+          query = { 'address.country': new RegExp(searchTerm, 'i') };
+          break;
+        case 'createdBy':
+          query = { createdBy: new RegExp(searchTerm, 'i') };
+          break;
+        default:
+          console.log('Invalid search type');
+          return;
+      }
+
+      const results = await StudentModel.find(query);
+      console.log(results);
+      return results
+    } catch (error) {
+      return error.message
+    }
   }
 
   async findById(id) {
