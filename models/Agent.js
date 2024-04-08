@@ -86,7 +86,7 @@ const AgentSchema = new mongoose.Schema(
     verificationStatus: {
       type: String,
       required: false,
-      enum: ["PENDING", "IN_PROGRESS", "REJECTED", "APPROVED"],
+      enum: ["PENDING", "APPROVED"],
       default: "PENDING",
     },
     accountManager: { type: String, required: false },

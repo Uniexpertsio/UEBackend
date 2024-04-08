@@ -1,3 +1,5 @@
+const Mongoose = require("mongoose");
+
 const SFerrorHandler = async (res) => {
     return new Promise((resolve, reject) => {
         if(res.status === 200 || res.status === 201 || res.status === 204 ) {
@@ -7,4 +9,8 @@ const SFerrorHandler = async (res) => {
     })
 }
 
-module.exports = SFerrorHandler
+ const parseInMongoObjectId = (id) => {
+    return new Mongoose.Types.ObjectId(id);
+  };
+
+module.exports = {SFerrorHandler,parseInMongoObjectId}

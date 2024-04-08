@@ -4,7 +4,7 @@ const axios = require("axios");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const querystring = require("querystring");
-const SFerrorHandler = require("../utils/sfErrorHandeling");
+const {SFerrorHandler} = require("../utils/sfErrorHandeling");
 
 const generateToken = async () => {
   const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
@@ -112,13 +112,15 @@ const sendDataToSF = async (body, url) => {
     try {
       if (url.match(/DMS_Documents__c\/.+/)) {
         const data = await axios.patch(url, body, { headers });
-        await SFerrorHandler(data);
+        const sfResponse = await SFerrorHandler(data);
+        console.log('sfResponse====',sfResponse)
         return resolve(data);
       } else {
-        const { data } = await axios.post(url, body, { headers });
+        const {data}  = await axios.post(url, body, { headers });
         resolve(data);
       }
     } catch (err) {
+      console.log('errrror--123',err)
         reject(err)
     }
   })
@@ -190,6 +192,26 @@ const getPartnerId = async(sfId) => {
 };
 
 
+// Get External IDs of documents
+const getContactId = async(sfId) => {
+  try {
+    // const mapper = require(flPath);
+    // let body = await mapper(rawBody, rawBody.commonId);
+    // filterUndefined(body);
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Contact/${sfId}`;
+    const { data } = await axios.get(url,{headers});
+    return data;
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+  //  finally {
+    // delete require.cache[require.resolve(flPath)];
+  // }
+};
+
 
 // Get External IDs of documents
 const getDataFromSF = async(url) => {
@@ -244,5 +266,6 @@ module.exports = {
   updateDataToSF,
   downloadTnc,
   getDataFromSF,
-  getPartnerId
+  getPartnerId,
+  getContactId
 };

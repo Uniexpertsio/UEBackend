@@ -1,15 +1,18 @@
 const DocumentType = require("../models/DocumentType");
 const Agent = require("../models/Agent");
+const { getDataFromSF } = require("./salesforce.service");
 
 /// add country to logic in creation of the docs
 
 class DocumentTypeService {
   async getStudentDocumentType() {
-    return await DocumentType.find({
-      contactRecordType: "Student",
-      isActive: true,
-      objectType: "Student",
-    });
+    // return await DocumentType.find({
+    //   contactRecordType: "Student",
+    //   isActive: true,
+    //   objectType: "Student",
+    // });
+    const data = await getDataFromSF(`${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Sequence__c,Document_Category__c, Document_Type__c,Mandatory__c,Used_For__c,ObjectType__c,Contact_Record_Type__c+FROM+Document_Master__c+WHERE+ObjectType__c='Student'+AND+Contact_Record_Type__c+=+'Student'+LIMIT+200`);
+    return data;
   }
 
   async addDocumentType(documentType) {
@@ -44,7 +47,6 @@ class DocumentTypeService {
     if (!documentType) throw new Error("Document type not found");
     return documentType;
   }
-  
   async getPartnerDocumentType(agentId) {
     const agent = await this.findAgentById(agentId);
     const country = agent.address.country;

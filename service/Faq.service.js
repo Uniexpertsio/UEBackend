@@ -6,7 +6,6 @@ async function getFaqData(query) {
     if (query) {
       const regex = new RegExp(query, 'i'); // 'i' flag for case-insensitive search
       const data = await Faq.find({ Question__c: { $regex: regex } });
-      console.log(data);
       return data;
     } else {
       const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Question__c,Type__c,Answer__c,URL__c+FROM+FrequentlyAskedQuestion__c+LIMIT+200`;

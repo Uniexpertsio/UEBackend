@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const DocumentSchema = new mongoose.Schema(
   {
+    name: { type: String, required: false },
     userId: { type: String, required: false },
     documentTypeId: { type: String, required: false },
     remark: { type: String, required: false, default: "" },
@@ -42,6 +43,10 @@ const DocumentSchema = new mongoose.Schema(
     reviewRemarks: { type: String, required: false },
     fileType: { type: String, required: false },
     latestDocumentId: { type: String, required: false },
+    usedFor: { type: String, required: false },
+    objectType: { type: String, required: false },
+    category: { type: String, required: false },
+    mandatory:{type:Boolean,required:false},
     // sharepointStatus: { type: String, required: false },
     //   sharePointFolderPath: { type: String, required: false },
     ///    changing sharePointFolderPath to S3 hosted
