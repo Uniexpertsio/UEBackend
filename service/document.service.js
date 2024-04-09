@@ -142,14 +142,13 @@ class DocumentService {
 
   async getByUserId(userId) {
     const documents = await Document.find({ userId });
-    console.log('document---', documents)
     return Promise.all(
       documents.map(async (document) => ({
         id: document._id,
         url: document.url,
         status: document.status,
         remark: document.remark,
-        type: await this.documentTypeService.findByName(document?.name),
+        type: document.name
       }))
     );
   }
@@ -158,7 +157,6 @@ class DocumentService {
     const studentData = await Student.findById(studentId);
     const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Description__c,Document_Category__c,ReviewRemarks__c,Status__c,Used_For__c,Sequence__c,Mandatory__c,ContentUrl__c+FROM+DMS_Documents__c+WHERE+Student__c+=+'${studentData?.salesforceId}'`
     const sfData = await getDataFromSF(url);
-    console.log('sfData---', sfData)
     return sfData;
   }
 
@@ -170,7 +168,7 @@ class DocumentService {
       url: document.url,
       status: document.status,
       remark: document.remark,
-      type: await this.documentTypeService.findById(document.documentTypeId),
+      type: document.name
     };
   }
 }
