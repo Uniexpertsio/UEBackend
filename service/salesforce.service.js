@@ -111,10 +111,10 @@ const sendDataToSF = async (body, url) => {
     const headers = generateHeaders(token);
     try {
       if (url.match(/DMS_Documents__c\/.+/)) {
-        const data = await axios.patch(url, body, { headers })
+        const {data} = await axios.patch(url, body, { headers })
           return resolve(data);        
       } else {
-        const data  = await axios.post(url, body, { headers });
+        const {data}  = await axios.post(url, body, { headers });
         resolve(data);
       }
     } catch (err) {
