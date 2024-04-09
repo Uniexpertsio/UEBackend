@@ -19,6 +19,7 @@ const {
   updateDataToSF,
   getPartnerId,
   getContactId,
+  getDataFromSF,
 } = require("./salesforce.service");
 const Staff = require("../models/Staff");
 const { parseInMongoObjectId } = require("../utils/sfErrorHandeling");
@@ -57,25 +58,25 @@ class StudentService {
 
   converttoSfBody(data) {
     const convertedData = {
-      Salutation: data.studentInformation.salutation,
-      FirstName: data.studentInformation.firstName,
-      LastName: data.studentInformation.lastName,
+      Salutation: data?.studentInformation?.salutation,
+      FirstName: data?.studentInformation?.firstName,
+      LastName: data?.studentInformation?.lastName,
       DocumentCreated__c: true,
       Task_Created__c: true,
-      Partner_Account__c: "0016D00000eKbyjQAC",
-      Partner_User__c: "",
-      Counsellor__c: "",
+      Partner_Account__c: data?.studentInformation?.partnerAccount,
+      // Partner_User__c: "",
+      Counsellor__c: data?.studentInformation?.partneruser,
       Student_Status__c: "",
       Processing_Officer__c: "",
       // Preferred_Country__c: "Canada;France",
       BDM_User__c: "",
-      Source__c: data.studentInformation.source,
-      Passport_Number__c: data.studentInformation.passportNumber,
-      MobilePhone: "+" + data.studentInformation.mobile,
-      Whatsapp_No__c: "+" + data.studentInformation.whatsappNumber,
-      Email: data.studentInformation.email,
-      Preferred_Country__c: data.studentInformation.preferredCountry.join(";"),
-      Intake_Preferred__c: data.studentInformation.intakePreferred,
+      Source__c: data?.studentInformation?.source,
+      Passport_Number__c: data?.studentInformation?.passportNumber,
+      MobilePhone: "+" + data?.studentInformation?.mobile,
+      Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
+      Email: data?.studentInformation?.email,
+      Preferred_Country__c: data?.studentInformation?.preferredCountry.join(";"),
+      Intake_Preferred__c: data?.studentInformation?.intakePreferred,
       Medical_History_Detail__c:
         data.demographicInformation.medicalHistoryDetails,
       Medical_History__c: data.demographicInformation.haveMedicalHistory
@@ -132,8 +133,8 @@ class StudentService {
   convertEducationData(data) {
     const convertedData = {
       Name_of_Institution__c: data.institutionName,
-      Lock_Record__c: "true",
-      ShowInProfile__c: "true",
+      Lock_Record__c: true,
+      ShowInProfile__c: true,
       Level_of_Education__c: data.level,
       Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
       Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
@@ -156,28 +157,28 @@ class StudentService {
   convertEducationData(data) {
     const convertedData = {
       Name_of_Institution__c: data.institutionName,
-      Lock_Record__c: "true",
-      ShowInProfile__c: "true",
+      Lock_Record__c: true,
+      ShowInProfile__c: true,
       Level_of_Education__c: data.level,
       Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
       Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
       Name: data.degree,
       Country_of_Institution__c: data.country,
-      Class__c: data?.class || data?.division,
+      Class__c: data?.class || data?.division || null,
       Score__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
       Affiliated_University__c: data.affiliatedUniversity,
       Verification_Status__c: "", // You may update this based on your specific logic
       Student__c: data?.sfId, // Replace with the actual student ID
-      Primary_Language_of_Instruction__c: data.instituteLanguage,
+      Primary_Language_of_Instruction__c: data?.instituteLanguage||null,
       Grade__c: data?.grade,
     };
 
     return convertedData;
   }
 
-  convertWorkHistoryData(data) {
+  convertWorkHistoryData(data,studentId) {
     const convertedData = {
       Name: data?.employerName,
       Designation__c: data?.designation,
@@ -188,7 +189,7 @@ class StudentService {
       Phone_Number_of_the_Signed_Person__c: data?.signedPersonPhone,
       Email_ID_of_the_Signed_Person__c: data?.signedPersonEmail,
       Name_of_the_Signed_Person__c: data?.signedPersonName,
-      Student__c: "003Hy00000tPfkUIAS",
+      Student__c: studentId,
       Lock_Record__c: "",
     };
 
@@ -436,7 +437,7 @@ class StudentService {
 
       studentList.push(student[i]);
     }
-
+    console.log(studentList,count)
     return { studentList, count };
   }
 
@@ -490,7 +491,7 @@ class StudentService {
       },
       {
         $addFields: {
-          "studentData.studentInformation.counsellorName": "$councellorName",
+          "studentdata.studentInformation.counsellorName": "$councellorName",
           "studentData.studentInformation.staffName": "$agentName"
         }
       },
@@ -502,7 +503,8 @@ class StudentService {
     return student[0];
   }
 
-  async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails) {
+  async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails,isFrontend) {
+    console.log(isFrontend);
     if (studentDetails.studentInformation) {
       await this.checkForValidUsers(
         studentDetails.studentInformation.staffId,
@@ -510,20 +512,24 @@ class StudentService {
       );
     }
 
-    const student = await this.findById(studentId);
-
+    const student = isFrontend? await this.findById(studentId): await this.findBySFId(studentId);
+    console.log(student);
     student.set({
       ...studentDetails,
       modifiedBy,
     });
 
     await student.save();
-
-    const studentData = this.converttoSfBody(studentDetails);
-    const studentUrl = `${process.env.SF_OBJECT_URL}Contact/${student?.salesforceId}`;
-    const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-    const contactDetails = await getContactId(student?.salesforceId);
-    return { id: student.id, partnerId: contactDetails?.Student_ID__c };
+    if(isFrontend){
+      const studentData = this.converttoSfBody(studentDetails);
+      const studentUrl = `${process.env.SF_API_URL}Contact/${student?.salesforceId}`;
+      const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+      const contactDetails = await getContactId(student?.salesforceId);
+      return { id: student.id, partnerId: contactDetails?.Student_ID__c };
+    }
+    else{
+      return {id:student.id};
+    }
   }
 
   async deleteStudent(studentId) {
@@ -630,7 +636,7 @@ class StudentService {
   }
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
-    await this.findById(studentId);
+   const student= await this.findById(studentId);
     const workHistory = await this.workHistoryService.add(
       studentId,
       modifiedBy,
@@ -645,7 +651,8 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
     }
-    const workHistoryData = this.convertWorkHistoryData(body);
+    console.log(result);
+    const workHistoryData = this.convertWorkHistoryData(body,student?.salesforceId);
     const workHistoryUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Work_history__c`;
     const sfWorkHistoryResponse = await sendDataToSF(
       workHistoryData,
@@ -1195,7 +1202,7 @@ class StudentService {
               Account__c: "",
               School__c: "",
               Student__c: student?.salesforceId,
-              Document_Master__c: "",
+              // Document_Master__c: "",
               Application__c: "",
               Programme__c: "",
               Used_For__c: doc?.usedFor,
@@ -1511,10 +1518,28 @@ class StudentService {
           console.log('Invalid search type');
           return;
       }
+      query.agentId=req?.user?.agentId;
+    const student = await StudentModel.find(query).sort({createdBy: -1 });
+    const count = await StudentModel.countDocuments();
+    const studentList = [];
+    for (let i = 0; i < student.length; i++) {
+      const staff = await Staff.findOne({ _id: student[i].createdBy });
+      const counsellor = await Staff.findOne({
+        _id: student[i].studentInformation.counsellorId,
+      });
 
-      const results = await StudentModel.find(query);
-      console.log(results);
-      return results
+      if (staff) {
+        student[i].createdBy = staff.fullName;
+      }
+
+      if (counsellor) {
+        student[i].studentInformation.counsellorId = staff.fullName;
+      }
+
+      studentList.push(student[i]);
+    }
+    console.log(studentList,count)
+    return { studentList, count };
     } catch (error) {
       return error.message
     }
@@ -1522,6 +1547,14 @@ class StudentService {
 
   async findById(id) {
     const student = await StudentModel.findById(id);
+    if (!student) {
+      throw new Error("Student not found");
+    }
+    return student;
+  }
+  
+  async findBySFId(id) {
+    const student = await StudentModel.findOne({salesforceId:id});
 
     if (!student) {
       throw new Error("Student not found");

@@ -111,15 +111,16 @@ const sendDataToSF = async (body, url) => {
     const headers = generateHeaders(token);
     try {
       if (url.match(/DMS_Documents__c\/.+/)) {
-        const {data} = await axios.patch(url, body, { headers })
-          return resolve(data);        
+        const data = await axios.patch(url, body, { headers });
+        const sfResponse = await SFerrorHandler(data);
+        return resolve(data);
       } else {
-        const {data}  = await axios.post(url, body, { headers });
-        resolve(data);
+        const data  = await axios.post(url, body, { headers });
+        resolve(data?.data);
       }
     } catch (err) {
-      console.error('Error:=====', err?.response?.data[0]?.message);
-      reject(err)
+        reject(err)
+        console.log(err?.response?.data[0]?.message);
     }
   })
 };
@@ -128,8 +129,8 @@ const updateDataToSF = async (body, url) => {
   const token = await generateToken();
   const headers = generateHeaders(token);
   try {
-    const { data } = await axios.patch(url, body, { headers });
-    return data;
+    const  data = await axios.patch(url, body, { headers });
+    return data?.data;
   } catch (err) {
     console.error("Error: " + err);
     handleSfError(err);

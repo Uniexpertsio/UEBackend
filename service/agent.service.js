@@ -46,7 +46,7 @@ class AgentService {
               ObjectType__c: "", //Student,Application,Agent
               Account__c: agent.commonId,
               S3_DMS_URL__c: doc.url,
-              ContentUrl__c: doc.url
+              ContentUrl__c: doc.url,
             };
             let sfIdFound = false;
 

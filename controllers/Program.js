@@ -42,7 +42,6 @@ class ProgramController {
     try {
       const { schoolId } = req.params;
       const programs = await this.programService.getPrograms(schoolId);
-      
       res.status(200).json({ success: true, data: programs });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });

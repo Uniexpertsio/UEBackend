@@ -92,6 +92,7 @@ function convertToAgentData(inputData, id) {
     FirstName: inputData.personalDetails.firstName,
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
+    Title:inputData?.personalDetails?.jobTitle,
     // Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
     Password__c:inputData?.password,
@@ -138,7 +139,8 @@ Auth.post.login = async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     let staff = await Staff.findOne({ email: email });
-    let agent = await Agent.findOne({ "personalDetails.email": email });
+    console.log(staff);
+    let agent = await Agent.findById(staff?.agentId);
     if (!(staff && agent)) {
       throw new Error("User does not exist");
     } else {

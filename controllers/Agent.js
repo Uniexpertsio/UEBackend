@@ -81,7 +81,6 @@ const getGeneralInformation = async (req, res, next) => {
 
 const updateGeneralInformation = async (req, res) => {
   const { agentId } = req.user;
-  console.log(agentId);
   const result = await Agent.findOneAndUpdate(
     { _id: agentId },
     { $set: { ...req.body } },

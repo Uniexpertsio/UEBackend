@@ -30,6 +30,7 @@ const StudentInformationSchema = {
   email: { type: String, required: false },
   dp: { type: String, required: false },
   isLocked: { type: Boolean, required: false, default: true },
+  processingOfficer:{type:String,required:false},
 };
 
 const DemographicInformationSchema = {
