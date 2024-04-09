@@ -1416,8 +1416,8 @@ class StudentService {
     return this.testScoreService.getByStudentId(studentId);
   }
 
-  getStudentDocuments(studentId) {
-    return this.documentService.getSfDataStudentId(studentId);
+  getStudentDocuments(req, studentId) {
+    return this.documentService.getSfDataStudentId(req, studentId);
   }
 
   async getStudentPayments(studentId) {
