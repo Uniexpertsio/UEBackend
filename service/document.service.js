@@ -87,10 +87,10 @@ class DocumentService {
 
       for (const document of body.documents) {
         if (document.sfId && document.sfId.length) {
-          const documentData = await this.documentTypeService.findByName(
-            document.name ? document.name : ""
-          );
-          document["documentTypeId"] = documentData._id.toString();
+          // const documentData = await this.documentTypeService.findByName(
+          //   document.name ? document.name : ""
+          // );
+          // document["documentTypeId"] = documentData._id.toString();
 
           const updatedDoc = await Document.findOneAndUpdate(
             { sfId: document.sfId },
