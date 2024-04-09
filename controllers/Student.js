@@ -1,6 +1,7 @@
 const StudentService = require("../service/student.service")
 const StudentModel = require("../models/Student");
 const DocumentModel = require("../models/Document");
+const { getContactId } = require("../service/salesforce.service");
 
 class StudentController {
   constructor() {
@@ -11,7 +12,6 @@ class StudentController {
     try {
       const { id, agentId } = req.user;
       const body = req.body;
-      console.log(req.body, req.user);
       const result = await this.studentService.createStudent(id, agentId, body);
       res.status(200).json(result);
     } catch (error) {
@@ -64,7 +64,7 @@ class StudentController {
       const studentId = req.params.studentId;
       const { id } = req.user;
       const body = req.body;
-      const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body);
+      const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body,req.query?.frontend);
       res.status(200).json(data);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -209,6 +209,41 @@ class StudentController {
     }
   }
 
+  // getStudentDocuments = async (req, res) => {
+  //   try {
+  //     const { studentId } = req.params;
+  //       const { searchType, searchTerm } = req.query;
+  //       const studentData = await StudentModel.findOne({ _id: studentId });
+  //       if(!studentData) {
+  //         throw new Error(`Student not with id: ${studentId}`);
+  //       }
+  //       let query;
+  //       switch (searchType) {
+  //         case 'name':
+  //         query = { name: new RegExp(searchTerm, 'i') };
+  //         break;
+  //         case 'category':
+  //           query = { category: new RegExp(searchTerm, 'i') };
+  //           break;
+  //         case 'used for':
+  //           query = { 'used for': new RegExp(searchTerm, 'i') };
+  //           break;
+  //         case 'status':
+  //           query = { status: new RegExp(searchTerm, 'i') };
+  //           break;
+  //         default:
+  //           console.log('Invalid search type');
+  //           query = {};
+  //           break;
+  //       }
+  //       query.userId=studentId;
+  //       const documentData = await DocumentModel.find(query);
+  //       res.status(200).json(documentData); 
+  //   } catch (error) {
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // }
+
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
@@ -242,6 +277,7 @@ class StudentController {
       res.status(500).json({ error: error.message });
     }
   }
+
 
   addStudentDocuments = async (req, res) => {
     try {
@@ -420,7 +456,32 @@ class StudentController {
       res.status(500).json({error: error.message});
     }
   }
+  async getPartnerId(req,res){
+    try {
+      const {studentId}=req?.params;
+      const student = await StudentModel.findById(studentId);
+      let contact;
+      if(student?.salesforceId){
+         contact=await getContactId(student?.salesforceId)
+      }
+      res.status(200).json({partnerId:contact?.Student_ID__c});
+    } catch(error) {
+      res.status(500).json({error: error.message});
+    }
+  }
 
 }
 
 module.exports = StudentController;
+
+
+
+
+
+
+
+
+
+
+
+
