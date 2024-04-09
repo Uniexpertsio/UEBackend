@@ -7,6 +7,7 @@ const DocumentService = require("../service/document.service");
 const DocumentTypeService = require("../service/documentType.service");
 
 const { generateStaffResponseFromId } = require("../service/auth.service");
+const { getFileExtension } = require("../utils/fileExtention");
 
 class AgentService {
   constructor() {
@@ -31,29 +32,19 @@ class AgentService {
         );
         await Promise.all(
           documents.map(async (doc) => {
-            // let dtype = await this.documentTypeService.findById(doc.documentTypeId);
+            const fileExtension = await getFileExtension(doc.url);
             const data = {
               Name: doc.name,
-              Lock_Record__c: false,
-              Active__c: "",
-              LatestDocumentId__c: "",
               ReviewRemarks__c: "",
-              BypassDocumentation__c: false,
               Status__c: doc.status,
-              IsPublic__c: "",
               IsNewDoc__c: true,
-              FileType__c: "",
+              FileType__c: fileExtension,
               ExpiryDate__c: "2023-01-25",
-              Is_Downloaded__c: false,
               Sequence__c: 30,
               Mandatory__c: true,
               Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
               ObjectType__c: "", //Student,Application,Agent
               Account__c: agent.commonId,
-              School__c: "",
-              Student__c: "",
-              Application__c: "",
-              Programme__c: "",
               S3_DMS_URL__c: doc.url,
               ContentUrl__c: doc.url
             };
