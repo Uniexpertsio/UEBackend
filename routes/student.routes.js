@@ -40,5 +40,6 @@ router.get('/:studentId/comment', Middleware.checkAuth, studentController.getStu
 router.post('/:studentId/comment', Middleware.checkAuth, studentController.addStudentComment.bind(studentController));
 router.get('/:studentId/progress', Middleware.checkAuth, studentController.getStudentProgress.bind(studentController));
 router.get('/search',Middleware.checkAuth, studentController.StudentSearch.bind(studentController));
+router.get('/partnerId/:studentId',Middleware.checkAuth, studentController.getPartnerId.bind(studentController));
 
 module.exports = router;

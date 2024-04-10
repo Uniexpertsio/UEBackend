@@ -7,7 +7,6 @@ AWS.config.update({
     secretAccessKey: process.env.SES_SECRET_KEY
 });
 
-
 const SES = new AWS.SES({ apiVersion: '2010-12-01' });
 
 async function sendEmailWithOTP(recipientEmail, otp) {
