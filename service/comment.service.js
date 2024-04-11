@@ -9,20 +9,19 @@ class CommentService {
     this.videos = ["mp4", "3gp", "ogg"];
   }
 
-isVideo(url) {
-  const splits = url.split(".");
-  const extension = splits[splits.length - 1];
-  return videos.includes(extension);
-}
+  isVideo(url) {
+    const splits = url.split(".");
+    const extension = splits[splits.length - 1];
+    return videos.includes(extension);
+  }
 
-  async add(message, userId, relationId, attachment = "") {
+  async add(message, userId, relationId) {
     const externalId = uuid.v4();
     const comment = await this.commentModel.create({
       message,
       userId,
       relationId,
       externalId,
-      attachment,
       isVideo: false,
     });
     const user = await this.staffService.findById(comment.userId);
@@ -36,6 +35,13 @@ isVideo(url) {
       return { comment, user };
     });
     return Promise.all(commentUserPromises);
+  }
+
+  async updateCommentSfId(id, sfId) {
+    return await this.commentModel.updateOne(
+      { _id: id },
+      { $set: { commentSfId: sfId } }
+    );
   }
 
   async getComment(id) {

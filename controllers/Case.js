@@ -36,6 +36,27 @@ class CaseController {
       data: newCase,
     });
   }
+  async createCaseComment(req, res) {
+    const commentData = req.body;
+    const { caseId } = req.params;
+    console.log(req);
+    const { id } = req.user;
+    const newCase = await this.caseService.createCaseComment(commentData, id,caseId);
+    res.status(201).send({
+      statuscode: 201,
+      message: "Case created successfully",
+      data: newCase,
+    });
+  }
+  getCaseComments = async (req, res) => {
+    try {
+      const { caseId } = req.params;
+      const comments = await this.caseService.getCaseComments(caseId);
+      res.status(200).json(comments);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 
   async updateCase(req, res) {
     const { id } = req.params;

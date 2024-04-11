@@ -29,6 +29,13 @@ class WorkHistoryService {
     return await this.workHistoryModel.updateOne({ _id: workHistoryId }, { $set: { ...body, modifiedBy } });
   }
 
+  async updateSFID(id,SfId) {
+    return await this.workHistoryModel.updateOne({ _id: id }, { $set: { WorkHistorySfId: SfId } });
+  }
+
+  async getDatafromSfid(sfId){
+    return await this.workHistoryModel.findOne({ WorkHistorySfId:sfId });
+  }
   async delete(workHistoryId) {
     return await this.workHistoryModel.deleteOne({ _id: workHistoryId });
   }
