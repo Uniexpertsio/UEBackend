@@ -10,6 +10,7 @@ const {
 const DocumentService = require("../service/document.service");
 const DocumentTypeService = require("../service/documentType.service");
 const AgentService = require("../service/agent.service");
+const logger = require('./../utils/logger');
 
 const documentService = new DocumentService();
 const documentTypeService = new DocumentTypeService();
@@ -170,10 +171,12 @@ const updateDocuments = async (req, res) => {
       agentId,
       req.body
     );
+    logger.info(`AgentId: ${agentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res
       .status(200)
       .json({ statusCode: 200, data: updateDocumentsResponse });
   } catch (err) {
+    logger.error(`AgentId: ${agentId} Endpoint: ${req.originalUrl} - Status: 400 - Message: Bad request`);
     return res.status(400).json({ statusCode: 400, message: err.message });
   }
 };

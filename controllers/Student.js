@@ -271,6 +271,7 @@ class StudentController {
             query = {};
             break;
         }
+        query["userId"] = studentId;
         const documentData = await DocumentModel.find(query);
         res.status(200).json(documentData); 
     } catch (error) {

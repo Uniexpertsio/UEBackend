@@ -17,6 +17,7 @@ const {
   getTnc,
   getPartnerId,
 } = require("../service/salesforce.service");
+const logger = require('./../utils/logger');
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -292,7 +293,7 @@ Auth.post.signup = async (req, res, next) => {
       );
     }
     
-
+    logger.info(`Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res.status(200).json({
       data: {
         idsCollection,
@@ -301,6 +302,7 @@ Auth.post.signup = async (req, res, next) => {
       statusCode: 201,
     });
   } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err.message}`);
     return res.status(400).json({
       statusCode: 400,
       message: err.message,
