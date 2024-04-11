@@ -26,6 +26,7 @@ const TestScoreSchema = new mongoose.Schema(
     isLocked: { type: Boolean, required: false, default: true },
     verificationPortal: { type: VerificationPortalSchema, required: false },
     totalMarks: { type: Number, required: true },
+    testScoreSfId:{type:String,required:false}
   },
   { timestamps: true }
 );

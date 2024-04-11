@@ -15,7 +15,12 @@ const caseSchema = new mongoose.Schema(
     subject: String,
     attachment: { type: String, required: false },
     status:{type:String,required:false,default:'New'},
-    caseNumber:{type:String,required:false}
+    caseNumber:{type:String,required:false},
+    comments: {
+      type: [String],
+      required: false,
+      default: [],
+    }
   },
   { timestamps: true } // Adds createdAt and updatedAt fields
 );

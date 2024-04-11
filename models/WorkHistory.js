@@ -21,6 +21,7 @@ const WorkHistorySchema = new mongoose.Schema(
     createdBy: { type: String, required: true },
     isLocked: { type: Boolean, required: false, default: true },
     signingAuthority: { type: SigningAuthoritySchema, required: false, _id: false },
+    WorkHistorySfId:{type:String,required:false}
   },
   { timestamps: true }
 );

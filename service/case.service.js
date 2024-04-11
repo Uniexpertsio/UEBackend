@@ -4,12 +4,16 @@ const {
   sendDataToSF,
   updateDataToSF,
 } = require("../service/salesforce.service");
+const CommentService = require("./comment.service");
 
 class CaseService {
+  constructor(){
+    this.commentService = new CommentService();
+  }
+
   async getAllCases(contactId) {
     const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
     const sfData = await getDataFromSF(url);
-    console.log("======================>",sfData);
     if (sfData && sfData?.records?.length > 0) {
 
       const operations = sfData.records.map(async (data) => {
@@ -51,6 +55,53 @@ class CaseService {
 
   async getCaseById(id) {
     return await Case.findById(id);
+  }
+
+  async createCaseComment(body,modifiedBy,caseId){
+    try {
+      // Add comment
+      const comment = await this.commentService.add(body.message, modifiedBy,caseId);
+  
+      // Update student with the new comment
+      const result = await Case.updateOne(
+        { _id: caseId },
+        { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
+      );
+      // Check if student was found and updated
+      if (result.modifiedCount === 0) {
+        throw new Error("Case not found");
+      }
+      const caseData=await Case.findById(caseId);
+
+
+      // Prepare data for sending to Salesforce
+      const data ={ 
+        "ParentId": caseData?.caseId, //Case SF Id
+        "IsPublished": false, //To set Public Set it as 'true' otherwise 'false'
+        "CommentBody":body?.message, //Comment
+    }
+      // Send comment data to Salesforce endpoint
+      const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/CaseComment`;
+      const sendingComment = await sendDataToSF(data, url);
+      if(sendingComment?.id && comment?.comment?._id){
+        await this.commentService.updateCommentSfId(comment?.comment?._id,sendingComment?.id)
+      }
+      return comment;
+    } catch (error) {
+      // Handle errors
+      console.error('Error in addStudentComment:', error);
+      throw error; // Rethrow the error for the caller to handle
+    }
+  }
+
+  async getCaseComments(caseId) {
+    const caseData = await Case.findById(caseId);
+    if (!caseData) throw new Error("Case not found");
+    return Promise.all(
+      caseData.comments.map(async (comment) => {
+        return await this.commentService.getComment(comment);
+      })
+    );
   }
 
   // async createCase(caseData) {
