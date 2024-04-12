@@ -32,7 +32,7 @@ class ProgramService {
     data.id = data._id;
 
     const school = await this.schoolModel.findById(data.schoolId);
-    const currency = await this.currencyModel.findOne({ symbol: school.currency });
+    const currency = school && await this.currencyModel.findOne({ symbol: school.currency });
 
     delete data._id;
     delete data.__v;
@@ -301,11 +301,11 @@ class ProgramService {
       sort = this.getSortingMap()[programFilterDto.sortBy] || {};
     }
 
+    
     try {
       const schools = await this.schoolModel.find(schoolFilter).sort(sort);
       const programs = await this.programModel.find(programFilter);
-      const programsIds = programs.map((p) => p.id);
-
+      const programsIds = programs.map((p) => p.School__c);
       return this.createProgramSchoolResponse(schools, programsIds, sort);
     } catch (ex) {
       throw new Error(
@@ -316,7 +316,7 @@ class ProgramService {
   }
 
   async findById(id) {
-    const program = await this.programModel.findOne({ Id: id });
+    const program = await this.programModel.findOne({ _id: id });
 
     if (!program) {
       throw new Error(`No program found for id - ${id}`);
@@ -359,15 +359,14 @@ class ProgramService {
     const parsedSchools = await this.schoolService.parseSchoolList(schools);
     const response = await Promise.all(
       parsedSchools.map(async (school) => {
-        const programIdsAvailable = programsIds.filter((pid) => school.programmes.includes(pid));
-        const programs = await this.programModel.find({ _id: { $in: programIdsAvailable } }).sort(sort);
+        const programIdsAvailable = programsIds.filter((pid) => school.Id === pid);
+        const programs = await this.programModel.find({ School__c: { $in: programIdsAvailable } }).sort(sort);
         return {
           school,
           programs: await Promise.all(programs.map(async (program) => await this.parseProgram(program))),
         };
       })
     );
-
     return response.filter((res) => res.programs?.length);
   }
 
