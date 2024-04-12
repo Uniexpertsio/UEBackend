@@ -504,7 +504,6 @@ class StudentService {
   }
 
   async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails,isFrontend) {
-    console.log(isFrontend);
     if (studentDetails.studentInformation) {
       await this.checkForValidUsers(
         studentDetails.studentInformation.staffId,
@@ -1181,17 +1180,16 @@ class StudentService {
   async updateStudentDocument(studentId, modifiedBy, body,isFrontend) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = await StudentModel.findOne({ _id: studentId });
-        console.log(student);
+        const student = isFrontend? await StudentModel.findOne({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
         if (!student) throw "student not found";
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
-          studentId,
+          student?._id,
           body
         );
         const documentIds = document.map((document) => document.id);
         await StudentModel.updateOne(
-          { _id: studentId },
+          { _id:   student?._id },
           { $set: { documents: documentIds } }
         );
 

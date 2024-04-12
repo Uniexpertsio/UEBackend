@@ -115,12 +115,16 @@ const sendDataToSF = async (body, url) => {
         const sfResponse = await SFerrorHandler(data);
         return resolve(data);
       } else {
+
         const data  = await axios.post(url, body, { headers });
         resolve(data?.data);
       }
     } catch (err) {
         reject(err)
+        console.log(err?.response);
         console.log(err?.response?.data[0]?.message);
+        console.log(err?.response?.data[0]);
+        console.log(err?.response?.data[0]?.duplicateResult?.matchResults);
     }
   })
 };
