@@ -20,7 +20,7 @@ class StaffService {
     const outputData = {
       RecordTypeId: "0125g00000020HQAAY",
       FirstName:nameArr[0],
-      LastName:nameArr[1],
+      LastName:nameArr[1]||"N/A",
       MobilePhone: inputData?.phone,
       Branch__c:inputData?.branchId,
       // Whatsapp_No__c: inputData.personalDetails.phone,
