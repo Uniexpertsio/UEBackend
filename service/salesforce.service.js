@@ -115,12 +115,12 @@ const sendDataToSF = async (body, url) => {
         const sfResponse = await SFerrorHandler(data);
         return resolve(data);
       } else {
-        const data  = await axios.post(url, body, { headers });
+        const data = await axios.post(url, body, { headers });
         resolve(data?.data);
       }
     } catch (err) {
-        reject(err)
-        console.log(err?.response?.data[0]?.message);
+      reject(err)
+      console.log(err?.response?.data[0]?.message);
     }
   })
 };
@@ -129,7 +129,7 @@ const updateDataToSF = async (body, url) => {
   const token = await generateToken();
   const headers = generateHeaders(token);
   try {
-    const  data = await axios.patch(url, body, { headers });
+    const data = await axios.patch(url, body, { headers });
     return data?.data;
   } catch (err) {
     console.error("Error: " + err);

@@ -3,7 +3,9 @@ module.exports = (port) => {
   // let fs = require("fs")
   let express = require("express");
   let cors = require("cors");
+  const dotenv = require("dotenv");
   let app = express();
+  dotenv.config();
   port = port || 4000;
   let authRoute = require("./routes/auth.routes");
   let agentRoute = require("./routes/agent.routes");

@@ -104,7 +104,7 @@ const searchStudentDocument = async (req, res) => {
         console.log('Invalid search type');
         return;
     }
-
+    query["userId"] = studentId;
     const results = await Document.find(query);
     res.status(200).json(results);
   } catch(error) {

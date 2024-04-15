@@ -12,9 +12,11 @@ class ApplicationController {
       const { id, agentId } = req.user;
       const body = req.body;
       const result = await this.applicationService.addApplication(id, agentId, body);
+    logger.info(`Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(201).json(result);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    }catch(err) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+        return res.status(500).json({ statusCode: 500, message: err.message });
     }
   }
 

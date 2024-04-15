@@ -2,6 +2,8 @@ const StudentService = require("../service/student.service")
 const StudentModel = require("../models/Student");
 const DocumentModel = require("../models/Document");
 const { getContactId } = require("../service/salesforce.service");
+const { sendResponse } = require("../utils/errorHandler");
+const logger = require("../utils/logger");
 
 class StudentController {
   constructor() {
@@ -13,8 +15,10 @@ class StudentController {
       const { id, agentId } = req.user;
       const body = req.body;
       const result = await this.studentService.createStudent(id, agentId, body);
+    logger.info(`CounsellorId: ${result?.counsellorId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -64,7 +68,7 @@ class StudentController {
       const studentId = req.params.studentId;
       const { id } = req.user;
       const body = req.body;
-      const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body,req.query?.frontend);
+      const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body, req.query?.frontend);
       res.status(200).json(data);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -247,33 +251,33 @@ class StudentController {
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
-        const { searchType, searchTerm } = req.query;
-        const studentData = await StudentModel.findOne({ _id: studentId });
-        if(!studentData) {
-          throw new Error(`Student not with id: ${studentId}`);
-        }
-        let query;
-        switch (searchType) {
-          case 'name':
+      const { searchType, searchTerm } = req.query;
+      const studentData = await StudentModel.findOne({ _id: studentId });
+      if (!studentData) {
+        throw new Error(`Student not with id: ${studentId}`);
+      }
+      let query;
+      switch (searchType) {
+        case 'name':
           query = { name: new RegExp(searchTerm, 'i') };
           break;
-          case 'category':
-            query = { category: new RegExp(searchTerm, 'i') };
-            break;
-          case 'used for':
-            query = { 'used for': new RegExp(searchTerm, 'i') };
-            break;
-          case 'status':
-            query = { status: new RegExp(searchTerm, 'i') };
-            break;
-          default:
-            console.log('Invalid search type');
-            query = {};
-            break;
-        }
-        query["userId"] = studentId;
-        const documentData = await DocumentModel.find(query);
-        res.status(200).json(documentData); 
+        case 'category':
+          query = { category: new RegExp(searchTerm, 'i') };
+          break;
+        case 'used for':
+          query = { 'used for': new RegExp(searchTerm, 'i') };
+          break;
+        case 'status':
+          query = { status: new RegExp(searchTerm, 'i') };
+          break;
+        default:
+          console.log('Invalid search type');
+          query = {};
+          break;
+      }
+      query["userId"] = studentId;
+      const documentData = await DocumentModel.find(query);
+      res.status(200).json(documentData);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -300,7 +304,10 @@ class StudentController {
       const result = await this.studentService.updateStudentDocument(studentId, id, body);
       res.status(200).json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.log('error---',error)
+      // res.status(500).json({ error: error.message });
+      sendResponse(error);
+
     }
   }
 
@@ -453,21 +460,21 @@ class StudentController {
     try {
       const student = await this.studentService.getStudentSearchData(req);
       res.status(200).json(student);
-    } catch(error) {
-      res.status(500).json({error: error.message});
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   }
-  async getPartnerId(req,res){
+  async getPartnerId(req, res) {
     try {
-      const {studentId}=req?.params;
+      const { studentId } = req?.params;
       const student = await StudentModel.findById(studentId);
       let contact;
-      if(student?.salesforceId){
-         contact=await getContactId(student?.salesforceId)
+      if (student?.salesforceId) {
+        contact = await getContactId(student?.salesforceId)
       }
-      res.status(200).json({partnerId:contact?.Student_ID__c});
-    } catch(error) {
-      res.status(500).json({error: error.message});
+      res.status(200).json({ partnerId: contact?.Student_ID__c });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   }
 

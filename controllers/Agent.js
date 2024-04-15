@@ -20,6 +20,7 @@ const {
   generateAuthResponse,
   generateToken,
 } = require("../service/auth.service");
+const { sendResponse } = require("../utils/errorHandler");
 
 const acceptTnc = async (req, res, next) => {
   try {
@@ -55,9 +56,13 @@ const getTnC = async (req, res, next) => {
 const downloadTncData = async (req, res, next) => {
   try {
     const data = await downloadTnc(req.params?.sfId, req.params?.ip);
-
+    logger.info(`
+    Endpoint: ${req.originalUrl} - 
+    Status: 200 - 
+    Message: Success`);
     return res.status(200).json(data);
   } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     return res.status(200).json({ statusCode: 400, message: err.message });
   }
 };
@@ -73,39 +78,48 @@ const getGeneralInformation = async (req, res, next) => {
         `${process.env.SF_API_URL}services/data/v55.0/sobjects/Account/${agent?.commonId}`
       );
       const newObj = { ...agent?._doc, ...moreDetails };
+      logger.info(`AccountId: ${agent?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      return res.status(200).json(data);
       return res.status(200).json({ statusCode: 200, data: newObj });
     }
   } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     return res.status(200).json({ statusCode: 400, message: err.message });
   }
 };
 
 const updateGeneralInformation = async (req, res) => {
-  const { agentId } = req.user;
-  const result = await Agent.findOneAndUpdate(
-    { _id: agentId },
-    { $set: { ...req.body } },
-    { new: true }
-  );
-  if (!result)
-    return res.status(200).json({ statusCode: 400, message: "Bad Request" });
+  try {
+    const { agentId } = req.user;
+    const result = await Agent.findOneAndUpdate(
+      { _id: agentId },
+      { $set: { ...req.body } },
+      { new: true }
+    );
+    if (!result)
+      return res.status(200).json({ statusCode: 400, message: "Bad Request" });
 
-  if (result.modifiedCount === 0) {
-    return res
-      .status(200)
-      .json({ statusCode: 400, message: "Agent not found" });
+    if (result.modifiedCount === 0) {
+      return res
+        .status(200)
+        .json({ statusCode: 400, message: "Agent not found" });
+    }
+
+    const externalId = "";
+    const url = "Contact/ExternalId__c/2573t236423eva";
+    await sendToSF(MappingFiles.AGENT_account, {
+      ...req.body,
+      externalId,
+      _user: { agentId },
+      url,
+    });
+
+    logger.info(`AccountId: ${result?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+    return res.status(200).json({ statusCode: 200, data: result });
+  } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+    return res.status(400).json({ statusCode: 400, message: err.message });
   }
-
-  const externalId = "";
-  const url = "Contact/ExternalId__c/2573t236423eva";
-  await sendToSF(MappingFiles.AGENT_account, {
-    ...req.body,
-    externalId,
-    _user: { agentId },
-    url,
-  });
-
-  return res.status(200).json({ statusCode: 200, data: result });
 };
 
 const getBankInformation = async (req, res) => {
@@ -123,30 +137,37 @@ const getBankInformation = async (req, res) => {
 };
 
 const updateBankInformation = async (req, res) => {
-  const { id, agentId } = req.user;
-  const result = await Agent.findByIdAndUpdate(
-    agentId,
-    { $set: { bank: req.body } },
-    { new: true }
-  );
+  try {
+    const { id, agentId } = req.user;
+    const result = await Agent.findByIdAndUpdate(
+      agentId,
+      { $set: { bank: req.body } },
+      { new: true }
+    );
 
-  if (result.modifiedCount === 0) {
-    return res
-      .status(200)
-      .json({ statusCode: 400, message: "Agent not found" });
+    if (result.modifiedCount === 0) {
+      return res
+        .status(200)
+        .json({ statusCode: 400, message: "Agent not found" });
+    }
+
+    const url = "BankDetail__c/ExternalId__c/" + result.commonId;
+    const data = await sendToSF(MappingFiles.AGENT_bank, {
+      bank: req.body,
+      externalId: result.commonId,
+      _user: { agentId: id },
+      url,
+    });
+    logger.info(`AccountId: ${result?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+    return res.status(200).json({ statusCode: 200, data: result });
+  } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+    return res.status(400).json({ statusCode: 400, message: err.message });
   }
-
-  const url = "BankDetail__c/ExternalId__c/" + result.commonId;
-  const data = await sendToSF(MappingFiles.AGENT_bank, {
-    bank: req.body,
-    externalId: result.commonId,
-    _user: { agentId: id },
-    url,
-  });
-  return res.status(200).json({ statusCode: 200, data: result });
 };
 
 const getAccountManager = async (req, res) => {
+  try {
   const { agentId } = req.user;
   const agent = await Agent.findById(agentId);
   if (!agent) {
@@ -157,10 +178,15 @@ const getAccountManager = async (req, res) => {
   if (agent.accountManager) {
     return Staff.findById(agent.accountManager);
   } else {
+    logger.info(`AccountId: ${agent?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res
       .status(200)
       .json({ statusCode: 400, message: "Account manager not found" });
   }
+}catch(err) {
+  logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+    return res.status(400).json({ statusCode: 400, message: err.message });
+}
 };
 
 const updateDocuments = async (req, res) => {
@@ -171,13 +197,15 @@ const updateDocuments = async (req, res) => {
       agentId,
       req.body
     );
-    logger.info(`AgentId: ${agentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+    logger.info(`AccountId: ${updateDocumentsResponse?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res
       .status(200)
       .json({ statusCode: 200, data: updateDocumentsResponse });
   } catch (err) {
-    logger.error(`AgentId: ${agentId} Endpoint: ${req.originalUrl} - Status: 400 - Message: Bad request`);
-    return res.status(400).json({ statusCode: 400, message: err.message });
+    // return res.status(400).json({ statusCode: 400, message: err.message });
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: Bad request`);
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 

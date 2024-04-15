@@ -18,6 +18,7 @@ const {
   getPartnerId,
 } = require("../service/salesforce.service");
 const logger = require('./../utils/logger');
+const { sendResponse } = require("../utils/errorHandler");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -58,7 +59,7 @@ function convertToCompanyData(inputData) {
     Phone: inputData.personalDetails.phone,
     EntityType__c: inputData.company.entityType,
     Tax_Number__c: inputData.company.taxNumber,
-    Entity_Registration_Number__c:inputData.company?.entityRegistrationNumber,
+    Entity_Registration_Number__c: inputData.company?.entityRegistrationNumber,
     Onboarding_Status__c: "New",
     PartnerNotified__c: false,
     Bypass_Documentation__c: false,
@@ -93,13 +94,13 @@ function convertToAgentData(inputData, id) {
     FirstName: inputData.personalDetails.firstName,
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
-    Title:inputData?.personalDetails?.jobTitle,
+    Title: inputData?.personalDetails?.jobTitle,
     // Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
-    Password__c:inputData?.password,
+    Password__c: inputData?.password,
     // Phone: "8987678987",
     // Birthdate: "2022-07-11", // Assuming a default value
-    AccountId: id , // Assuming a default value
+    AccountId: id, // Assuming a default value
     Active__c: true,
     MailingCity: inputData.address.city,
     MailingState: inputData.address.state,
@@ -165,6 +166,7 @@ Auth.post.login = async (req, res) => {
           docUploaded = true;
         }
         return res.status(200).json({
+          success: true,
           data: {
             docUploaded,
             ...generateAuthResponse(staff, agent, token, ""),
@@ -176,7 +178,7 @@ Auth.post.login = async (req, res) => {
         res.status(403).json({
           statusCode: 401,
           message: "You have entered an invalid email or password",
-          error: "Unauthorized",
+          success: false,
         });
       }
     }
@@ -185,7 +187,7 @@ Auth.post.login = async (req, res) => {
     return res.status(400).json({
       statusCode: 400,
       message: err.message,
-      error: "Bad Request",
+      success: false
     });
   }
 };
@@ -266,35 +268,36 @@ Auth.post.signup = async (req, res, next) => {
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
-   
+
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
-      await Staff.updateOne({_id:staff._id},{$set:{sfId:sfAgentData?.id}})
+      await Staff.updateOne({ _id: staff._id }, { $set: { sfId: sfAgentData?.id } })
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
       console.log("sf bank data:  ", sfBankData);
-      const data=await getPartnerId(sfCompanyData?.id);
+      const data = await getPartnerId(sfCompanyData?.id);
 
       idsCollection = {
         bankId: sfBankData?.id,
         contactId: sfAgentData?.id,
         companyId: sfCompanyData?.id,
         agentId: agent?._id,
-        partnerId:data?.Partner_Id__c
+        partnerId: data?.Partner_Id__c
       };
       const updatedAgent = await Agent.findByIdAndUpdate(
         agent.id,
-        { commonId: sfCompanyData.id,contactId: sfAgentData?.id },
+        { commonId: sfCompanyData.id, contactId: sfAgentData?.id },
         { new: true }
       );
     }
-    
-    logger.info(`Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+
+    logger.info(`CompanyId: ${sfCompanyData?.id} ContactId: ${idsCollection?.contactId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res.status(200).json({
+      success: true,
       data: {
         idsCollection,
         ...generateAuthResponse(staff, agent, token, idsCollection?.contactId),
@@ -302,11 +305,12 @@ Auth.post.signup = async (req, res, next) => {
       statusCode: 201,
     });
   } catch (err) {
-    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err.message}`);
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+    // sendResponse(err);
     return res.status(400).json({
       statusCode: 400,
       message: err.message,
-      error: "Bad Request",
+      success: false,
     });
   }
 };
@@ -380,7 +384,9 @@ Auth.patch.signup = async (req, res, next) => {
     await updateDataToSF(bankData, bankUrl);
     // }
 
+    logger.info(`CompanyId: ${sfCompanyData?.id} ContactId: ${idsCollection?.contactId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     return res.status(200).json({
+      success: true,
       data: {
         idsCollection,
         ...generateAuthResponse(staff, agent, token, idsCollection?.contactId),
@@ -388,10 +394,11 @@ Auth.patch.signup = async (req, res, next) => {
       statusCode: 201,
     });
   } catch (err) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     return res.status(400).json({
       statusCode: 400,
       message: err.message,
-      error: "Bad Request",
+      success: false
     });
   }
 };

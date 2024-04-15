@@ -9,12 +9,12 @@ class CaseService {
   async getAllCases(contactId) {
     const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
     const sfData = await getDataFromSF(url);
-    console.log("======================>",sfData);
+    console.log("======================>", sfData);
     if (sfData && sfData?.records?.length > 0) {
 
       const operations = sfData.records.map(async (data) => {
         try {
-          const payload={
+          const payload = {
             caseId: data?.Id,
             contactId: data?.ContactId,
             accountId: data?.AccountId,
@@ -29,14 +29,14 @@ class CaseService {
             contactName: data?.Contact_Name__c,
             caseNumber: data?.CaseNumber,
           }
-          const ifexist=await Case.find({caseId:data?.Id});
-          if(ifexist && ifexist?.length>0){
-            await Case.updateOne({caseId:data?.Id},payload);
+          const ifexist = await Case.find({ caseId: data?.Id });
+          if (ifexist && ifexist?.length > 0) {
+            await Case.updateOne({ caseId: data?.Id }, payload);
           }
-          else{
+          else {
             await new Case(payload).save();
           }
-         
+
           console.log(`Successfully updated/inserted document with Id`);
         } catch (error) {
           console.error(`Error updating`, error);
@@ -44,9 +44,9 @@ class CaseService {
       });
       // Wait for all update operations to complete
       await Promise.all(operations);
-      
+
     }
-    return await Case.find({contactId});
+    return await Case.find({ contactId });
   }
 
   async getCaseById(id) {
@@ -116,10 +116,11 @@ class CaseService {
           .status(404)
           .send({ statuscode: 404, message: "not created" });
       }
+    logger.info(`AccountId: ${agent?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       return { ...createCase?._doc, ...caseDatafromSf };
     } catch (err) {
       res.status(400).send({ statuscode: 400, message: err.message });
-      console.log("create case error", err);
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     }
   }
 
@@ -150,10 +151,11 @@ class CaseService {
           .status(400)
           .send({ statuscode: 400, message: "case data not updated" });
       }
+    logger.info(`SalesforceId: ${sfRes?.id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       return cases;
     } catch (err) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
       res.status(500).send({ statuscode: 500, message: err.message });
-      console.log("update case error:: ", err);
     }
   }
 

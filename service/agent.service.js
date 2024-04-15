@@ -8,6 +8,7 @@ const DocumentTypeService = require("../service/documentType.service");
 
 const { generateStaffResponseFromId } = require("../service/auth.service");
 const { getFileExtension } = require("../utils/fileExtention");
+const logger = require("../utils/logger");
 
 class AgentService {
   constructor() {
@@ -68,11 +69,11 @@ class AgentService {
             }
           })
         );
-        resolve(documents);
+        resolve({ documents, commonId: agent.commonId });
 
         // return generateStaffResponseFromId(id, agent);
       } catch (error) {
-        console.log(error);
+        console.log("error------",error);
         reject(error);
       }
     });

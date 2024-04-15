@@ -378,6 +378,7 @@ class StudentService {
         id: student._id,
         sf: sfStudentResponse,
         partnerId: contactDetails?.Student_ID__c,
+        counsellorId: studentData?.Counsellor__c
       };
     } catch (error) {
       console.error("Error in createStudent:", error);
