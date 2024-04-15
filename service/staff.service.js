@@ -137,7 +137,10 @@ class StaffService {
   }
 
   getAllStaff(agentId) {
-    return this.staffModel.find({ agentId });
+    return this.staffModel.find({ agentId }).populate({
+      path: 'branchId',
+      select: 'name'
+  });
   }
 
   findByEmail(email) {
