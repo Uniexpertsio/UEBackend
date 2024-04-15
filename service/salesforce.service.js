@@ -119,7 +119,7 @@ const sendDataToSF = async (body, url) => {
         resolve(data?.data);
       }
     } catch (err) {
-      reject(err)
+      reject({sfError: true ,err})
       console.log(err?.response?.data[0]?.message);
     }
   })
