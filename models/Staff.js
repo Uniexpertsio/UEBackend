@@ -47,6 +47,7 @@ const StaffSchema = new mongoose.Schema(
     source: { type: String, required: false, default: 'Portal' },
     gender: { type: String, required: false, enum: ["Male", "Female", "Other"] },
     dob: { type: Date, required: false },
+    countryCode: { type: String, required: false },
   },
   { timestamps: true }
 );

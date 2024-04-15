@@ -36,6 +36,7 @@ class StaffService {
       MailingCountry: agentInfo?.address?.country,
       MailingStreet: agentInfo?.address?.address,
       MailingPostalCode: agentInfo?.address?.zipCode,
+      Country_Code__c: inputData?.countryCode
     };
     return outputData;
   }
@@ -70,7 +71,6 @@ class StaffService {
       })
       .then(async (staff) => {
         const agentInfo = await Agent.findById(agentData?.agentId)
-        console.log('agentInfo>>>', agentInfo.company.companyName)
         const staffData = this.convertToAgentData(staff, agentInfo, agentInfo?.commonId);
         const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
         await SalesforceService.sendDataToSF(staffData, agentUrl);
@@ -80,9 +80,7 @@ class StaffService {
           branchName: branchName,
           password: staffDetails?.password
         }
-        console.log('mailBody',mailBody)
-        const sendMail = await sendEmailToStaff(mailBody);
-        console.log('sendMail',sendMail)
+        await sendEmailToStaff(mailBody);
         return staff;
       })
       .catch((error) => {
