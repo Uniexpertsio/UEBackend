@@ -38,7 +38,10 @@ const StaffSchema = new mongoose.Schema(
     dp: { type: String, required: false },
     description: { type: String, required: false },
     externalId: { type: String, required: false, default: "" },
-    branchId: { type: String, required: false },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch' // Assuming your branch model is named 'Branch'
+  },
     sfId: { type: String, required: false },
     docVerificationOfficer: { type: String, required: false },
     bdmUserId: { type: String, required: false },
@@ -47,6 +50,7 @@ const StaffSchema = new mongoose.Schema(
     source: { type: String, required: false, default: 'Portal' },
     gender: { type: String, required: false, enum: ["Male", "Female", "Other"] },
     dob: { type: Date, required: false },
+    countryCode: { type: String, required: false },
   },
   { timestamps: true }
 );
