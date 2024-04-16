@@ -6,7 +6,7 @@ class CaseController {
   }
 
   async getAllCases(req, res) {
-    const {sfId}=req.user;
+    const { sfId } = req.user;
     const cases = await this.caseService.getAllCases(sfId);
     res.json(cases);
   }
@@ -41,7 +41,7 @@ class CaseController {
     const { caseId } = req.params;
     console.log(req);
     const { id } = req.user;
-    const newCase = await this.caseService.createCaseComment(commentData, id,caseId);
+    const newCase = await this.caseService.createCaseComment(commentData, id, caseId);
     res.status(201).send({
       statuscode: 201,
       message: "Case created successfully",
@@ -84,6 +84,17 @@ class CaseController {
     const { id } = req.params;
     await this.caseService.deleteCase(id);
     res.sendStatus(204);
+  }
+
+  async replyComment(req, res) {
+    try {
+      const { sfId } = req.params;
+      const commentData = req.body;
+      const updatedComment = await this.caseService.updateReplyComment(sfId, commentData);
+      res.status(200).json(updatedComment);
+    } catch (error) {
+      res.status(500).json(error);
+    }
   }
 }
 
