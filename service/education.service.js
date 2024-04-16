@@ -24,9 +24,16 @@ async update(modifiedBy, educationId, body) {
     return await Education.updateOne({ _id: educationId }, { $set: { ...body, modifiedBy } });
   }
 
+async updateSfId(educationId,id){
+    return await Education.updateOne({_id:educationId},{$set:{educationSfId:id}});
+  }
+
   async delete(educationId) {
     return await Education.deleteOne({ _id: educationId });
   }
+async getEducationFromSFID(sfId){
+  return await Education.findOne({educationSfId:sfId});
+}
 
 async getByStudentId(studentId) {
     return await Education.find({ studentId });

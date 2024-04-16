@@ -50,7 +50,6 @@ class TestScoreService {
       createdBy: modifiedBy,
       externalId,
     });
-    console.log(studentId)
     // const url = "Test_Score__c/ExternalId__c/2573t236423ev"
     // const sf = await sendToSF(MappingFiles.STUDENT_test_score, {
     //   ...testScore,
@@ -63,10 +62,44 @@ class TestScoreService {
     return testScore;
   }
 
-  update(modifiedBy, testScoreId, body) {
+
+  async updateTestScoreSfId(testScoreId,id){
     return this.testScoreModel.updateOne(
       { _id: testScoreId },
-      { $set: { ...body, modifiedBy } }
+      { $set: { testScoreSfId:id } }
+    );
+  }
+
+  async getTestScoreFromSfId(sfId){
+    return this.testScoreModel.findOne(
+      { testScoreSfId: sfId },
+    );
+  }
+
+  update(modifiedBy, testScoreId, body) {
+    let totalMarks;
+    switch (body.examType) {
+      case "12th Standard English Mark":
+        totalMarks = body?.englishMarks; // Placeholder
+        break;
+      case "GRE":
+        totalMarks = body?.percentile;
+        break;
+      case "GMAT":
+        totalMarks = body?.totalPercentile;
+        break;
+      case "Duolingo":
+        totalMarks = body?.overall; // Placeholder
+
+        break;
+      case "TOEFL / IELTS / PTE":
+        totalMarks = body?.overall; // Placeholder
+      default:
+        break;
+    }
+    return this.testScoreModel.updateOne(
+      { _id: testScoreId },
+      { $set: { ...body,totalMarks, modifiedBy } }
     );
   }
 

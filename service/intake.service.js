@@ -56,7 +56,7 @@ class IntakeService {
   }
 
   async findById(id) {
-    const intake = await this.intakeModel.findOne({ Id: id });
+    const intake = await this.intakeModel.findOne({ _id: id });
 
     if (!intake) {
       throw new Error(`No intake found for id - ${id}`);

@@ -95,17 +95,17 @@ class ApplicationService {
     const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId: `A-${applicationCount}` });
     const applicationSfData = this.convertApplicationData(body)
     const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`
-    const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
-    const sfId = applicationSfResponse?.id;
-    if (sfId) {
-      await Application.updateOne(
-        { _id: application._id },
-        { $set: { salesforceId: sfId } },
-        { new: true }
-      );
-    }
-    application["salesforceId"] = sfId
-    console.log("applicationSfResponse", applicationSfResponse);
+    // const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
+    // const sfId = applicationSfResponse?.id;
+    // if (sfId) {
+    //   await Application.updateOne(
+    //     { _id: application._id },
+    //     { $set: { salesforceId: sfId } },
+    //     { new: true }
+    //   );
+    // }
+    // application["salesforceId"] = sfId
+    // console.log("applicationSfResponse", applicationSfResponse);
 
     return application;
   }
@@ -115,7 +115,7 @@ class ApplicationService {
   }
 
   async findStudentById(id) {
-    const student = await this.studentModel.findOne({ salesforceId: id });
+    const student = await this.studentModel.findOne({ _id: id });
     if (!student) {
       throw Error("Student " + id + " does not exist");
     }
@@ -304,7 +304,7 @@ class ApplicationService {
   async getApplication(applicationId) {
     try {
       const application = await Application.findById(applicationId);
-      const student = await this.studentModel.findOne({ salesforceId: application.studentId });
+      const student = await this.studentModel.findOne({ _id: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
 

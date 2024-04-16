@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { otpMailTemplate } = require('./mailTemplate');
+const { otpMailTemplate,staffMailTemplate } = require('./mailTemplate');
 
 AWS.config.update({
     region: process.env.SES_REGION,
@@ -30,6 +30,28 @@ async function sendEmailWithOTP(recipientEmail, otp) {
     return await SES.sendEmail(params).promise();
 }
 
+async function sendEmailToStaff(mailBody) {
+    const params = {
+        Destination: {
+            ToAddresses: [mailBody?.mail.toLowerCase()]
+        },
+        Message: {
+            Body: {
+                Html: {
+                    Data: staffMailTemplate(mailBody)
+                }
+            },
+            Subject: {
+                Data: 'Login Creds - Uniexperts'
+            }
+        },
+        Source: process.env.EMAIL_ADDRESS
+    };
+    // Send the email
+    return await SES.sendEmail(params).promise();
+}
+
 module.exports = {
-    sendEmailWithOTP
+    sendEmailWithOTP,
+    sendEmailToStaff
 };

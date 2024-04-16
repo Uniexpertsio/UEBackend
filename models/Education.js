@@ -25,6 +25,7 @@ const EducationSchema = new mongoose.Schema(
     gradingScheme: { type: String, required: true },
     score: { type: String, required: false },
     isLocked: { type: Boolean, required: false, default: true },
+    educationSfId:{type:String,required:false}
   },
   { timestamps: true }
 );
