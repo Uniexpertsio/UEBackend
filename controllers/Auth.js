@@ -87,7 +87,6 @@ function convertToCompanyData(inputData) {
 }
 
 function convertToAgentData(inputData, id) {
-  console.log(inputData,"input");
   const outputData = {
     RecordTypeId: "0125g00000020HQAAY",
     FirstName: inputData.personalDetails.firstName,
@@ -107,7 +106,6 @@ function convertToAgentData(inputData, id) {
     MailingStreet: inputData.address.address,
     MailingPostalCode: inputData.address.zipCode,
   };
-  console.log(outputData,"=======");
   return outputData;
 }
 
@@ -136,12 +134,10 @@ Auth.get.config = async (req, res, next) => {
 
 Auth.post.login = async (req, res) => {
   try {
-    console.log("Request: ", req.body);
     //const tokens = await generateToken();
     const email = req.body.email;
     const password = req.body.password;
     let staff = await Staff.findOne({ email: email });
-    console.log(staff);
     let agent = await Agent.findById(staff?.agentId);
     if (!(staff && agent)) {
       throw new Error("User does not exist");
@@ -265,19 +261,15 @@ Auth.post.signup = async (req, res, next) => {
     const companyData = convertToCompanyData(req.body);
     const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
-    console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
    
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
-      console.log("sf agent data:  ", sfAgentData);
       await Staff.updateOne({_id:staff._id},{$set:{sfId:sfAgentData?.id}})
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
-      console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
-      console.log("sf bank data:  ", sfBankData);
       const data=await getPartnerId(sfCompanyData?.id);
 
       idsCollection = {
@@ -317,7 +309,6 @@ Auth.patch.signup = async (req, res, next) => {
     const { requestData, idsCollection } = req.body;
     const { agentId } = req?.params;
     const agent = await Agent.findOneAndUpdate({ _id: agentId }, requestData);
-    console.log(agentId,requestData);
     const staff = await Staff.findOneAndUpdate(
       { agentId: agentId },
       {
@@ -379,7 +370,6 @@ Auth.patch.signup = async (req, res, next) => {
     const bankData = convertToBankData(requestData, "");
     await updateDataToSF(bankData, bankUrl);
     // }
-    console.log(staff);
     return res.status(200).json({
       data: {
         idsCollection,
