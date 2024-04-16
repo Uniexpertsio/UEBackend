@@ -123,8 +123,8 @@ class ApplicationService {
     return student;
   }
 
-  async getApplications(agentId, query) {
-    let filter = { agentId };
+  async getApplications(agentId, query,role,createdBy) {
+    const filter= role==='consultant' ? {createdBy} : { agentId };
 
     if (query.studentId) {
       filter = { ...filter, studentId: query.studentId };

@@ -61,7 +61,6 @@ class CaseService {
     try {
       // Add comment
       const comment = await this.commentService.add(body.message, modifiedBy,caseId);
-  
       // Update student with the new comment
       const result = await Case.updateOne(
         { _id: caseId },
@@ -72,8 +71,6 @@ class CaseService {
         throw new Error("Case not found");
       }
       const caseData=await Case.findById(caseId);
-
-
       // Prepare data for sending to Salesforce
       const data ={ 
         "ParentId": caseData?.caseId, //Case SF Id
@@ -94,6 +91,7 @@ class CaseService {
     }
   }
 
+  
   async getCaseComments(caseId) {
     const caseData = await Case.findById(caseId);
     if (!caseData) throw new Error("Case not found");

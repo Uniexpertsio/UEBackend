@@ -87,6 +87,7 @@ function convertToCompanyData(inputData) {
 }
 
 function convertToAgentData(inputData, id) {
+  console.log(inputData,"input");
   const outputData = {
     RecordTypeId: "0125g00000020HQAAY",
     FirstName: inputData.personalDetails.firstName,
@@ -106,6 +107,7 @@ function convertToAgentData(inputData, id) {
     MailingStreet: inputData.address.address,
     MailingPostalCode: inputData.address.zipCode,
   };
+  console.log(outputData,"=======");
   return outputData;
 }
 
@@ -315,6 +317,7 @@ Auth.patch.signup = async (req, res, next) => {
     const { requestData, idsCollection } = req.body;
     const { agentId } = req?.params;
     const agent = await Agent.findOneAndUpdate({ _id: agentId }, requestData);
+    console.log(agentId,requestData);
     const staff = await Staff.findOneAndUpdate(
       { agentId: agentId },
       {
@@ -362,7 +365,6 @@ Auth.patch.signup = async (req, res, next) => {
         expiresIn: "24d",
       }
     );
-
     const companyData = convertToCompanyData(requestData);
     const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
@@ -377,7 +379,7 @@ Auth.patch.signup = async (req, res, next) => {
     const bankData = convertToBankData(requestData, "");
     await updateDataToSF(bankData, bankUrl);
     // }
-
+    console.log(staff);
     return res.status(200).json({
       data: {
         idsCollection,
