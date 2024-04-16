@@ -57,7 +57,7 @@ function convertToCompanyData(inputData) {
     Phone: inputData.personalDetails.phone,
     EntityType__c: inputData.company.entityType,
     Tax_Number__c: inputData.company.taxNumber,
-    Entity_Registration_Number__c:inputData.company?.entityRegistrationNumber,
+    Entity_Registration_Number__c: inputData.company?.entityRegistrationNumber,
     Onboarding_Status__c: "New",
     PartnerNotified__c: false,
     Bypass_Documentation__c: false,
@@ -92,13 +92,13 @@ function convertToAgentData(inputData, id) {
     FirstName: inputData.personalDetails.firstName,
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
-    Title:inputData?.personalDetails?.jobTitle,
+    Title: inputData?.personalDetails?.jobTitle,
     // Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
-    Password__c:inputData?.password,
+    Password__c: inputData?.password,
     // Phone: "8987678987",
     // Birthdate: "2022-07-11", // Assuming a default value
-    AccountId: id , // Assuming a default value
+    AccountId: id, // Assuming a default value
     Active__c: true,
     MailingCity: inputData.address.city,
     MailingState: inputData.address.state,
@@ -265,33 +265,33 @@ Auth.post.signup = async (req, res, next) => {
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
     console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
-   
+
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
       console.log("sf agent data:  ", sfAgentData);
-      await Staff.updateOne({_id:staff._id},{$set:{sfId:sfAgentData?.id}})
+      await Staff.updateOne({ _id: staff._id }, { $set: { sfId: sfAgentData?.id } })
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
       console.log("sf bank data:  ", sfBankData);
-      const data=await getPartnerId(sfCompanyData?.id);
+      const data = await getPartnerId(sfCompanyData?.id);
 
       idsCollection = {
         bankId: sfBankData?.id,
         contactId: sfAgentData?.id,
         companyId: sfCompanyData?.id,
         agentId: agent?._id,
-        partnerId:data?.Partner_Id__c
+        partnerId: data?.Partner_Id__c
       };
       const updatedAgent = await Agent.findByIdAndUpdate(
         agent.id,
-        { commonId: sfCompanyData.id,contactId: sfAgentData?.id },
+        { commonId: sfCompanyData.id, contactId: sfAgentData?.id },
         { new: true }
       );
     }
-    
+
 
     return res.status(200).json({
       data: {
@@ -404,42 +404,18 @@ Auth.post.emailExist = async (req, res) => {
 };
 
 Auth.post.forgotPassword = async (req, res) => {
-  const otp = Math.floor(Math.random() * 9000) + 1000;
-  const result = await Staff.findOneAndUpdate(
-    { email: req.body.email.toLowerCase().trim() },
-    { $set: { passwordResetOtp: otp } }
-  );
-  const sendMail = await sendEmailWithOTP(req.body.email, otp);
-  if (!sendMail) {
-    return res.status(400).json({ statusCode: 400, message: "Email not sent" });
+  try {
+    const otp = Math.floor(Math.random() * 9000) + 1000;
+    await Staff.findOneAndUpdate(
+      { email: req.body.email.toLowerCase().trim() },
+      { $set: { passwordResetOtp: otp } }
+    );
+    await sendEmailWithOTP(req.body.email, otp);
+    return res.status(200).json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return res.status(500).json({ statusCode: 500, message: "Failed To Send OTP Mail" });
   }
-  return res.status(200).json({ statusCode: 200, message: "Email sent successfully" });
-
-
-  // let mailTransporter = nodemailer.createTransport({
-  //   service: "gmail",
-  //   auth: {
-  //     user: "tset4598t@gmail.com",
-  //     pass: "bzvvmohfxolkhnuj",
-  //   },
-  // });
-
-  // let mailDetails = {
-  //   from: "tset4598t@gmail.com",
-  //   to: req.body.email,
-  //   subject: "Verify Otp",
-  //   text: "Your otp to verify is " + otp,
-  // };
-
-  // mailTransporter.sendMail(mailDetails, function (err, data) {
-  //   if (err) {
-  //     console.log("Error Occurs");
-  //   } else {
-  //     console.log("Email sent successfully");
-  //   }
-  // });
-
-  // return res.status(200).json({ statusCode: 200 });
 };
 
 Auth.post.verifyOtp = async (req, res) => {
