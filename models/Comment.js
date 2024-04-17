@@ -9,6 +9,7 @@ const CommentSchema = new mongoose.Schema(
     externalId: { type: String, required: true },
     isVideo: { type: Boolean, required: false, default: false },
     commentSfId:{type:String,required:false},
+    replyComment: { type: Array,required: false }
   },
   { timestamps: true }
 );

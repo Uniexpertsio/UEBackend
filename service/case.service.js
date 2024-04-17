@@ -1,4 +1,6 @@
 const Case = require("../models/Case");
+const Comment = require("../models/Comment");
+const ReplyComment = require("../models/replyComment");
 const {
   getDataFromSF,
   sendDataToSF,
@@ -7,7 +9,7 @@ const {
 const CommentService = require("./comment.service");
 
 class CaseService {
-  constructor(){
+  constructor() {
     this.commentService = new CommentService();
   }
 
@@ -18,7 +20,7 @@ class CaseService {
 
       const operations = sfData.records.map(async (data) => {
         try {
-          const payload={
+          const payload = {
             caseId: data?.Id,
             contactId: data?.ContactId,
             accountId: data?.AccountId,
@@ -33,14 +35,14 @@ class CaseService {
             contactName: data?.Contact_Name__c,
             caseNumber: data?.CaseNumber,
           }
-          const ifexist=await Case.find({caseId:data?.Id});
-          if(ifexist && ifexist?.length>0){
-            await Case.updateOne({caseId:data?.Id},payload);
+          const ifexist = await Case.find({ caseId: data?.Id });
+          if (ifexist && ifexist?.length > 0) {
+            await Case.updateOne({ caseId: data?.Id }, payload);
           }
-          else{
+          else {
             await new Case(payload).save();
           }
-         
+
           console.log(`Successfully updated/inserted document with Id`);
         } catch (error) {
           console.error(`Error updating`, error);
@@ -48,19 +50,20 @@ class CaseService {
       });
       // Wait for all update operations to complete
       await Promise.all(operations);
-      
+
     }
-    return await Case.find({contactId});
+    return await Case.find({ contactId });
   }
 
   async getCaseById(id) {
     return await Case.findById(id);
   }
 
-  async createCaseComment(body,modifiedBy,caseId){
+  async createCaseComment(body, modifiedBy, caseId) {
     try {
       // Add comment
-      const comment = await this.commentService.add(body.message, modifiedBy,caseId);
+      const comment = await this.commentService.add(body.message, modifiedBy, caseId);
+
       // Update student with the new comment
       const result = await Case.updateOne(
         { _id: caseId },
@@ -70,18 +73,20 @@ class CaseService {
       if (result.modifiedCount === 0) {
         throw new Error("Case not found");
       }
-      const caseData=await Case.findById(caseId);
+      const caseData = await Case.findById(caseId);
+
+
       // Prepare data for sending to Salesforce
-      const data ={ 
+      const data = {
         "ParentId": caseData?.caseId, //Case SF Id
         "IsPublished": false, //To set Public Set it as 'true' otherwise 'false'
-        "CommentBody":body?.message, //Comment
-    }
+        "CommentBody": body?.message, //Comment
+      }
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/CaseComment`;
       const sendingComment = await sendDataToSF(data, url);
-      if(sendingComment?.id && comment?.comment?._id){
-        await this.commentService.updateCommentSfId(comment?.comment?._id,sendingComment?.id)
+      if (sendingComment?.id && comment?.comment?._id) {
+        await this.commentService.updateCommentSfId(comment?.comment?._id, sendingComment?.id)
       }
       return comment;
     } catch (error) {
@@ -250,6 +255,25 @@ class CaseService {
 
   async deleteCase(id) {
     return await Case.findByIdAndDelete(id);
+  }
+
+  async updateReplyComment(sfId, commentData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const replyComment = await new ReplyComment(commentData).save();
+        if (!replyComment) {
+          throw new Error('Reply comment not created');
+        }
+        await Comment.findOneAndUpdate(
+          { commentSfId: sfId }, 
+          { $push: { replyComment: replyComment._id } }, 
+          { new: true })
+        resolve({ message: "Success", status: 200, sf: sfId });
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
   }
 }
 
