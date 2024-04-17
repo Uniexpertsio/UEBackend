@@ -96,6 +96,7 @@ class CaseService {
     }
   }
 
+  
   async getCaseComments(caseId) {
     const caseData = await Case.findById(caseId);
     if (!caseData) throw new Error("Case not found");

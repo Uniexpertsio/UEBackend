@@ -70,10 +70,12 @@ class StaffService {
         notifications,
       })
       .then(async (staff) => {
+        
         const agentInfo = await Agent.findById(agentData?.agentId)
         const staffData = this.convertToAgentData(staff, agentInfo, agentInfo?.commonId);
         const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-        await SalesforceService.sendDataToSF(staffData, agentUrl);
+       const record= await SalesforceService.sendDataToSF(staffData, agentUrl);
+        const updated=await StaffModel.updateOne({_id:staff._id},{$set:{sfId:record?.id}})
         const mailBody = {
           companyName: agentInfo?.company?.companyName,
           mail: staffDetails?.email,

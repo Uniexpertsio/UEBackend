@@ -390,8 +390,8 @@ class StudentService {
     return PreferredCountries;
   }
 
-  async getStudent(agentId, query) {
-    const filter = { agentId };
+  async getStudent(agentId, query,role,createdBy) {
+    const filter= role==='consultant' ? {createdBy} : { agentId };
     const sortByType = query.sortByType === "Ascending" ? 1 : -1;
     const sortBy = {};
     if (query.sortBy) {

@@ -20,9 +20,9 @@ class ApplicationController {
 
   async getApplications(req, res) {
     try {
-      const { agentId } = req.user;
+      const { agentId,role,_id} = req.user;
       const query = req.query;
-      const result = await this.applicationService.getApplications(agentId, query);
+      const result = await this.applicationService.getApplications(agentId, query,role,_id);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
