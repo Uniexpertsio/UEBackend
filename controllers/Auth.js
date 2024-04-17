@@ -266,21 +266,11 @@ Auth.post.signup = async (req, res, next) => {
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
-<<<<<<< HEAD
       await Staff.updateOne({_id:staff._id},{$set:{sfId:sfAgentData?.id}})
-=======
-      console.log("sf agent data:  ", sfAgentData);
-      await Staff.updateOne({ _id: staff._id }, { $set: { sfId: sfAgentData?.id } })
->>>>>>> a4ad9083901f25ee300aafe8737290f6a99f0af0
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
-<<<<<<< HEAD
       const data=await getPartnerId(sfCompanyData?.id);
-=======
-      console.log("sf bank data:  ", sfBankData);
-      const data = await getPartnerId(sfCompanyData?.id);
->>>>>>> a4ad9083901f25ee300aafe8737290f6a99f0af0
 
       idsCollection = {
         bankId: sfBankData?.id,
