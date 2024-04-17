@@ -12,4 +12,5 @@ router.post("/:caseId/comment", Middleware.checkAuth, caseController.createCaseC
 router.get("/:caseId/comment", Middleware.checkAuth, caseController.getCaseComments.bind(caseController));
 router.put("/:id", caseController.updateCase.bind(caseController));
 router.delete("/:id", caseController.deleteCase.bind(caseController));
+router.patch("/:sfId/replyComment", Middleware.checkAuth, caseController.replyComment.bind(caseController));
 module.exports = router;
