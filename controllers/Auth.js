@@ -155,7 +155,7 @@ Auth.post.login = async (req, res) => {
       const lastLoginDate = new Date(staff.lastLoginDate);
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-      if (lastLoginDate < fifteenDaysAgo) {
+      if (lastLoginDate < fifteenDaysAgo && staff?.role!=='admin') {
         await Staff.updateOne(
           { _id: staff._id },
           { $set: { isActive: false } }
