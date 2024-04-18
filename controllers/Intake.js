@@ -16,7 +16,7 @@ async function addOrUpdateIntake(req, res) {
 
 async function getIntakeList(req, res) {
   try {
-    const intakeList = await intakeService.getIntakeList();
+    const intakeList = await intakeService.getIntakeList(req?.query);
     res.status(200).json(intakeList);
   } catch (error) {
     res.status(500).json({ error: error.message });

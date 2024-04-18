@@ -482,7 +482,7 @@ class StudentService {
                 filter['studentInformation.mobile'] = new RegExp(searchData.searchTerm, 'i');
                 break;
             case 'country':
-                filter['demographicInformation.country'] = new RegExp(searchData.searchTerm, 'i');
+                filter['address.country'] = new RegExp(searchData.searchTerm, 'i');
                 break;
             case 'createdBy':
                 filter['createdBy'] = new RegExp(searchData.searchTerm, 'i');
