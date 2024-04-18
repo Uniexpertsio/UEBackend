@@ -23,7 +23,11 @@ class StudentController {
     try {
       const { agentId,role,_id} = req.user;
       const query = req.query;
-      const result = await this.studentService.getStudent(agentId, query,role,_id);
+      const searchData = {
+        searchType: req.query.searchType,
+        searchTerm: req.query.searchTerm
+    };
+      const result = await this.studentService.getStudent(agentId, query,role,_id,searchData);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
