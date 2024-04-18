@@ -390,56 +390,133 @@ class StudentService {
     return PreferredCountries;
   }
 
-  async getStudent(agentId, query,role,createdBy) {
-    const filter= role==='consultant' ? {createdBy} : { agentId };
+  // async getStudent(agentId, query,role,createdBy) {
+  //   const filter= role==='consultant' ? {createdBy} : { agentId };
+  //   const sortByType = query.sortByType === "Ascending" ? 1 : -1;
+  //   const sortBy = {};
+  //   if (query.sortBy) {
+  //     sortBy[`${query.sortBy}`] = sortByType;
+  //   }
+  //   if (query.queryCreatedBy) {
+  //     filter.createdBy = query.queryCreatedBy;
+  //   }
+  //   if (query.queryName) {
+  //     filter.studentInformation = { firstName: query.queryName };
+  //   }
+  //   if (query.queryEmail) {
+  //     filter.emergencyContact = { email: query.queryEmail };
+  //   }
+  //   if (query.queryMobile) {
+  //     filter.emergencyContact = { phoneNumber: query.queryMobile };
+  //   }
+  //   if (query.queryCountry) {
+  //     filter.demographicInformation = { country: query.queryCountry };
+  //   }
+  //   if (query.queryCounsellor) {
+  //     filter.studentInformation = { counsellorId: query.queryCounsellor };
+  //   }
+  //   const student = await StudentModel.find(filter)
+  //     .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+  //     .sort(sortBy)
+  //     .limit(parseInt(query.perPage));
+  //   const count = await StudentModel.countDocuments();
+  //   const studentList = [];
+  //   for (let i = 0; i < student.length; i++) {
+  //     const staff = await Staff.findOne({ _id: student[i].createdBy });
+  //     const counsellor = await Staff.findOne({
+  //       _id: student[i].studentInformation.counsellorId,
+  //     });
+
+  //     if (staff) {
+  //       student[i].createdBy = staff.fullName;
+  //     }
+
+  //     if (counsellor) {
+  //       student[i].studentInformation.counsellorId = staff.fullName;
+  //     }
+
+  //     studentList.push(student[i]);
+  //   }
+  //   console.log(studentList,count)
+  //   return { studentList, count };
+  // }
+
+  async getStudent(agentId, query, role, createdBy, searchData) {
+    let filter = role === 'consultant' ? { createdBy } : { agentId };
     const sortByType = query.sortByType === "Ascending" ? 1 : -1;
     const sortBy = {};
     if (query.sortBy) {
-      sortBy[`${query.sortBy}`] = sortByType;
+        sortBy[`${query.sortBy}`] = sortByType;
     }
-    if (query.queryCreatedBy) {
-      filter.createdBy = query.queryCreatedBy;
+
+    // Incorporate search query into filter
+    if (searchData) {
+        switch (searchData.searchType) {
+            case 'name':
+                filter['$or'] = [
+                    { 'studentInformation.firstName': new RegExp(searchData.searchTerm, 'i') },
+                    { 'studentInformation.middleName': new RegExp(searchData.searchTerm, 'i') },
+                    { 'studentInformation.lastName': new RegExp(searchData.searchTerm, 'i') },
+                    {
+                        $expr: {
+                            $regexMatch: {
+                                input: {
+                                    $concat: [
+                                        '$studentInformation.firstName',
+                                        ' ',
+                                        '$studentInformation.middleName',
+                                        ' ',
+                                        '$studentInformation.lastName'
+                                    ]
+                                },
+                                regex: new RegExp(searchData.searchTerm, 'i')
+                            }
+                        }
+                    }
+                ];
+                break;
+            case 'email':
+                filter['studentInformation.email'] = new RegExp(searchData.searchTerm, 'i');
+                break;
+            case 'mobile':
+                filter['studentInformation.mobile'] = new RegExp(searchData.searchTerm, 'i');
+                break;
+            case 'country':
+                filter['demographicInformation.country'] = new RegExp(searchData.searchTerm, 'i');
+                break;
+            case 'createdBy':
+                filter['createdBy'] = new RegExp(searchData.searchTerm, 'i');
+                break;
+            default:
+                console.log('Invalid search type');
+                break;
+        }
     }
-    if (query.queryName) {
-      filter.studentInformation = { firstName: query.queryName };
-    }
-    if (query.queryEmail) {
-      filter.emergencyContact = { email: query.queryEmail };
-    }
-    if (query.queryMobile) {
-      filter.emergencyContact = { phoneNumber: query.queryMobile };
-    }
-    if (query.queryCountry) {
-      filter.demographicInformation = { country: query.queryCountry };
-    }
-    if (query.queryCounsellor) {
-      filter.studentInformation = { counsellorId: query.queryCounsellor };
-    }
+
     const student = await StudentModel.find(filter)
-      .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
-      .sort(sortBy)
-      .limit(parseInt(query.perPage));
-    const count = await StudentModel.countDocuments();
+        .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+        .sort(sortBy)
+        .limit(parseInt(query.perPage));
+    const count = await StudentModel.countDocuments(filter);
     const studentList = [];
     for (let i = 0; i < student.length; i++) {
-      const staff = await Staff.findOne({ _id: student[i].createdBy });
-      const counsellor = await Staff.findOne({
-        _id: student[i].studentInformation.counsellorId,
-      });
+        const staff = await Staff.findOne({ _id: student[i].createdBy });
+        const counsellor = await Staff.findOne({ _id: student[i].studentInformation.counsellorId });
 
-      if (staff) {
-        student[i].createdBy = staff.fullName;
-      }
+        if (staff) {
+            student[i].createdBy = staff.fullName;
+        }
 
-      if (counsellor) {
-        student[i].studentInformation.counsellorId = staff.fullName;
-      }
+        if (counsellor) {
+            student[i].studentInformation.counsellorId = staff.fullName;
+        }
 
-      studentList.push(student[i]);
+        studentList.push(student[i]);
     }
-    console.log(studentList,count)
+    console.log(studentList, count);
     return { studentList, count };
-  }
+}
+
 
   async getStudentGeneralInformation(studentId) {
     const objId = parseInMongoObjectId(studentId);
