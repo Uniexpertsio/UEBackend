@@ -127,7 +127,7 @@ class StaffService {
     await this.checkIfStaffBelongsToAgent(agentId, staffId);
     await this.staffModel.updateOne(
       { _id: staffId },
-      { $set: { isActive: activeStatusDto.isActive } }
+      { $set: { isActive: activeStatusDto.isActive,lastLoginDate: new Date() } }
     );
   }
 

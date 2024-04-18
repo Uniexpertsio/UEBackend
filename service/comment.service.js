@@ -45,7 +45,7 @@ class CommentService {
   }
 
   async getComment(id) {
-    const comment = await this.commentModel.findById(id);
+    const comment = await this.commentModel.findById(id).populate('replyComment');
     if (!comment) throw new Error("Comment not found");
     const user = await this.staffService.findById(comment.userId);
     return { comment, user };
