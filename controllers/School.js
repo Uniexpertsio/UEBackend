@@ -12,7 +12,8 @@ class SchoolController {
   }
 
   async getAllSchool(req, res) {
-    return res.status(200).json(await this.schoolService.getAllSchool());
+    const {page ,limit} = req.query;
+    return res.status(200).json(await this.schoolService.getAllSchool(page ,limit));
   }
 
   async getSchool(req, res) {
