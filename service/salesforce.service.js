@@ -131,8 +131,9 @@ const updateDataToSF = async (body, url) => {
   try {
     const data = await axios.patch(url, body, { headers });
     return data?.data;
+   
   } catch (err) {
-    console.error("Error: " + err);
+    console.log("Error: " + err);
     handleSfError(err);
   }
 };

@@ -22,9 +22,13 @@ class ProgramService {
     //this.salesforceService = SalesforceService;
   }
 
-  async getProgram(programId) {
-    let data = { ...(await this.programModel.findById(programId)) };
-    return this.parseProgram(data);
+  // async getProgram(programId) {
+  //   let data = { ...(await this.programModel.find({School__c:programId})) };
+  //   return this.parseProgram(data);
+  // }
+  async getProgram(schoolId) {
+    let data = await this.programModel.find({School__c:schoolId});
+    return data;
   }
 
   async parseProgram(data) {
@@ -380,7 +384,8 @@ class ProgramService {
       throw new Error("School width id: " + schoolId + " not found");
     }
 
-    return Promise.all(school.programmes.map(async (id) => await this.getProgram(id)));
+    // return Promise.all(school.programmes.map(async (id) => await this.getProgram(id)));\
+    return  await this.getProgram(school.Id)
   }
 
   async getSimilarProgram(programId) {

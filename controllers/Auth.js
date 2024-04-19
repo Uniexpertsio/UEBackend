@@ -136,16 +136,43 @@ Auth.get.config = async (req, res, next) => {
 
 Auth.post.login = async (req, res) => {
   try {
-    console.log("Request: ", req.body);
-    //const tokens = await generateToken();
     const email = req.body.email;
     const password = req.body.password;
     let staff = await Staff.findOne({ email: email });
-    console.log(staff);
     let agent = await Agent.findById(staff?.agentId);
-    if (!(staff && agent)) {
-      throw new Error("User does not exist");
+    const currentDate = new Date();
+
+    if (!staff) {
+      const error = new Error("User does not exist");
+      error.statusCode = 404;
+      error.error="User does not exist"
+      throw error;
+    } else if (!staff.isActive) {
+      const error = new Error("Your account is blocked. Please contact admin.");
+      error.statusCode = 400;
+      error.error="Your account is blocked. Please contact admin."
+      throw error;
     } else {
+      // Check if lastLoginDate is older than 15 days
+      const lastLoginDate = new Date(staff.lastLoginDate);
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+      if (lastLoginDate < fifteenDaysAgo && staff?.role!=='admin') {
+        await Staff.updateOne(
+          { _id: staff._id },
+          { $set: { isActive: false } }
+        );
+        const error = new Error("Your account is blocked due to inactivity. Please contact admin.");
+        error.statusCode = 400;
+        error.error="Your account is blocked due to inactivity. Please contact admin."
+        throw error;
+      }
+
+      await Staff.updateOne(
+        { _id: staff._id },
+        { $set: { lastLoginDate: currentDate } }
+      );
+
       let matched = Common.comparePassword(staff.password, password);
       if (matched) {
         const token = jwt.sign(
@@ -158,13 +185,13 @@ Auth.post.login = async (req, res) => {
             expiresIn: "24d",
           }
         );
+
         let loggedInMessage =
           `${staff.email} logged in at ${req.x_request_ts} [${req.ip}]`.green;
+
         const docs = await Document.find({ userId: agent._id });
-        let docUploaded = false;
-        if (docs.length > 0) {
-          docUploaded = true;
-        }
+        let docUploaded = docs.length > 0;
+
         return res.status(200).json({
           success: true,
           data: {
@@ -175,7 +202,7 @@ Auth.post.login = async (req, res) => {
           tokens: token,
         });
       } else {
-        res.status(403).json({
+        res.status(401).json({
           statusCode: 401,
           message: "You have entered an invalid email or password",
           success: false,
@@ -266,19 +293,17 @@ Auth.post.signup = async (req, res, next) => {
     const companyData = convertToCompanyData(req.body);
     const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
-    console.log("sf company data:  ", sfCompanyData);
     if (sfCompanyData && sfCompanyData.success) {
-
       const agentsData = convertToAgentData(req.body, sfCompanyData.id);
       const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
       const sfAgentData = await sendDataToSF(agentsData, agentUrl);
-      console.log("sf agent data:  ", sfAgentData);
-      await Staff.updateOne({ _id: staff._id }, { $set: { sfId: sfAgentData?.id } })
+      await Staff.updateOne(
+        { _id: staff._id },
+        { $set: { sfId: sfAgentData?.id } }
+      );
       const bankUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/BankDetail__c`;
       const bankData = convertToBankData(req.body, sfCompanyData.id);
-      console.log("Bank data: ", bankData);
       const sfBankData = await sendDataToSF(bankData, bankUrl);
-      console.log("sf bank data:  ", sfBankData);
       const data = await getPartnerId(sfCompanyData?.id);
 
       idsCollection = {
@@ -286,7 +311,7 @@ Auth.post.signup = async (req, res, next) => {
         contactId: sfAgentData?.id,
         companyId: sfCompanyData?.id,
         agentId: agent?._id,
-        partnerId: data?.Partner_Id__c
+        partnerId: data?.Partner_Id__c,
       };
       const updatedAgent = await Agent.findByIdAndUpdate(
         agent.id,
@@ -368,7 +393,6 @@ Auth.patch.signup = async (req, res, next) => {
         expiresIn: "24d",
       }
     );
-
     const companyData = convertToCompanyData(requestData);
     const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account/${idsCollection?.companyId}`;
     const sfCompanyData = await updateDataToSF(companyData, companyUrl);
@@ -413,42 +437,22 @@ Auth.post.emailExist = async (req, res) => {
 };
 
 Auth.post.forgotPassword = async (req, res) => {
-  const otp = Math.floor(Math.random() * 9000) + 1000;
-  const result = await Staff.findOneAndUpdate(
-    { email: req.body.email.toLowerCase().trim() },
-    { $set: { passwordResetOtp: otp } }
-  );
-  const sendMail = await sendEmailWithOTP(req.body.email, otp);
-  if (!sendMail) {
-    return res.status(400).json({ statusCode: 400, message: "Email not sent" });
+  try {
+    const otp = Math.floor(Math.random() * 9000) + 1000;
+    await Staff.findOneAndUpdate(
+      { email: req.body.email.toLowerCase().trim() },
+      { $set: { passwordResetOtp: otp } }
+    );
+    await sendEmailWithOTP(req.body.email, otp);
+    return res
+      .status(200)
+      .json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return res
+      .status(500)
+      .json({ statusCode: 500, message: "Failed To Send OTP Mail" });
   }
-  return res.status(200).json({ statusCode: 200, message: "Email sent successfully" });
-
-
-  // let mailTransporter = nodemailer.createTransport({
-  //   service: "gmail",
-  //   auth: {
-  //     user: "tset4598t@gmail.com",
-  //     pass: "bzvvmohfxolkhnuj",
-  //   },
-  // });
-
-  // let mailDetails = {
-  //   from: "tset4598t@gmail.com",
-  //   to: req.body.email,
-  //   subject: "Verify Otp",
-  //   text: "Your otp to verify is " + otp,
-  // };
-
-  // mailTransporter.sendMail(mailDetails, function (err, data) {
-  //   if (err) {
-  //     console.log("Error Occurs");
-  //   } else {
-  //     console.log("Email sent successfully");
-  //   }
-  // });
-
-  // return res.status(200).json({ statusCode: 200 });
 };
 
 Auth.post.verifyOtp = async (req, res) => {
