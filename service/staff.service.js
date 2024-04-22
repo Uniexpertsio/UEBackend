@@ -42,6 +42,15 @@ class StaffService {
   }
   async addStaff(agentData, staffDetails, commonId) {
     let branchName = "";
+    const existingEmail = await StaffModel.find({email:staffDetails?.email});
+    const existingContact = await StaffModel.find({phone:staffDetails?.phone});
+    if (existingEmail.length>0) {
+        throw new Error("Email already exists");
+    }
+    if (existingContact.length>0) {
+        throw new Error("Contact already exists");
+    }
+
     if (staffDetails.branchId) {
       const branch = await this.branchService.findById(staffDetails.branchId);
       branchName = branch?.name;
