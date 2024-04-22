@@ -5,46 +5,50 @@ class EducationController {
     this.educationService = new EducationService();
   }
 
-  addEducation(req, res) {
+  async addEducation(req, res) {
     try {
       const { studentId, modifiedBy, body } = req;
       const education = this.educationService.add(studentId, modifiedBy, body);
       res.status(201).json(education);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
     }
   }
 
-  updateEducation(req, res) {
+  async updateEducation(req, res) {
     try {
       const { modifiedBy, params, body } = req;
       const educationId = params.educationId;
       this.educationService.update(modifiedBy, educationId, body);
       res.sendStatus(204);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
     }
   }
 
-  deleteEducation(req, res) {
+  async deleteEducation(req, res) {
     try {
       const { params } = req;
       const educationId = params.educationId;
       this.educationService.delete(educationId);
       res.sendStatus(204);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
     }
   }
 
-  getByStudentId(req, res) {
+  async getByStudentId(req, res) {
     try {
       const { params } = req;
       const studentId = params.studentId;
       const education = this.educationService.getByStudentId(studentId);
       res.json(education);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
     }
   }
 }

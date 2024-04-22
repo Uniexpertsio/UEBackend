@@ -1,4 +1,5 @@
 const DocumentTypeService = require("../service/documentType.service");
+const sendResponse = require("../utils/errorHandler");
 
 const documentTypeService = new DocumentTypeService();
 
@@ -8,7 +9,8 @@ const getStudentDocumentType = async (req, res) => {
     res.status(200).json(studentDocumentTypes);
   } catch (error) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -17,7 +19,8 @@ const addDocumentType = async (req, res) => {
     const studentDocumentType = await documentTypeService.addDocumentType(req.body);
     res.status(200).json(studentDocumentType);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -26,7 +29,8 @@ const getStudentApplicationDocumentType = async (req, res) => {
     const applicationDocumentTypes = await documentTypeService.getStudentApplicationDocumentType();
     res.status(200).json(applicationDocumentTypes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -36,7 +40,8 @@ const getPartnerDocumentType = async (req, res) => {
     const partnerDocumentTypes = await documentTypeService.getPartnerDocumentType(agentId);
     res.status(200).json(partnerDocumentTypes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
