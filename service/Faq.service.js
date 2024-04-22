@@ -1,5 +1,6 @@
 const Faq = require("../models/FAQ");
 const { getDataFromSF } = require("../service/salesforce.service");
+const cron = require('node-cron');
 
 async function getFaqData(query) {
   try {
@@ -29,6 +30,7 @@ async function getFaqData(query) {
 
         // Fetch and return the updated data from MongoDB
         const updatedData = await Faq.find();
+        
         return updatedData;
       } else {
         console.log("No records found in Salesforce.");
@@ -38,6 +40,34 @@ async function getFaqData(query) {
     console.error("Error fetching data from Salesforce:", error);
   }
 }
+
+// Define the cron job schedule to run at 12 PM daily
+cron.schedule('0 12 * * *', async () => {
+  try {
+    const url = `${process.env.SF_QUERY_URL}?q=SELECT+Id,Name,Question__c,Type__c,Answer__c,URL__c+FROM+FrequentlyAskedQuestion__c+LIMIT+200`;
+    const sfData = await getDataFromSF(url);
+
+    if (sfData && sfData.records.length > 0) {
+      const operations = sfData.records.map(async (data) => {
+        try {
+          const filter = { Id: data.Id };
+          const update = { $set: data };
+          const options = { upsert: true };
+          await Faq.updateOne(filter, update, options);
+        } catch (error) {
+          console.error(`Error updating`, error);
+        }
+      });
+
+      await Promise.all(operations);
+      console.log("Data sync from Salesforce completed.");
+    } else {
+      console.log("No records found in Salesforce.");
+    }
+  } catch (error) {
+    console.error("Error fetching data from Salesforce:", error);
+  }
+});
 
 module.exports = {
   getFaqData,
