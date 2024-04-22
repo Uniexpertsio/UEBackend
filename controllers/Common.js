@@ -24,9 +24,12 @@ Common.isOutsourced = (assetURL = "") => {
 	return !Common.s3Url(assetURL).startsWith(config.url.s3Endpoint);
 };
 
+
 Common.hashPassword = (pwd) => {
 	return scryptSync(pwd, config.keys.passwordSalt, 32).toString("hex");
 };
+
+
 Common.comparePassword = (source, input) => {
 	return Common.hashPassword(input) === source;
 };

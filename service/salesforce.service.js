@@ -104,15 +104,24 @@ const downloadTnc = async (sfId, ip) => {
   }
 };
 
-
 const sendDataToSF = async (body, url) => {
   return new Promise(async (resolve, reject) => {
-    const token = await generateToken();
-    const headers = generateHeaders(token);
     try {
+      // Generate token for Salesforce authentication
+      const token = await generateToken();
+
+      // Generate headers with the token
+      const headers = generateHeaders(token);
+
+      // Check if the URL is for updating a document in Salesforce
       if (url.match(/DMS_Documents__c\/.+/)) {
+        // Patch request for updating document in Salesforce
         const data = await axios.patch(url, body, { headers });
-        const sfResponse = await SFerrorHandler(data);
+
+        // Handle any errors from Salesforce response
+        // const sfResponse = await SFerrorHandler(data);
+
+        // Resolve with the response data
         return resolve(data);
       } else {
         const data = await axios.post(url, body, { headers });
@@ -122,7 +131,7 @@ const sendDataToSF = async (body, url) => {
       reject({sfError: true ,err})
       console.log(err?.response?.data[0]?.message);
     }
-  })
+  });
 };
 
 const updateDataToSF = async (body, url) => {
@@ -131,7 +140,6 @@ const updateDataToSF = async (body, url) => {
   try {
     const data = await axios.patch(url, body, { headers });
     return data?.data;
-   
   } catch (err) {
     console.log("Error: " + err);
     handleSfError(err);
@@ -170,7 +178,6 @@ const getExternalIdFuncs = () => {
   };
 };
 
-
 // Get External IDs of documents
 const getPartnerId = async (sfId) => {
   try {
@@ -190,7 +197,6 @@ const getPartnerId = async (sfId) => {
   // delete require.cache[require.resolve(flPath)];
   // }
 };
-
 
 // Get External IDs of documents
 const getContactId = async (sfId) => {
@@ -212,7 +218,6 @@ const getContactId = async (sfId) => {
   // }
 };
 
-
 // Get External IDs of documents
 const getDataFromSF = async (url) => {
   try {
@@ -225,7 +230,6 @@ const getDataFromSF = async (url) => {
     handleSfError(err);
   }
 };
-
 
 const handleSfError = (err) => {
   if (err.response) {
@@ -267,5 +271,5 @@ module.exports = {
   downloadTnc,
   getDataFromSF,
   getPartnerId,
-  getContactId
+  getContactId,
 };

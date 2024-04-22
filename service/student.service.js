@@ -343,9 +343,12 @@ class StudentService {
     return outputData;
   }
 
+
+  
   async createStudent(modifiedBy, agentId, studentInformation) {
     try {
-      await this.checkForValidUsers(
+      // Check if the staffId and counsellorId are valid users
+      const isValid = await this.checkForValidUsers(
         studentInformation.studentInformation.staffId,
         studentInformation.studentInformation.counsellorId
       );
@@ -381,10 +384,13 @@ class StudentService {
         counsellorId: studentData?.Counsellor__c
       };
     } catch (error) {
+      // Handle any errors that occur during the process
       console.error("Error in createStudent:", error);
       throw error;
     }
   }
+  
+  
 
 
   async preferredCountries() {
@@ -1670,14 +1676,29 @@ class StudentService {
   }
 
   async checkForValidUsers(staffId, counsellorId) {
-    const [staff, counsellor] = await Promise.all([
-      this.staffService.findByAgentId(staffId),
-      this.staffService.findById(counsellorId),
-    ]);
-    if (!staff || !counsellor) {
-      throw new Error("Student not found");
+    try {
+      // Fetch staff and counsellor concurrently
+      const [staff, counsellor] = await Promise.all([
+        this.staffService.findByAgentId(staffId),
+        this.staffService.findById(counsellorId),
+      ]);
+  
+      // Check if either staff or counsellor is not found
+      if (!staff || !counsellor) {
+        throw new Error("Student not found");
+      }
+  
+      // Return true if both staff and counsellor are found
+      return true;
+    } catch (error) {
+      // Handle any errors that occur during the process
+      console.error("Error in checkForValidUsers:", error);
+      throw error;
     }
   }
+
+
+
 
   async findById(studentId) {
     const student = await StudentModel.findById(studentId);
