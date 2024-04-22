@@ -6,6 +6,7 @@ const StaffModel = require("../models/Staff");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const Agent = require("../models/Agent");
 const { sendEmailToStaff } = require("../utils/sendMail");
+const emailValidator = require('../utils/emailValidator');
 
 class StaffService {
   constructor() {
@@ -44,19 +45,23 @@ class StaffService {
     let branchName = "";
     const existingEmail = await StaffModel.find({email:staffDetails?.email});
     const existingContact = await StaffModel.find({phone:staffDetails?.phone});
-    if (existingEmail.length>0) {
+    if (existingEmail?.length>0) {
         throw new Error("Email already exists");
     }
-    if (existingContact.length>0) {
+    if (existingContact?.length>0) {
         throw new Error("Contact already exists");
     }
 
-    if (staffDetails.branchId) {
-      const branch = await this.branchService.findById(staffDetails.branchId);
+    const emailValidation = await emailValidator(staffDetails?.email);
+    if(emailValidation == false) {
+      throw new Error("Email format is wrong");
+    }
+    if (staffDetails?.branchId) {
+      const branch = await this.branchService.findById(staffDetails?.branchId);
       branchName = branch?.name;
     }
     const externalId = uuidv4();
-    let password = await Common.hashPassword(staffDetails.password);
+    let password = await Common.hashPassword(staffDetails?.password);
     let notifications = {
       student: true,
       comments: true,

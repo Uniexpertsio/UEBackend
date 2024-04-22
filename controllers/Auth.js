@@ -17,6 +17,7 @@ const {
   getTnc,
   getPartnerId,
 } = require("../service/salesforce.service");
+const emailValidator = require('../utils/emailValidator');
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -222,6 +223,11 @@ Auth.post.signup = async (req, res, next) => {
     let idsCollection;
     const agentData = req.body;
     const email = req.body.personalDetails.email;
+    const emailValidation = await emailValidator(email);
+    if(emailValidation == false) {
+      return res.status(400).json({ message: "Email format is wrong" });
+    }
+    console.log('emailValidation',emailValidation)
     let agent = await Agent.findOne({ "personalDetails.email": email });
     if (agent) {
       return res.status(400).json({ message: "Email already exists" });
@@ -427,12 +433,17 @@ Auth.post.emailExist = async (req, res) => {
 
 Auth.post.forgotPassword = async (req, res) => {
   try {
+    const email = req.body.email;
     const otp = Math.floor(Math.random() * 9000) + 1000;
     await Staff.findOneAndUpdate(
-      { email: req.body.email.toLowerCase().trim() },
+      { email: email.toLowerCase().trim() },
       { $set: { passwordResetOtp: otp } }
     );
-    await sendEmailWithOTP(req.body.email, otp);
+    const emailValidation = await emailValidator(email);
+    if(emailValidation == false) {
+      return res.status(400).json({ message: "Email format is wrong" });
+    }
+    await sendEmailWithOTP(email, otp);
     return res
       .status(200)
       .json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
