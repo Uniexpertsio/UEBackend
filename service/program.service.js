@@ -320,7 +320,7 @@ class ProgramService {
   }
 
   async findById(id) {
-    const program = await this.programModel.findOne({ _id: id });
+    const program = await this.programModel.findOne({ Id: id });
 
     if (!program) {
       throw new Error(`No program found for id - ${id}`);
