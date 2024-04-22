@@ -47,6 +47,10 @@ class StaffService {
     if(emailValidation == false) {
       throw new Error("Email format is wrong");
     }
+    const checkStaffExist = await this.staffModel.findOne({ email: staffDetails.email });
+    if(checkStaffExist) {
+      throw new Error("Staff already exist!");
+    }
     if (staffDetails.branchId) {
       const branch = await this.branchService.findById(staffDetails.branchId);
       branchName = branch?.name;
