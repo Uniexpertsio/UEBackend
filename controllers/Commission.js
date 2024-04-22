@@ -1,5 +1,6 @@
 // controllers/commissionController.js
 const CommissionService = require("../service/commission.service"); // Assuming you have a CommissionService defined
+const sendResponse = require("../utils/errorHandler");
 
 const createCommission = async (req, res) => {
   const { modifiedBy, agentId, body } = req.body;
@@ -7,8 +8,8 @@ const createCommission = async (req, res) => {
     const commission = await CommissionService.createCommission(modifiedBy, agentId, body);
     res.status(201).json(commission);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -18,8 +19,8 @@ const getCommissions = async (req, res) => {
     const commissions = await CommissionService.getCommission(agentId, query);
     res.status(200).json(commissions);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 

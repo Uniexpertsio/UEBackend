@@ -40,7 +40,8 @@ const acceptTnc = async (req, res, next) => {
 
     return res.status(200).json({ statusCode: 200, data: staffResponse });
   } catch (err) {
-    return res.status(200).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -49,7 +50,8 @@ const getTnC = async (req, res, next) => {
     const data = await getTnc(req.params.sfId);
     return res.status(200).json(data);
   } catch (err) {
-    return res.status(200).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -63,7 +65,8 @@ const downloadTncData = async (req, res, next) => {
     return res.status(200).json(data);
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(200).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -84,7 +87,8 @@ const getGeneralInformation = async (req, res, next) => {
     }
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(200).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -118,7 +122,8 @@ const updateGeneralInformation = async (req, res) => {
     return res.status(200).json({ statusCode: 200, data: result });
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(400).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -162,7 +167,8 @@ const updateBankInformation = async (req, res) => {
     return res.status(200).json({ statusCode: 200, data: result });
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(400).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -185,7 +191,8 @@ const getAccountManager = async (req, res) => {
   }
 }catch(err) {
   logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(400).json({ statusCode: 400, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
 }
 };
 
@@ -202,7 +209,6 @@ const updateDocuments = async (req, res) => {
       .status(200)
       .json({ statusCode: 200, data: updateDocumentsResponse });
   } catch (err) {
-    // return res.status(400).json({ statusCode: 400, message: err.message });
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     const {statusCode, errorMessage} = await sendResponse(err);
     res.status(statusCode).json({ error: errorMessage });
@@ -221,7 +227,8 @@ const updateDocument = async (req, res) => {
       .status(200)
       .json({ statusCode: 200, data: updateDocumentsResponse });
   } catch (err) {
-    return res.status(200).json({ statusCode: 200, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -231,7 +238,8 @@ const getDocuments = async (req, res) => {
     const documents = await documentService.getByUserId(agentId);
     return res.status(200).json({ statusCode: 200, data: documents });
   } catch (err) {
-    return res.status(200).json({ statusCode: 200, message: err.message });
+    const {statusCode, errorMessage} = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 

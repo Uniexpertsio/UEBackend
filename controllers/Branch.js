@@ -1,4 +1,5 @@
 const BranchService = require("../service/branch.service");
+const sendResponse = require("../utils/errorHandler");
 
 const branchService = new BranchService();
 
@@ -10,7 +11,8 @@ async function addBranch(req, res) {
         const staff = await branchService.addBranch(agentId, staffDetails);
         res.status(201).json({ id: staff._id });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        const { statusCode, errorMessage } = await sendResponse(error);
+        res.status(statusCode).json({ error: errorMessage });
     }
 }
 
@@ -22,7 +24,8 @@ async function getAllBranch(req, res) {
         const staff = await branchService.getBranches(agentId);
         res.status(200).json(staff);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        const { statusCode, errorMessage } = await sendResponse(error);
+        res.status(statusCode).json({ error: errorMessage });
     }
 }
 // async function updateStaff(req, res) {

@@ -13,6 +13,8 @@ class CaseController {
       res.json(cases);
     } catch (error) {
       logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      const { statusCode, errorMessage } = await sendResponse(error);
+      res.status(statusCode).json({ error: errorMessage });
     }
   }
 
@@ -54,8 +56,10 @@ class CaseController {
         message: "Case created successfully",
         data: newCase,
       });
-    } catch(error) {
+    } catch (error) {
       logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+      const { statusCode, errorMessage } = await sendResponse(error);
+      res.status(statusCode).json({ error: errorMessage });
     }
   }
 
@@ -65,7 +69,8 @@ class CaseController {
       const comments = await this.caseService.getCaseComments(caseId);
       res.status(200).json(comments);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      const { statusCode, errorMessage } = await sendResponse(error);
+      res.status(statusCode).json({ error: errorMessage });
     }
   };
 
@@ -104,7 +109,8 @@ class CaseController {
       const updatedComment = await this.caseService.updateReplyComment(sfId, commentData);
       res.status(200).json(updatedComment);
     } catch (error) {
-      res.status(500).json(error);
+      const { statusCode, errorMessage } = await sendResponse(error);
+      res.status(statusCode).json({ error: errorMessage });
     }
   }
 }

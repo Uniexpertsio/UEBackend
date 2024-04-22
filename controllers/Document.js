@@ -1,6 +1,7 @@
 const uuid = require('uuid');
 const Document = require('../models/Document');
 const DocumentService = require('../service/document.service');
+const sendResponse = require("../utils/errorHandler");
 
 
 const documentService = new DocumentService();
@@ -22,7 +23,8 @@ const addDocuments = async (req, res) => {
     );
     res.status(200).json(insertedDocuments);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -39,7 +41,8 @@ const addDocument = async (req, res) => {
     });
     res.status(200).json(insertedDocument);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -49,7 +52,8 @@ const updateDocument = async (req, res) => {
     await documentService.updateDocument(modifiedBy, documentId, body);
     res.status(200).json({ message: 'Document updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -59,7 +63,8 @@ const deleteDocument = async (req, res) => {
     await documentService.deleteDocument(documentId);
     res.status(200).json({ message: 'Document deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -69,7 +74,8 @@ const getByUserId = async (req, res) => {
     const documents = await documentService.getByUserId(userId);
     res.status(200).json(documents);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -79,7 +85,8 @@ const findById = async (req, res) => {
     const document = await documentService.findById(id);
     res.status(200).json(document);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -108,7 +115,8 @@ const searchStudentDocument = async (req, res) => {
     const results = await Document.find(query);
     res.status(200).json(results);
   } catch(error) {
-    res.status(500).json({error: error.message});
+    const { statusCode, errorMessage } = await sendResponse(error);
+    res.status(statusCode).json({ error: errorMessage });
   }
 }
 

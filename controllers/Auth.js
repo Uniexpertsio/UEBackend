@@ -146,26 +146,26 @@ Auth.post.login = async (req, res) => {
     if (!staff) {
       const error = new Error("User does not exist");
       error.statusCode = 404;
-      error.error="User does not exist"
+      error.error = "User does not exist"
       throw error;
     } else if (!staff.isActive) {
       const error = new Error("Your account is blocked. Please contact admin.");
       error.statusCode = 400;
-      error.error="Your account is blocked. Please contact admin."
+      error.error = "Your account is blocked. Please contact admin."
       throw error;
     } else {
       // Check if lastLoginDate is older than 15 days
       const lastLoginDate = new Date(staff.lastLoginDate);
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-      if (lastLoginDate < fifteenDaysAgo && staff?.role!=='admin') {
+      if (lastLoginDate < fifteenDaysAgo && staff?.role !== 'admin') {
         await Staff.updateOne(
           { _id: staff._id },
           { $set: { isActive: false } }
         );
         const error = new Error("Your account is blocked due to inactivity. Please contact admin.");
         error.statusCode = 400;
-        error.error="Your account is blocked due to inactivity. Please contact admin."
+        error.error = "Your account is blocked due to inactivity. Please contact admin."
         throw error;
       }
 
@@ -211,12 +211,8 @@ Auth.post.login = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log("Request: ", err);
-    return res.status(400).json({
-      statusCode: 400,
-      message: err.message,
-      success: false
-    });
+    const { statusCode, errorMessage } = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -227,10 +223,10 @@ Auth.post.signup = async (req, res, next) => {
     const agentData = req.body;
     const email = req.body.personalDetails.email;
     const emailValidation = await emailValidator(email);
-    if(emailValidation == false) {
+    if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
-    console.log('emailValidation',emailValidation)
+    console.log('emailValidation', emailValidation)
     let agent = await Agent.findOne({ "personalDetails.email": email });
     if (agent) {
       return res.status(400).json({ message: "Email already exists" });
@@ -337,12 +333,8 @@ Auth.post.signup = async (req, res, next) => {
     });
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    // sendResponse(err);
-    return res.status(400).json({
-      statusCode: 400,
-      message: err.message,
-      success: false,
-    });
+    const { statusCode, errorMessage } = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -425,11 +417,8 @@ Auth.patch.signup = async (req, res, next) => {
     });
   } catch (err) {
     logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
-    return res.status(400).json({
-      statusCode: 400,
-      message: err.message,
-      success: false
-    });
+    const { statusCode, errorMessage } = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -438,7 +427,8 @@ Auth.post.emailExist = async (req, res) => {
   if (staff) {
     return res.status(200).json({ data: true, statusCode: 200 });
   } else {
-    return res.status(200).json({ data: false, statusCode: 200 });
+    const { statusCode, errorMessage } = await sendResponse(err);
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
@@ -451,7 +441,7 @@ Auth.post.forgotPassword = async (req, res) => {
       { $set: { passwordResetOtp: otp } }
     );
     const emailValidation = await emailValidator(email);
-    if(emailValidation == false) {
+    if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
     await sendEmailWithOTP(email, otp);
