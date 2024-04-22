@@ -6,6 +6,7 @@ const StaffModel = require("../models/Staff");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const Agent = require("../models/Agent");
 const { sendEmailToStaff } = require("../utils/sendMail");
+const emailValidator = require('../utils/emailValidator');
 
 class StaffService {
   constructor() {
@@ -42,6 +43,10 @@ class StaffService {
   }
   async addStaff(agentData, staffDetails, commonId) {
     let branchName = "";
+    const emailValidation = await emailValidator(staffDetails.email);
+    if(emailValidation == false) {
+      throw new Error("Email format is wrong");
+    }
     if (staffDetails.branchId) {
       const branch = await this.branchService.findById(staffDetails.branchId);
       branchName = branch?.name;
