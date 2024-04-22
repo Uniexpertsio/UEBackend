@@ -50,8 +50,9 @@ class ProgramController {
 
   searchProgram = async (req, res) => {
     try {
+      const { page, limit } = req.query;
       const programFilterDto = req.body;
-      const programs = await this.programService.searchProgram(programFilterDto);
+      const programs = await this.programService.searchProgram(programFilterDto,page, limit);
       
       res.status(200).json({ success: true, data: programs });
     } catch (error) {

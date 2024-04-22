@@ -180,7 +180,7 @@ class ProgramService {
     };
   }
 
-  async searchProgram(programFilterDto) {
+  async searchProgram(programFilterDto, page, limit) {
     let schoolFilter = {};
     let programFilter = {};
     console.log("search  program", programFilterDto)
@@ -310,8 +310,27 @@ class ProgramService {
       const schools = await this.schoolModel.find(schoolFilter).sort(sort);
       const programs = await this.programModel.find(programFilter);
       const programsIds = programs.map((p) => p.School__c);
-      return this.createProgramSchoolResponse(schools, programsIds, sort);
-    } catch (ex) {
+      // return this.createProgramSchoolResponse(schools, programsIds, sort);
+    // } 
+    const totalPrograms = await this.programModel.countDocuments(programFilter);
+    const totalPages = Math.ceil(totalPrograms / limit);
+
+    const paginatedPrograms = await this.programModel.find(programFilter)
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+    return {
+        data: this.createProgramSchoolResponse(schools, programsIds, sort),
+        pagination: {
+            page: page,
+            limit: limit,
+            totalCount: totalPrograms,
+            totalPages: totalPages
+        }
+    };
+}
+    catch (ex) {
       throw new Error(
         "please verify the filters, hint: check if you're providing a valid id for school and programs"
       );
