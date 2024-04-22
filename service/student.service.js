@@ -343,47 +343,69 @@ class StudentService {
     return outputData;
   }
 
+
+  
   async createStudent(modifiedBy, agentId, studentInformation) {
     try {
-      await this.checkForValidUsers(
+      // Check if the staffId and counsellorId are valid users
+      const isValid = await this.checkForValidUsers(
         studentInformation.studentInformation.staffId,
         studentInformation.studentInformation.counsellorId
       );
-
-      const externalId = uuid();
-      const student = await StudentModel.create({
-        ...studentInformation,
-        modifiedBy,
-        agentId,
-        externalId,
-        createdBy: modifiedBy,
-      });
-
-      const studentData = this.converttoSfBody(studentInformation);
-      console.log(
-        "\n\nStudent Data: " + JSON.stringify(studentData) + "\n\n\n\n"
-      );
-      const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-      const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-      const sfId = sfStudentResponse?.id;
-      let contactDetails;
-      if (sfId) {
-        await StudentModel.updateOne(
-          { _id: student._id },
-          { $set: { salesforceId: sfId } }
-        );
-        contactDetails = await getContactId(sfId);
+  
+      // Proceed only if both staff and counsellor are found
+      if (isValid) {
+        // Generate a unique external ID for the student
+        const externalId = uuid();
+  
+        // Create a new student in the database
+        const student = await StudentModel.create({
+          ...studentInformation, // Spread the studentInformation object
+          modifiedBy,
+          agentId,
+          externalId,
+          createdBy: modifiedBy,
+        });
+  
+        // Convert student information to Salesforce format
+        const studentData = this.converttoSfBody(studentInformation);
+  
+        // Construct the URL for Salesforce API to create a Contact
+        const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
+  
+        // Send student data to Salesforce
+        const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
+  
+        // Get the Salesforce ID if the student was successfully created in Salesforce
+        const sfId = sfStudentResponse?.id;
+        let contactDetails;
+  
+        // Update the student in the database with the Salesforce ID
+        if (sfId) {
+          await StudentModel.updateOne(
+            { _id: student._id },
+            { $set: { salesforceId: sfId } }
+          );
+  
+          // Retrieve additional contact details from Salesforce
+          contactDetails = await getContactId(sfId);
+        }
+  
+        // Return relevant information about the created student
+        return {
+          id: student._id, // Return the MongoDB ID of the student
+          sf: sfStudentResponse, // Return the Salesforce response
+          partnerId: contactDetails?.Student_ID__c, // Return the partner ID from Salesforce
+        };
       }
-      return {
-        id: student._id,
-        sf: sfStudentResponse,
-        partnerId: contactDetails?.Student_ID__c,
-      };
     } catch (error) {
+      // Handle any errors that occur during the process
       console.error("Error in createStudent:", error);
       throw error;
     }
   }
+  
+  
 
 
   async preferredCountries() {
@@ -1670,14 +1692,29 @@ class StudentService {
   }
 
   async checkForValidUsers(staffId, counsellorId) {
-    const [staff, counsellor] = await Promise.all([
-      this.staffService.findByAgentId(staffId),
-      this.staffService.findById(counsellorId),
-    ]);
-    if (!staff || !counsellor) {
-      throw new Error("Student not found");
+    try {
+      // Fetch staff and counsellor concurrently
+      const [staff, counsellor] = await Promise.all([
+        this.staffService.findByAgentId(staffId),
+        this.staffService.findById(counsellorId),
+      ]);
+  
+      // Check if either staff or counsellor is not found
+      if (!staff || !counsellor) {
+        throw new Error("Student not found");
+      }
+  
+      // Return true if both staff and counsellor are found
+      return true;
+    } catch (error) {
+      // Handle any errors that occur during the process
+      console.error("Error in checkForValidUsers:", error);
+      throw error;
     }
   }
+
+
+
 
   async findById(studentId) {
     const student = await StudentModel.findById(studentId);
