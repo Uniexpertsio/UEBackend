@@ -15,23 +15,23 @@ class StudentController {
       const { id, agentId } = req.user;
       const body = req.body;
       const result = await this.studentService.createStudent(id, agentId, body);
-    logger.info(`CounsellorId: ${result?.counsellorId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      logger.info(`CounsellorId: ${result?.counsellorId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
-    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
 
   async getStudents(req, res) {
     try {
-      const { agentId,role,_id} = req.user;
+      const { agentId, role, _id } = req.user;
       const query = req.query;
       const searchData = {
         searchType: req.query.searchType,
         searchTerm: req.query.searchTerm
-    };
-      const result = await this.studentService.getStudent(agentId, query,role,_id,searchData);
+      };
+      const result = await this.studentService.getStudent(agentId, query, role, _id, searchData);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -73,8 +73,10 @@ class StudentController {
       const { id } = req.user;
       const body = req.body;
       const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body, req.query?.frontend);
+      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(data);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -95,8 +97,10 @@ class StudentController {
       const { _id, agentId } = req.user;
       const body = req.body;
       const student = await this.studentService.addStudentEducation(studentId, _id, body);
+      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(student);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -142,8 +146,10 @@ class StudentController {
       const { id, agentId } = req.user;
       const body = req.body;
       const workHistory = await this.studentService.addStudentWorkHistory(studentId, id, body, agentId);
+      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(workHistory);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -188,8 +194,10 @@ class StudentController {
       const { body } = req;
       const { id, agentId } = req.user;
       const result = await this.studentService.addStudentTestScore(studentId, id, body, agentId);
+      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -305,10 +313,11 @@ class StudentController {
       const { studentId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.updateStudentDocument(studentId, id, body,req.query?.frontend);
+      const result = await this.studentService.updateStudentDocument(studentId, id, body, req.query?.frontend);
+      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
-      console.log('error---',error)
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       // res.status(500).json({ error: error.message });
       sendResponse(error);
 
@@ -354,8 +363,10 @@ class StudentController {
       const { body } = req;
       const { id } = req.user;
       const result = await this.studentService.updateStudentPayment(studentId, id, paymentId, body);
+      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -388,8 +399,10 @@ class StudentController {
       const { body } = req;
       const { id, agentId } = req.user;
       const result = await this.studentService.addStudentTask(studentId, agentId, id, body);
+      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   }
@@ -444,8 +457,10 @@ class StudentController {
       const { id } = req.user;
       const body = req.body;
       const response = await this.studentService.addStudentComment(studentId, id, body);
+      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(response);
     } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
       res.status(500).json({ error: error.message });
     }
   };

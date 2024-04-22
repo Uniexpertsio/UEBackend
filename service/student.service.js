@@ -654,7 +654,6 @@ class StudentService {
   }
 
   async checkIfEducationBelongsToStudent(studentId, educationId) {
-    console.log("student request---539", studentId, educationId);
     const student = await StudentModel.findById(studentId);
     if (!student) {
       throw new Error("Student not found");

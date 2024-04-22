@@ -203,7 +203,7 @@ const updateDocuments = async (req, res) => {
       .json({ statusCode: 200, data: updateDocumentsResponse });
   } catch (err) {
     // return res.status(400).json({ statusCode: 400, message: err.message });
-    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: Bad request`);
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
     const {statusCode, errorMessage} = await sendResponse(err);
     res.status(statusCode).json({ error: errorMessage });
   }

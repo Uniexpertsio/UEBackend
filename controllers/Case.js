@@ -6,9 +6,14 @@ class CaseController {
   }
 
   async getAllCases(req, res) {
-    const { sfId } = req.user;
-    const cases = await this.caseService.getAllCases(sfId);
-    res.json(cases);
+    try {
+      const { sfId } = req.user;
+      const cases = await this.caseService.getAllCases(sfId);
+      logger.info(`sfId: ${sfId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      res.json(cases);
+    } catch (error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+    }
   }
 
   async getCaseById(req, res) {
@@ -36,18 +41,24 @@ class CaseController {
       data: newCase,
     });
   }
+
   async createCaseComment(req, res) {
-    const commentData = req.body;
-    const { caseId } = req.params;
-    console.log(req);
-    const { id } = req.user;
-    const newCase = await this.caseService.createCaseComment(commentData, id, caseId);
-    res.status(201).send({
-      statuscode: 201,
-      message: "Case created successfully",
-      data: newCase,
-    });
+    try {
+      const commentData = req.body;
+      const { caseId } = req.params;
+      const { id } = req.user;
+      const newCase = await this.caseService.createCaseComment(commentData, id, caseId);
+      logger.info(`AccountId: ${id} caseId: ${caseId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      res.status(201).send({
+        statuscode: 201,
+        message: "Case created successfully",
+        data: newCase,
+      });
+    } catch(error) {
+      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
+    }
   }
+
   getCaseComments = async (req, res) => {
     try {
       const { caseId } = req.params;

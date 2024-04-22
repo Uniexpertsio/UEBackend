@@ -14,45 +14,49 @@ class CaseService {
   }
 
   async getAllCases(contactId) {
-    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
-    const sfData = await getDataFromSF(url);
-    if (sfData && sfData?.records?.length > 0) {
+    try {
+      const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
+      const sfData = await getDataFromSF(url);
+      if (sfData && sfData?.records?.length > 0) {
 
-      const operations = sfData.records.map(async (data) => {
-        try {
-          const payload = {
-            caseId: data?.Id,
-            contactId: data?.ContactId,
-            accountId: data?.AccountId,
-            type: data?.Reason,
-            subject: data?.Subject,
-            priority: data?.Priority,
-            description: data?.Description,
-            subType: data?.Case_Sub_Reason__c,
-            attachment: data?.Attachment__c,
-            status: data?.Status,
-            accountName: data?.Account_Name__c,
-            contactName: data?.Contact_Name__c,
-            caseNumber: data?.CaseNumber,
-          }
-          const ifexist = await Case.find({ caseId: data?.Id });
-          if (ifexist && ifexist?.length > 0) {
-            await Case.updateOne({ caseId: data?.Id }, payload);
-          }
-          else {
-            await new Case(payload).save();
-          }
+        const operations = sfData.records.map(async (data) => {
+          try {
+            const payload = {
+              caseId: data?.Id,
+              contactId: data?.ContactId,
+              accountId: data?.AccountId,
+              type: data?.Reason,
+              subject: data?.Subject,
+              priority: data?.Priority,
+              description: data?.Description,
+              subType: data?.Case_Sub_Reason__c,
+              attachment: data?.Attachment__c,
+              status: data?.Status,
+              accountName: data?.Account_Name__c,
+              contactName: data?.Contact_Name__c,
+              caseNumber: data?.CaseNumber,
+            }
+            const ifexist = await Case.find({ caseId: data?.Id });
+            if (ifexist && ifexist?.length > 0) {
+              await Case.updateOne({ caseId: data?.Id }, payload);
+            }
+            else {
+              await new Case(payload).save();
+            }
 
-          console.log(`Successfully updated/inserted document with Id`);
-        } catch (error) {
-          console.error(`Error updating`, error);
-        }
-      });
-      // Wait for all update operations to complete
-      await Promise.all(operations);
+            console.log(`Successfully updated/inserted document with Id`);
+          } catch (error) {
+            console.error(`Error updating`, error);
+          }
+        });
+        // Wait for all update operations to complete
+        await Promise.all(operations);
 
+      }
+      return await Case.find({ contactId });
+    } catch(error) {
+      throw error;
     }
-    return await Case.find({ contactId });
   }
 
   async getCaseById(id) {
@@ -96,7 +100,7 @@ class CaseService {
     }
   }
 
-  
+
   async getCaseComments(caseId) {
     const caseData = await Case.findById(caseId);
     if (!caseData) throw new Error("Case not found");
@@ -149,7 +153,6 @@ class CaseService {
       let createCase = await new Case(caseData).save();
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
       const data = this.convertToCaseData(caseData);
-      // console.log(caseData);
       const sfRes = await sendDataToSF(data, url);
       let caseDatafromSf;
       if (sfRes && sfRes.success) {
@@ -170,7 +173,7 @@ class CaseService {
           .status(404)
           .send({ statuscode: 404, message: "not created" });
       }
-    logger.info(`AccountId: ${agent?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      logger.info(`AccountId: ${agent?.commonId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       return { ...createCase?._doc, ...caseDatafromSf };
     } catch (err) {
       res.status(400).send({ statuscode: 400, message: err.message });
@@ -205,7 +208,7 @@ class CaseService {
           .status(400)
           .send({ statuscode: 400, message: "case data not updated" });
       }
-    logger.info(`SalesforceId: ${sfRes?.id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      logger.info(`SalesforceId: ${sfRes?.id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       return cases;
     } catch (err) {
       logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${err?.response?.data[0]?.message}`);
@@ -267,8 +270,8 @@ class CaseService {
           throw new Error('Reply comment not created');
         }
         await Comment.findOneAndUpdate(
-          { commentSfId: sfId }, 
-          { $push: { replyComment: replyComment._id } }, 
+          { commentSfId: sfId },
+          { $push: { replyComment: replyComment._id } },
           { new: true })
         resolve({ message: "Success", status: 200, sf: sfId });
       } catch (error) {

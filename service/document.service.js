@@ -136,6 +136,7 @@ class DocumentService {
       { $set: { ...body, modifiedBy } }
     );
   }
+  
   async deleteDocument(documentId) {
     return await Document.deleteOne({ _id: documentId });
   }

@@ -17,8 +17,10 @@ async function addStaff(req, res) {
   try {
     const staffDetails = req.body;
     const staff = await staffService.addStaff(req.user, staffDetails);
+    logger.info(`Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
     res.status(201).json({ id: staff._id });
   } catch (error) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
     res.status(400).json({ error: error.message });
   }
 }

@@ -7,6 +7,7 @@ const getStudentDocumentType = async (req, res) => {
     const studentDocumentTypes = await documentTypeService.getStudentDocumentType();
     res.status(200).json(studentDocumentTypes);
   } catch (error) {
+    logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
     res.status(500).json({ error: error.message });
   }
 };
