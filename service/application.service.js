@@ -341,6 +341,7 @@ class ApplicationService {
 
       let intake = null;
       if (application.intakeId) {
+        
         intake = await this.intakeService.findById(application.intakeId);
       }
 

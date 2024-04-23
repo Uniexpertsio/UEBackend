@@ -7,8 +7,7 @@ const Currency = require("../models/Currency");
 const TestScore = require("../models/TestScore");
 const SchoolService = require("../service/school.service");
 // const SalesforceService = require("src/salesforce/salesforce.service");
-const { MappingFiles } = require('./../constants/Agent.constants');
-
+const { MappingFiles } = require("./../constants/Agent.constants");
 
 class ProgramService {
   constructor() {
@@ -27,7 +26,7 @@ class ProgramService {
   //   return this.parseProgram(data);
   // }
   async getProgram(schoolId) {
-    let data = await this.programModel.find({School__c:schoolId});
+    let data = await this.programModel.find({ School__c: schoolId });
     return data;
   }
 
@@ -36,7 +35,8 @@ class ProgramService {
     data.id = data._id;
 
     const school = await this.schoolModel.findById(data.schoolId);
-    const currency = school && await this.currencyModel.findOne({ symbol: school.currency });
+    const currency =
+      school && (await this.currencyModel.findOne({ symbol: school.currency }));
 
     delete data._id;
     delete data.__v;
@@ -134,8 +134,9 @@ class ProgramService {
     // EndPointUrl For Patch:-- https://uniexperts--dev.sandbox.my.salesforce.com/services/data/v55.0/sobjects/Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973
     //  Headers:
     //         Content-Type:-application/json
-    //         Authorization:- Bearer 00DN0000000cDM4!ASAAQDM.EQzHY3pG6TVBBtQU2NDLIkRgO8nWWFlbNUySnCABnD4Wud.Fw7KxzK0A2OXxnp1BXBKosLb.9ZlgfNU01aEVE_ks"			
-    const url = "Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973"
+    //         Authorization:- Bearer 00DN0000000cDM4!ASAAQDM.EQzHY3pG6TVBBtQU2NDLIkRgO8nWWFlbNUySnCABnD4Wud.Fw7KxzK0A2OXxnp1BXBKosLb.9ZlgfNU01aEVE_ks"
+    const url =
+      "Programme__c/ExternalId__c/e4433a12-51b8-1adc-c4f5-0f1f0842a973";
     // const sf = await this.salesforceService.sendToSF(MappingFiles.SCHOOL_programme, {
     //   ...program,
     //   schoolId: (await this.schoolService.findById(program.schoolId)).externalId,
@@ -148,17 +149,19 @@ class ProgramService {
     let programSfId = programCreateDto.Id;
     return new Promise(async (resolve, reject) => {
       try {
-        const checkProgramExist = await this.programModel.findOne({ Id: programSfId });
+        const checkProgramExist = await this.programModel.findOne({
+          Id: programSfId,
+        });
         if (checkProgramExist?.Id) {
           await this.programModel.updateOne(
             { Id: programSfId },
             { $set: { ...programCreateDto } },
             { new: true }
           );
-          return resolve({ message: "Success", status: 200, sf: programSfId })
+          return resolve({ message: "Success", status: 200, sf: programSfId });
         } else {
           await this.programModel.create({
-            ...programCreateDto
+            ...programCreateDto,
           });
           resolve({ message: "Success", status: 201, sf: programSfId });
         }
@@ -183,7 +186,7 @@ class ProgramService {
   async searchProgram(programFilterDto) {
     let schoolFilter = {};
     let programFilter = {};
-    console.log("search  program", programFilterDto)
+    console.log("search  program", programFilterDto);
 
     if (programFilterDto?.eligibilityFilter) {
       if (programFilterDto.eligibilityFilter?.studentId) {
@@ -204,7 +207,10 @@ class ProgramService {
       if (programFilterDto.eligibilityFilter.examType) {
         //both program and school does not have this field so not considering here
       }
-      if (programFilterDto.eligibilityFilter?.marks && programFilterDto?.eligibilityFilter?.marks.length > 0) {
+      if (
+        programFilterDto.eligibilityFilter?.marks &&
+        programFilterDto?.eligibilityFilter?.marks.length > 0
+      ) {
         //both program and school does not have this field so not considering here
       }
       if (programFilterDto.eligibilityFilter?.shouldShowOnlyDirect) {
@@ -216,45 +222,69 @@ class ProgramService {
       if (programFilterDto.schoolFilter.preferredCountry) {
         schoolFilter = {
           ...schoolFilter,
-          "address.country": { $regex: programFilterDto.schoolFilter.preferredCountry, $options: "i" },
+          "address.country": {
+            $regex: programFilterDto.schoolFilter.preferredCountry,
+            $options: "i",
+          },
         };
       }
-      if (programFilterDto.schoolFilter.state && programFilterDto?.schoolFilter?.state.length > 0) {
+      if (
+        programFilterDto.schoolFilter.state &&
+        programFilterDto?.schoolFilter?.state.length > 0
+      ) {
         schoolFilter = {
           ...schoolFilter,
           "address.state": { $in: programFilterDto.schoolFilter.state },
         };
       }
-      if (programFilterDto.schoolFilter?.schoolIds && programFilterDto.schoolFilter?.schoolIds.length > 0) {
+      if (
+        programFilterDto.schoolFilter?.schoolIds &&
+        programFilterDto.schoolFilter?.schoolIds.length > 0
+      ) {
         schoolFilter = {
           ...schoolFilter,
           _id: { $in: programFilterDto.schoolFilter.schoolIds },
         };
       }
-      if (programFilterDto.schoolFilter.schoolType && programFilterDto.schoolFilter?.schoolType.length > 0) {
+      if (
+        programFilterDto.schoolFilter.schoolType &&
+        programFilterDto.schoolFilter?.schoolType.length > 0
+      ) {
         schoolFilter = {
           ...schoolFilter,
-          "about.details.schoolType": { $in: programFilterDto.schoolFilter?.schoolType },
+          "about.details.schoolType": {
+            $in: programFilterDto.schoolFilter?.schoolType,
+          },
         };
       }
     }
 
     if (programFilterDto.programFilters) {
-      if (programFilterDto.programFilters.programLevels && programFilterDto.programFilters?.programLevels?.length > 0) {
+      if (
+        programFilterDto.programFilters.programLevels &&
+        programFilterDto.programFilters?.programLevels?.length > 0
+      ) {
         programFilter = {
           ...programFilter,
-          "about.details.programLevel": { $in: programFilterDto.programFilters?.programLevels },
+          "about.details.programLevel": {
+            $in: programFilterDto.programFilters?.programLevels,
+          },
         };
       }
       if (programFilterDto.programFilters.intakeId) {
-        const intake = await this.intakeModel.findById(programFilterDto.programFilters?.intakeId);
+        const intake = await this.intakeModel.findById(
+          programFilterDto.programFilters?.intakeId
+        );
         const program = intake?.programId;
         programFilter = {
           ...programFilter,
           _id: program,
         };
       }
-      if (programFilterDto.programFilters.discipline && programFilterDto.programFilters?.discipline.length > 0) {
+      if (
+        programFilterDto.programFilters.discipline &&
+        programFilterDto.programFilters?.discipline.length > 0
+      ) {
         programFilter = {
           ...programFilter,
           discipline: {
@@ -279,13 +309,17 @@ class ProgramService {
       if (programFilterDto.programFilters?.tuitionFee) {
         programFilter = {
           ...programFilter,
-          "about.cost.tuitionFees": { $lte: programFilterDto.programFilters.tuitionFee },
+          "about.cost.tuitionFees": {
+            $lte: programFilterDto.programFilters.tuitionFee,
+          },
         };
       }
       if (programFilterDto.programFilters.applicationFee) {
         programFilter = {
           ...programFilter,
-          "about.cost.applicationFees": { $lte: programFilterDto.programFilters?.applicationFee },
+          "about.cost.applicationFees": {
+            $lte: programFilterDto.programFilters?.applicationFee,
+          },
         };
       }
       if (programFilterDto.programFilters?.includeLivingCost) {
@@ -293,7 +327,10 @@ class ProgramService {
       }
     }
 
-    if (Object.keys(schoolFilter).length && Object.keys(programFilter)?.length) {
+    if (
+      Object.keys(schoolFilter).length &&
+      Object.keys(programFilter)?.length
+    ) {
       programFilter = {
         ...programFilter,
         isRecommended: true,
@@ -305,18 +342,27 @@ class ProgramService {
       sort = this.getSortingMap()[programFilterDto.sortBy] || {};
     }
 
-    
     try {
-      const schools = await this.schoolModel.find(schoolFilter).sort(sort);
+      const schools = await this.schoolModel
+        .find(schoolFilter)
+        .sort(sort)
+        .limit(programFilterDto.limit)
+        .skip(programFilterDto.skip);
+      const totalRecords = await this.schoolModel.countDocuments(schoolFilter);
       const programs = await this.programModel.find(programFilter);
       const programsIds = programs.map((p) => p.School__c);
-      return this.createProgramSchoolResponse(schools, programsIds, sort);
+      // const programsIds = schools.map((p) => p.Id);
+      return this.createProgramSchoolResponse(
+        schools,
+        programsIds,
+        sort,
+        totalRecords
+      );
     } catch (ex) {
       throw new Error(
         "please verify the filters, hint: check if you're providing a valid id for school and programs"
       );
     }
-
   }
 
   async findById(id) {
@@ -342,7 +388,9 @@ class ProgramService {
     if (countryDisciplineFilter.discipline) {
       filter = {
         ...filter,
-        "about.details.programLevel": { $in: countryDisciplineFilter.discipline }
+        "about.details.programLevel": {
+          $in: countryDisciplineFilter.discipline,
+        },
       };
     }
 
@@ -359,19 +407,34 @@ class ProgramService {
     return this.createProgramSchoolResponse(schools, programsIds, sort);
   }
 
-  async createProgramSchoolResponse(schools, programsIds, sort = {}) {
+  async createProgramSchoolResponse(
+    schools,
+    programsIds,
+    sort = {},
+    totalRecords
+  ) {
     const parsedSchools = await this.schoolService.parseSchoolList(schools);
+
     const response = await Promise.all(
       parsedSchools.map(async (school) => {
-        const programIdsAvailable = programsIds.filter((pid) => school.Id === pid);
-        const programs = await this.programModel.find({ School__c: { $in: programIdsAvailable } }).sort(sort);
+        const programIdsAvailable = programsIds.filter(
+          (pid) => school.Id === pid
+        );
+        const programs = await this.programModel
+          .find({ School__c: { $in: programIdsAvailable } })
+          .sort(sort);
         return {
           school,
-          programs: await Promise.all(programs.map(async (program) => await this.parseProgram(program))),
+          programs: await Promise.all(
+            programs.map(async (program) => await this.parseProgram(program))
+          ),
         };
       })
     );
-    return response.filter((res) => res.programs?.length);
+    return {
+      res: response.filter((res) => res.programs?.length),
+      ...(totalRecords && totalRecords),
+    };
   }
 
   getRecentPrograms() {
@@ -385,7 +448,7 @@ class ProgramService {
     }
 
     // return Promise.all(school.programmes.map(async (id) => await this.getProgram(id)));\
-    return  await this.getProgram(school.Id)
+    return await this.getProgram(school.Id);
   }
 
   async getSimilarProgram(programId) {
@@ -403,19 +466,19 @@ class ProgramService {
     return this.createProgramSchoolResponse(schools, programsIds);
   }
 
-
-
-  // to confirm with nilesh 
+  // to confirm with nilesh
   async isEligibleForProgram(programId, schoolId, studentId, intakeId) {
     const program = await this.programModel.findById(programId);
     const examTypeRequired = program.requirementExamType;
     const scoreRequired = program.requirementScoreInformation || [];
 
-    const testScores = await this.testScoreModel.findOne({ studentId, examType: examTypeRequired });
+    const testScores = await this.testScoreModel.findOne({
+      studentId,
+      examType: examTypeRequired,
+    });
     return true;
     if (!testScores) return false;
     const studentScores = testScores.scoreInformation || [];
-
 
     return scoreRequired.every((requiredScore) => {
       return studentScores.some((studentScore) => {
