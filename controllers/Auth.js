@@ -145,26 +145,26 @@ Auth.post.login = async (req, res) => {
     if (!staff) {
       const error = new Error("User does not exist");
       error.statusCode = 404;
-      error.error="User does not exist"
+      error.error = "User does not exist"
       throw error;
     } else if (!staff.isActive) {
       const error = new Error("Your account is blocked. Please contact admin.");
       error.statusCode = 400;
-      error.error="Your account is blocked. Please contact admin."
+      error.error = "Your account is blocked. Please contact admin."
       throw error;
     } else {
       // Check if lastLoginDate is older than 15 days
       const lastLoginDate = new Date(staff.lastLoginDate);
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-      if (lastLoginDate < fifteenDaysAgo && staff?.role!=='admin') {
+      if (lastLoginDate < fifteenDaysAgo && staff?.role !== 'admin') {
         await Staff.updateOne(
           { _id: staff._id },
           { $set: { isActive: false } }
         );
         const error = new Error("Your account is blocked due to inactivity. Please contact admin.");
         error.statusCode = 400;
-        error.error="Your account is blocked due to inactivity. Please contact admin."
+        error.error = "Your account is blocked due to inactivity. Please contact admin."
         throw error;
       }
 
@@ -225,10 +225,10 @@ Auth.post.signup = async (req, res, next) => {
     const agentData = req.body;
     const email = req.body.personalDetails.email;
     const emailValidation = await emailValidator(email);
-    if(emailValidation == false) {
+    if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
-    console.log('emailValidation',emailValidation)
+    console.log('emailValidation', emailValidation)
     let agent = await Agent.findOne({ "personalDetails.email": email });
     if (agent) {
       return res.status(400).json({ message: "Email already exists" });
@@ -435,25 +435,31 @@ Auth.post.emailExist = async (req, res) => {
 Auth.post.forgotPassword = async (req, res) => {
   try {
     const email = req.body.email;
-    await forgotPasswordRateLimit(email);
     const otp = Math.floor(Math.random() * 9000) + 1000;
     await Staff.findOneAndUpdate(
       { email: email.toLowerCase().trim() },
       { $set: { passwordResetOtp: otp } }
     );
     const emailValidation = await emailValidator(email);
-    if(emailValidation == false) {
+    if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
-    await sendEmailWithOTP(email, otp);
-    return res
-      .status(200)
-      .json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+    const sendMailResponse = await sendEmailWithOTP(email, otp);
+    if (sendMailResponse.statusCode === 200) {
+      console.log('send ----',sendMailResponse.statusCode)
+      await forgotPasswordRateLimit(email);
+  
+      return res.status(200).json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+    } else {
+      return res.status(sendMailResponse.statusCode).json({ message: "Failed to send email" });
+    }
   } catch (error) {
-    console.error("Error sending email:", error);
-    return res
-      .status(500)
-      .json({ statusCode: 500, message: "Failed To Send OTP Mail" });
+    if (error.message === 'Too many requests. Please try again later.') {
+      return res.status(429).json({ statusCode: 429, message: error.message });
+    } else {
+      console.error("Error sending email:", error);
+      return res.status(500).json({ statusCode: 500, message: "Failed To Send OTP Mail" });
+    }
   }
 };
 
