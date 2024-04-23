@@ -18,6 +18,7 @@ const {
   getPartnerId,
 } = require("../service/salesforce.service");
 const emailValidator = require('../utils/emailValidator');
+const { forgotPasswordRateLimit } = require('../utils/forgotPasswordHelper');
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -434,6 +435,7 @@ Auth.post.emailExist = async (req, res) => {
 Auth.post.forgotPassword = async (req, res) => {
   try {
     const email = req.body.email;
+    await forgotPasswordRateLimit(email);
     const otp = Math.floor(Math.random() * 9000) + 1000;
     await Staff.findOneAndUpdate(
       { email: email.toLowerCase().trim() },

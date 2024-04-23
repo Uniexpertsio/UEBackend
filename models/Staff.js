@@ -59,6 +59,8 @@ const StaffSchema = new mongoose.Schema(
     dob: { type: Date, required: false },
     countryCode: { type: String, required: false },
     lastLoginDate: { type: Date, required: false },
+    forgotPasswordAttempts: { type: Number, default: 0 },
+    lastForgotPasswordRequest: { type: Date },
   },
   { timestamps: true }
 );
