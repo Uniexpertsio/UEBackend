@@ -36,6 +36,8 @@ class CaseController {
       data: newCase,
     });
   }
+
+  
   async createCaseComment(req, res) {
     const commentData = req.body;
     const { caseId } = req.params;

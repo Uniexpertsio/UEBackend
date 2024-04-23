@@ -107,15 +107,11 @@ class CaseService {
     );
   }
 
-  // async createCase(caseData) {
-  //   return await Case.create(caseData);
-  // }
-
   async getReasonService() {
     try {
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Reason`;
       const sfData = await getDataFromSF(url);
-      return sfData;
+      return sfData?.values;
     } catch (err) {
       console.log(err);
     }
@@ -125,7 +121,7 @@ class CaseService {
     try {
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Case_Sub_Reason__c`;
       const sfData = await getDataFromSF(url);
-      return sfData;
+      return sfData?.values;
     } catch (err) {
       console.log(err);
     }
@@ -144,38 +140,50 @@ class CaseService {
     return caseData;
   }
 
-  async createCase(caseData, res) {
-    try {
-      let createCase = await new Case(caseData).save();
-      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
-      const data = this.convertToCaseData(caseData);
-      // console.log(caseData);
-      const sfRes = await sendDataToSF(data, url);
-      let caseDatafromSf;
-      if (sfRes && sfRes.success) {
-        caseDatafromSf = await getDataFromSF(
-          `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${sfRes.id}`
-        );
-        console.log(caseDatafromSf);
-        if (caseDatafromSf && caseDatafromSf?.Id) {
-          createCase = await Case.findOneAndUpdate(
-            { _id: createCase._id },
-            { $set: { caseId: caseDatafromSf?.Id } }
-          );
-        }
-      }
 
-      if (!createCase) {
-        return res
-          .status(404)
-          .send({ statuscode: 404, message: "not created" });
-      }
-      return { ...createCase?._doc, ...caseDatafromSf };
-    } catch (err) {
-      res.status(400).send({ statuscode: 400, message: err.message });
-      console.log("create case error", err);
+  
+  // Async function to create a Case and send it to Salesforce
+async  createCase(caseData, res) {
+  try {
+    // Creating a new Case document and saving it to the database
+  let createCase = await new Case(caseData).save();
+
+    // Constructing the URL for Salesforce API
+    const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
+
+    // Converting case data to a format suitable for Salesforce
+    const data = this.convertToCaseData(caseData);
+
+    // Sending case data to Salesforce
+    const sfRes = await sendDataToSF(data, url);
+    console.log(sfRes);
+    let caseDatafromSf;
+
+    // If the response from Salesforce is successful
+    if (sfRes && sfRes.success) {
+       // Updating the local case document with the Salesforce case ID
+       createCase = await Case.findOneAndUpdate(
+        { _id: createCase._id },
+        { $set: { caseId: sfRes?.Id } }
+      );
     }
+
+    // If case creation/update was unsuccessful, return a 404 error
+    if (!createCase) {
+      return res
+        .status(404)
+        .send({ statuscode: 404, message: "Case not created" });
+    }
+
+    // Returning the created case document merged with Salesforce case data
+    return { ...createCase?._doc, ...caseDatafromSf };
+  } catch (err) {
+    // Handling errors by sending a 400 error response and logging the error
+    res.status(400).send({ statuscode: 400, message: err.message });
+    console.error("Create case error:", err);
   }
+}
+
 
   async updateAttachmentService(id, caseData, res) {
     try {

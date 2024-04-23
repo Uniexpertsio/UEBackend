@@ -262,7 +262,7 @@ Auth.post.signup = async (req, res, next) => {
       ],
       externalId: externalStaffId,
       agentId: agent._id,
-      password: await Common.hashPassword(agentData.password),
+      password: await Common.hashPassword(agentData.password), ////Password Encryption
       notifications: {
         student: true,
         comments: true,
