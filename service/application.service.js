@@ -56,7 +56,7 @@ class ApplicationService {
 
   convertApplicationData(data) {
     const convertedData = {
-      "Student__c": "003Hy00000tONeRIAW",
+      "Student__c": data.studentId,
       "Partner_Account__c": "", // Pass agent company Id
       "Partner_User__c": "", // Pass agent Id
       "Processing_Officer__c": "",
@@ -94,13 +94,9 @@ class ApplicationService {
 
     const externalId = uuid.v4();
     const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId });
-    console.log('apllicationc crered',application)
     const applicationSfData = this.convertApplicationData(body);
-    console .log('applicationSfData>>>',applicationSfData)
     const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
-    console.log('applicationSfUrl......',applicationSfUrl)
     const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
-    console.log('applicationSfResponse>>>>>>>>>>',applicationSfResponse)
     const sfId = applicationSfResponse?.id;
     if (sfId) {
       await Application.updateOne(
