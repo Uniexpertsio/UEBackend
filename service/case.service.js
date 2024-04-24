@@ -160,7 +160,7 @@ class CaseService {
         if (caseDatafromSf && caseDatafromSf?.Id) {
           createCase = await Case.findOneAndUpdate(
             { _id: createCase._id },
-            { $set: { caseId: caseDatafromSf?.Id } }
+            { $set: { caseId: caseDatafromSf?.id } } 
           );
         }
       }

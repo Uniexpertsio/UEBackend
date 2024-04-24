@@ -295,7 +295,7 @@ class ApplicationService {
           program: program?.Name,
           programId: payment?.programmeId,
           amount: payment?.amount,
-          // currency: await this.currencyService.getCurrency(payment.currency),
+          currency: await this.currencyService.getCurrency(payment.currency),
           date: payment?.date,
           status: payment?.status,
         };
@@ -305,13 +305,10 @@ class ApplicationService {
 
   async getApplication(applicationId) {
     try {
-      console.log('application id--',applicationId)
       const application = await Application.findById(applicationId);
-      console.log('application',application)
       const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
-      console.log('scholl>>>>',student, school, program)
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
