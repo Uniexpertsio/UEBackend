@@ -3,6 +3,7 @@ const School = require("../models/School");
 const Currency = require("../models/Currency");
 const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
+const Program = require("../models/Program");
 
 class SchoolService {
 
@@ -133,6 +134,26 @@ class SchoolService {
     }
 
     return await this.parseSchool(school);
+  }
+
+  async getSchoolProgram(schoolId, page, limit) {
+    try {
+      const skip = (page - 1) * limit;
+      const programPromise = await Program.find({School__c: schoolId}).skip(skip).limit(limit);
+      const countPromise = await Program.countDocuments({ School__c: schoolId });
+
+      const [programs, count] = await Promise.all([programPromise, countPromise]);
+
+      return {
+        programs,
+        totalCount: count,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit)
+      };
+    } catch (error) {
+      console.error("Error fetching school list:", error);
+      throw error;
+    }
   }
 }
 
