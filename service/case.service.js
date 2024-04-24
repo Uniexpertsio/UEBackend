@@ -156,15 +156,15 @@ async  createCase(caseData, res) {
 
     // Sending case data to Salesforce
     const sfRes = await sendDataToSF(data, url);
-    console.log(sfRes);
     let caseDatafromSf;
 
     // If the response from Salesforce is successful
     if (sfRes && sfRes.success) {
        // Updating the local case document with the Salesforce case ID
+       console.log(createCase._id);
        createCase = await Case.findOneAndUpdate(
         { _id: createCase._id },
-        { $set: { caseId: sfRes?.Id } }
+        { $set: { caseId: sfRes?.id } }
       );
     }
 

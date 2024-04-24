@@ -18,6 +18,7 @@ const generateToken = async () => {
     aud: process.env.SF_URL,
     exp: newTimestampInSeconds,
   };
+
   // // Create the token
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
   try {
@@ -29,7 +30,7 @@ const generateToken = async () => {
       return false; // Token verification failed
     }
   } catch (error) {
-    console.error("Error generating token:", error.message);
+    console.error("Error generating token:", error);
     return false;
   }
 };
@@ -39,6 +40,7 @@ const verifyToken = async (token, publicKey) => {
     await jwt.verify(token, publicKey, { algorithms: ["RS256"] });
     return true; // Verification successful
   } catch (err) {
+    console.log("Token verification failed:", err.message);
     console.error("Token verification failed:", err.message);
     return false; // Verification failed
   }
@@ -103,6 +105,8 @@ const downloadTnc = async (sfId, ip) => {
     handleSfError(err);
   }
 };
+
+
 
 const sendDataToSF = async (body, url) => {
   return new Promise(async (resolve, reject) => {
