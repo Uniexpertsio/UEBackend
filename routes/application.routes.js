@@ -18,6 +18,6 @@ router.get('/:applicationId/document', Middleware.checkAuth, applicationControll
 router.post('/:applicationId/payment', Middleware.checkAuth, applicationController.addPayment.bind(applicationController));
 router.get('/:applicationId/payment', Middleware.checkAuth, applicationController.getPayments.bind(applicationController));
 router.get('/:applicationId', Middleware.checkAuth, applicationController.getApplication.bind(applicationController));
-router.patch('/:applicationId',Middleware.checkAuth, applicationController.updateApplication.bind(applicationController));
+router.patch('/:applicationSfId',Middleware.checkAuth, applicationController.updateApplication.bind(applicationController));
 
 module.exports = router;

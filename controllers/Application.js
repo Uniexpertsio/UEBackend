@@ -141,7 +141,7 @@ class ApplicationController {
 
   async updateApplication(req, res) {
     try { 
-      const applicationSfId = req.params;
+      const { applicationSfId } = req.params;
       const requestData = req.body;
       const result = await this.applicationService.updateApplication(applicationSfId, requestData);
       res.status(200).json(result);

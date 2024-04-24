@@ -394,7 +394,6 @@ class ApplicationService {
         }
         const data = {
           stage: requestData?.Current_Stage__c,
-
         }
         
           await Application.updateOne(
