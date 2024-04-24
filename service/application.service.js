@@ -402,7 +402,7 @@ class ApplicationService {
             { $set: { ...data } },
             { new: true }
           );
-          resolve({ message: "Success", status: 200, sf: applicationSfIdSfId });
+          resolve({ message: "Success", status: 200, sf: applicationSfId });
         
       } catch (error) {
         console.log(error);
