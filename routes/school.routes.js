@@ -9,5 +9,6 @@ router.put("/", Middleware.checkAuth, schoolController.addOrUpdateSchool.bind(sc
 router.get("/", Middleware.checkAuth, schoolController.getAllSchool.bind(schoolController));
 router.get("/:schoolId", Middleware.checkAuth, schoolController.getSchool.bind(schoolController));
 router.get("/by/country-state-or-school-type", Middleware.checkAuth, schoolController.getSchoolByCountryStateOrSchoolType.bind(schoolController));
+router.get("/programList/:schoolId", Middleware.checkAuth, schoolController.getSchoolProgram.bind(schoolController));
 
 module.exports = router;
