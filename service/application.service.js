@@ -125,7 +125,7 @@ class ApplicationService {
   }
 
   async getApplications(agentId, query,role,createdBy) {
-    const filter= role==='consultant' ? {createdBy} : { agentId };
+    let filter = role==='consultant' ? {createdBy} : { agentId };
 
     if (query.studentId) {
       filter = { ...filter, studentId: query.studentId };
@@ -233,6 +233,7 @@ class ApplicationService {
   }
 
   async getDocuments(applicationId) {
+    console.log('application---',applicationId)
     return await this.documentService.getByUserId(applicationId);
   }
 
@@ -294,7 +295,7 @@ class ApplicationService {
           program: program?.Name,
           programId: payment?.programmeId,
           amount: payment?.amount,
-          currency: await this.currencyService.getCurrency(payment.currency),
+          // currency: await this.currencyService.getCurrency(payment.currency),
           date: payment?.date,
           status: payment?.status,
         };
@@ -304,10 +305,13 @@ class ApplicationService {
 
   async getApplication(applicationId) {
     try {
+      console.log('application id--',applicationId)
       const application = await Application.findById(applicationId);
-      const student = await this.studentModel.findOne({ _id: application.studentId });
+      console.log('application',application)
+      const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
+      console.log('scholl>>>>',student, school, program)
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
@@ -379,6 +383,32 @@ class ApplicationService {
     } catch (error) {
       console.log('errror', error)
     }
+  }
+
+  async updateApplication(applicationSfId, requestData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const checkApplicationExist = await Application.findOne({ salesforceId: applicationSfId })
+        if(!checkApplicationExist) {
+          return reject({message: `application not exist with ${applicationSfId}`});
+        }
+        const data = {
+          stage: requestData?.Current_Stage__c,
+
+        }
+        
+          await Application.updateOne(
+            { salesforceId: applicationSfId },
+            { $set: { ...data } },
+            { new: true }
+          );
+          resolve({ message: "Success", status: 200, sf: applicationSfIdSfId });
+        
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
   }
 
   getPaidApplications(agentId, year) {
