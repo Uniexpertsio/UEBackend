@@ -15,7 +15,7 @@ const ApplicationSchema = new mongoose.Schema(
     counsellorId: { type: String, required: false },
     processingOfficerId: { type: String, required: false },
     intakeId: { type: String, required: false },
-    status: { type: String, required: false, default: "NEW" },
+    status: { type: String, required: false, default: "New" },
     stage: { type: String, required: true, default: "PRE_SUBMISSION" },
     stages: { type: [StageSchema], required: false, default: [] },
     tasks: { type: [String], required: false, default: [] },

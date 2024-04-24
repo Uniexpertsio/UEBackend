@@ -135,11 +135,9 @@ const sendDataToSF = async (body, url) => {
         resolve(data?.data);
       }
     } catch (err) {
-      // Reject with the error if any
-      reject(err);
-      // Log the error response for debugging
-      console.log(err?.response);
-      console.log(err?.response?.data[0]?.duplicateResult?.matchResults);
+        reject(err)
+        console.log("error:::",err?.response.data[0]);
+        // console.log(err?.response?.data[0]?.duplicateResult?.matchResults);
     }
   });
 };

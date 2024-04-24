@@ -138,6 +138,17 @@ class ApplicationController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async updateApplication(req, res) {
+    try { 
+      const applicationSfId = req.params;
+      const requestData = req.body;
+      const result = await this.applicationService.updateApplication(applicationSfId, requestData);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new ApplicationController();
