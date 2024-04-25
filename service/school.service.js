@@ -2,26 +2,32 @@ const uuid = require("uuid");
 const School = require("../models/School");
 const Currency = require("../models/Currency");
 const { sendToSF, sendDataToSF } = require("../service/salesforce.service");
-const { MappingFiles } = require('./../constants/Agent.constants');
+const { MappingFiles } = require("./../constants/Agent.constants");
 const Program = require("../models/Program");
 
 class SchoolService {
-
   async createSchool(id, body) {
     const externalId = uuid.v4();
     body.entryRequirements.push(
-      `This program does${body.offerConditionalAdmission ? "" : " not"} offer conditional admission`
+      `This program does${
+        body.offerConditionalAdmission ? "" : " not"
+      } offer conditional admission`
     );
 
-    const school = await School.create({ ...body, modifiedBy: id, createdBy: id, externalId });
+    const school = await School.create({
+      ...body,
+      modifiedBy: id,
+      createdBy: id,
+      externalId,
+    });
 
-    const url = "School__c/a006D00000AgAT5QAN"
+    const url = "School__c/a006D00000AgAT5QAN";
     const sf = await await sendToSF(MappingFiles.SCHOOL_school, {
       ...school,
       _user: { id },
-      url
+      url,
     });
-    console.log("sf: ", sf)
+    console.log("sf: ", sf);
     return { id: school._id };
   }
 
@@ -50,28 +56,85 @@ class SchoolService {
     });
   }
 
-
   // async getAllSchool() {
   //   const schools = await School.find({});
   //   return this.parseSchoolList(schools);
   // }
 
-  async getAllSchool(page, limit) {
+  // async getAllSchool(page, limit) {
+  //   try {
+  //     const skip = (page - 1) * limit;
+  //     const schoolPromise = await School.find({}).skip(skip).limit(limit);
+  //     const countPromise = await School.countDocuments({});
+
+  //     const [schools, count] = await Promise.all([schoolPromise, countPromise]);
+
+  //     return {
+  //       schools,
+  //       totalCount: count,
+  //       currentPage: page,
+  //       totalPages: Math.ceil(count / limit)
+  //     };
+  //   } catch (error) {
+  //     console.error("Error fetching school list:", error);
+  //     throw error;
+  //   }
+  // }
+
+  async getAllSchool(page, pageSize) {
+    const skip = (page - 1) * pageSize;
+    console.log(page, pageSize, skip);
     try {
-      const skip = (page - 1) * limit;
-      const schoolPromise = await School.find({}).skip(skip).limit(limit);
-      const countPromise = await School.countDocuments({});
+      const [schools, totalCount] = await Promise.all([
+        School.aggregate([
+          {
+            $lookup: {
+              from: "programs",
+              localField: "Id", // Assuming Id is the field referencing School__c
+              foreignField: "School__c", // Assuming School__c is the field referenced by Id
+              as: "programs",
+            },
+          },
+          {
+            $match: {
+              programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
+            },
+          },
+          {
+            $skip: skip,
+          },
+          {
+            $limit: parseInt(pageSize), // Convert pageSize to a number
+          },
+        ]),
+        School.aggregate([
+          {
+            $lookup: {
+              from: "programs",
+              localField: "Id", // Assuming Id is the field referencing School__c
+              foreignField: "School__c", // Assuming School__c is the field referenced by Id
+              as: "programs",
+            },
+          },
+          {
+            $match: {
+              programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
+            },
+          },
+          {
+            $count: "totalCount",
+          },
+        ]),
+      ]);
 
-      const [schools, count] = await Promise.all([schoolPromise, countPromise]);
+      // Extracting totalCount from the result of the second aggregation
+      const totalSchoolsWithPrograms =
+        totalCount.length > 0 ? totalCount[0].totalCount : 0;
 
-      return {
-        schools,
-        totalCount: count,
-        currentPage: page,
-        totalPages: Math.ceil(count / limit)
-      };
+      return { schools, totalSchoolsWithPrograms };
     } catch (error) {
-      console.error("Error fetching school list:", error);
+      // Handle error
+      console.error("Error:", error);
       throw error;
     }
   }
@@ -139,16 +202,23 @@ class SchoolService {
   async getSchoolProgram(schoolId, page, limit) {
     try {
       const skip = (page - 1) * limit;
-      const programPromise = await Program.find({School__c: schoolId}).skip(skip).limit(limit);
-      const countPromise = await Program.countDocuments({ School__c: schoolId });
+      const programPromise = await Program.find({ School__c: schoolId })
+        .skip(skip)
+        .limit(limit);
+      const countPromise = await Program.countDocuments({
+        School__c: schoolId,
+      });
 
-      const [programs, count] = await Promise.all([programPromise, countPromise]);
+      const [programs, count] = await Promise.all([
+        programPromise,
+        countPromise,
+      ]);
 
       return {
         programs,
         totalCount: count,
         currentPage: page,
-        totalPages: Math.ceil(count / limit)
+        totalPages: Math.ceil(count / limit),
       };
     } catch (error) {
       console.error("Error fetching school list:", error);

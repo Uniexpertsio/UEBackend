@@ -219,16 +219,38 @@ class ApplicationService {
 
   async addComment(applicationId, modifiedBy, body) {
     const comment = await this.commentService.add(body.message, modifiedBy, applicationId, body.attachment);
-
+    const application= await Application.findById(applicationId);
+    const data = {
+      "RecordTypeId": "0125g0000003QWlAAM",
+      "Enter_Note__c": null,
+      "Application__c": application?.salesforceId,
+      "Application_Owner_Email__c": null,
+      "Partner_User__c": null,
+      "Lead__c": null,
+      "PartnerNote__c": null,
+      "School__c": "",
+      "University_Notes__c": null,
+      "Subject__c": "Offer Related",
+      "Student__c": null,
+      "Message_Body__c": body?.message,
+      "Type__c": "Inbound",
+      "External__c": true,
+      "CourseEnquiry__c": null,
+  }
+    // Send comment data to Salesforce endpoint
+    const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
+    const sendingComment = await sendDataToSF(data, url);
+    console.log("sendingComment",sendingComment);
+    if(sendingComment?.id && comment?.comment?._id){
+      await this.commentService.updateCommentSfId(comment?.comment?._id,sendingComment?.id)
+    }
     const result = await Application.updateOne(
       { _id: applicationId },
       { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
     );
-
     if (result.modifiedCount === 0) {
       throw new Error("Application " + applicationId + " not found");
     }
-
     return comment;
   }
 
