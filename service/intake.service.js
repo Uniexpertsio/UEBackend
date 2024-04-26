@@ -72,7 +72,7 @@ class IntakeService {
   async getIntakeList(page, limit) {
     try {
         const skip = (page - 1) * limit;
-        const intakePromise = this.intakeModel.find({}).skip(skip).limit(limit);
+        const intakePromise = this.intakeModel.find({Status__c: 'Open'}).skip(skip).limit(limit);
         const countPromise = this.intakeModel.countDocuments({});
         
         const [intakes, count] = await Promise.all([intakePromise, countPromise]);
