@@ -1,5 +1,6 @@
 const uuid = require("uuid");
 const StudentModel = require("../models/Student");
+const ApplicationModel = require("../models/Application");
 const Document = require("../models/Document");
 const StaffService = require("./staff.service");
 const EducationService = require("../service/education.service");
@@ -1225,15 +1226,20 @@ class StudentService {
   //   return document.id;
   // }
 
-  async updateStudentDocument(studentId, modifiedBy, body,isFrontend) {
+  async updateStudentDocument(studentId, modifiedBy, body, isFrontend, applicationId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = isFrontend? await StudentModel.findOne({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
+        const student = isFrontend? await StudentModel.findById({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
         if (!student) throw "student not found";
+        if(applicationId) {
+          const application = isFrontend? await ApplicationModel.findById({ _id: applicationId }): await ApplicationModel.findOne({ salesforceId: applicationId });
+          if(!application) throw "Application not found";
+        }
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
           student?._id,
-          body
+          body,
+          applicationId
         );
         const documentIds = document.map((document) => document.id);
         await StudentModel.updateOne(
