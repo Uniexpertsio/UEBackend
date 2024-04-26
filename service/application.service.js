@@ -11,7 +11,7 @@ const CurrencyService = require("./currency.service");
 const Student = require("../models/Student");
 const School = require("../models/School");
 const Application = require("../models/Application");
-const { sendDataToSF } = require("./salesforce.service");
+const { sendDataToSF, getDataFromSF } = require("./salesforce.service");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -20,7 +20,7 @@ const ApplicationStatus = {
   WITHDRAWN: "Withdrawn",
   CANCELLED: "Cancelled",
   NOT_PAID: "Not Paid",
-}
+};
 
 const ApplicationStage = {
   PRE_SUBMISSION: "Pre-Submission",
@@ -37,7 +37,7 @@ const ApplicationStage = {
   POST_ARRIVAL: "Post-Arrival",
   COMMISSION: "Commission",
   REJECTED: "Rejected",
-}
+};
 
 class ApplicationService {
   constructor() {
@@ -56,36 +56,40 @@ class ApplicationService {
 
   convertApplicationData(data) {
     const convertedData = {
-      "Student__c": data.studentId,
-      "Partner_Account__c": "", // Pass agent company Id
-      "Partner_User__c": "", // Pass agent Id
-      "Processing_Officer__c": "",
-      "BDM_User__c": "", // Pass BDM user Id
-      "School__c": data.schoolId, // Pass School Id
-      "Programme__c": data.programId, // Pass programme Id
-      "Intake__c": data.intakeId, // Pass Intake Id
-      "DocumentCreated__c": true,
-      "Current_Stage__c": "Pre-Submission", // This will be enum please refer CAP-27 On Jira
-      "Source__c": "Sales",
-      "EntryRequirement__c": false
+      Student__c: data.studentId,
+      Partner_Account__c: "", // Pass agent company Id
+      Partner_User__c: "", // Pass agent Id
+      Processing_Officer__c: "",
+      BDM_User__c: "", // Pass BDM user Id
+      School__c: data.schoolId, // Pass School Id
+      Programme__c: data.programId, // Pass programme Id
+      Intake__c: data.intakeId, // Pass Intake Id
+      DocumentCreated__c: true,
+      Current_Stage__c: "Pre-Submission", // This will be enum please refer CAP-27 On Jira
+      Source__c: "Sales",
+      EntryRequirement__c: false,
     };
 
     return convertedData;
   }
 
-
   async addApplication(id, agentId, body) {
     let applicationCount = 1;
     try {
-      let latestApplication = await Application.findOne({}, { applicationId: 1 }, { sort: { 'applicationId': -1 } });
+      let latestApplication = await Application.findOne(
+        {},
+        { applicationId: 1 },
+        { sort: { applicationId: -1 } }
+      );
       if (latestApplication) {
-        applicationCount = parseInt(latestApplication.applicationId.split('-')[1]) + 1;
+        applicationCount =
+          parseInt(latestApplication.applicationId.split("-")[1]) + 1;
       }
     } catch (error) {
-      console.log('Error finding latest application:', error);
+      console.log("Error finding latest application:", error);
     }
-    const applicationId = `A-${applicationCount.toString().padStart(6, '0')}`;
-    console.log('applicationId', applicationId)
+    const applicationId = `A-${applicationCount.toString().padStart(6, "0")}`;
+    console.log("applicationId", applicationId);
 
     await this.findStudentById(body.studentId);
     await this.schoolService.findById(body.schoolId);
@@ -93,10 +97,20 @@ class ApplicationService {
     await this.intakeService.findById(body.intakeId);
 
     const externalId = uuid.v4();
-    const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId });
+    const application = await Application.create({
+      ...body,
+      agentId,
+      modifiedBy: id,
+      createdBy: id,
+      externalId,
+      applicationId,
+    });
     const applicationSfData = this.convertApplicationData(body);
     const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
-    const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
+    const applicationSfResponse = await sendDataToSF(
+      applicationSfData,
+      applicationSfUrl
+    );
     const sfId = applicationSfResponse?.id;
     if (sfId) {
       await Application.updateOne(
@@ -105,7 +119,7 @@ class ApplicationService {
         { new: true }
       );
     }
-    application["salesforceId"] = sfId
+    application["salesforceId"] = sfId;
     console.log("applicationSfResponse", applicationSfResponse);
 
     return application;
@@ -125,7 +139,7 @@ class ApplicationService {
   }
 
   async getApplications(agentId, query, role, createdBy) {
-    let filter = role === 'consultant' ? { createdBy } : { agentId };
+    let filter = role === "consultant" ? { createdBy } : { agentId };
 
     if (query.studentId) {
       filter = { ...filter, studentId: query.studentId };
@@ -137,8 +151,7 @@ class ApplicationService {
 
     const data = await Promise.all(
       (
-        await Application
-          .find(filter)
+        await Application.find(filter)
           .skip(query.perPage * (query.pageNo - 1))
           .limit(query.perPage)
       ).map(async (application) => {
@@ -146,11 +159,14 @@ class ApplicationService {
         const studentName = parseStudentName(student);
         let counsellor = "";
         if (application?.counsellorId) {
-          counsellor = (await this.staffService.findById(application.counsellorId)).fullName;
+          counsellor = (
+            await this.staffService.findById(application.counsellorId)
+          ).fullName;
         }
         let intake = "";
         if (application?.intakeId) {
-          intake = (await this.intakeService.findById(application.intakeId)).Name;
+          intake = (await this.intakeService.findById(application.intakeId))
+            .Name;
         }
         const school = await this.schoolService.findById(application.schoolId);
         return {
@@ -160,9 +176,11 @@ class ApplicationService {
           studentId: application?.studentId,
           school: school?.Name,
           schoolId: application?.schoolId,
-          program: (await this.programService.findById(application.programId)).Name,
+          program: (await this.programService.findById(application.programId))
+            .Name,
           programId: application?.programId,
-          partner: (await this.staffService.findById(application.createdBy)).fullName,
+          partner: (await this.staffService.findById(application.createdBy))
+            .fullName,
           partnerId: application?.createdBy,
           counsellor,
           counsellorId: application?.counsellorId,
@@ -175,7 +193,7 @@ class ApplicationService {
           currency: school?.currency,
         };
       })
-    ).catch(err => {
+    ).catch((err) => {
       console.error(err);
     });
 
@@ -185,7 +203,7 @@ class ApplicationService {
         perPage: query.perPage,
         pageNo: query.pageNo,
         total: (await Application.find(filter)).length,
-        ApplicationStatus
+        ApplicationStatus,
       },
     };
   }
@@ -218,31 +236,39 @@ class ApplicationService {
   }
 
   async addComment(applicationId, modifiedBy, body) {
-    const comment = await this.commentService.add(body.message, modifiedBy, applicationId, body.attachment);
-    const application= await Application.findById(applicationId);
+    const comment = await this.commentService.add(
+      body.message,
+      modifiedBy,
+      applicationId,
+      body.attachment
+    );
+    const application = await Application.findById(applicationId);
     const data = {
-      "RecordTypeId": "0125g0000003QWlAAM",
-      "Enter_Note__c": null,
-      "Application__c": application?.salesforceId,
-      "Application_Owner_Email__c": null,
-      "Partner_User__c": null,
-      "Lead__c": null,
-      "PartnerNote__c": null,
-      "School__c": "",
-      "University_Notes__c": null,
-      "Subject__c": "Offer Related",
-      "Student__c": null,
-      "Message_Body__c": body?.message,
-      "Type__c": "Inbound",
-      "External__c": true,
-      "CourseEnquiry__c": null,
-  }
+      RecordTypeId: "0125g0000003QWlAAM",
+      Enter_Note__c: null,
+      Application__c: application?.salesforceId,
+      Application_Owner_Email__c: null,
+      Partner_User__c: null,
+      Lead__c: null,
+      PartnerNote__c: null,
+      School__c: "",
+      University_Notes__c: null,
+      Subject__c: "Offer Related",
+      Student__c: null,
+      Message_Body__c: body?.message,
+      Type__c: "Inbound",
+      External__c: true,
+      CourseEnquiry__c: null,
+    };
     // Send comment data to Salesforce endpoint
     const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
     const sendingComment = await sendDataToSF(data, url);
-    console.log("sendingComment",sendingComment);
-    if(sendingComment?.id && comment?.comment?._id){
-      await this.commentService.updateCommentSfId(comment?.comment?._id,sendingComment?.id)
+    console.log("sendingComment", sendingComment);
+    if (sendingComment?.id && comment?.comment?._id) {
+      await this.commentService.updateCommentSfId(
+        comment?.comment?._id,
+        sendingComment?.id
+      );
     }
     const result = await Application.updateOne(
       { _id: applicationId },
@@ -255,7 +281,7 @@ class ApplicationService {
   }
 
   async getDocuments(applicationId) {
-    console.log('application---', applicationId)
+    console.log("application---", applicationId);
     return await this.documentService.getByUserId(applicationId);
   }
 
@@ -264,17 +290,21 @@ class ApplicationService {
   }
 
   async getSelectedApplicationCount(agentId) {
-    return (await Application.find({ agentId, status: ApplicationStatus.ACCEPTED })).length;
+    return (
+      await Application.find({ agentId, status: ApplicationStatus.ACCEPTED })
+    ).length;
   }
 
   getApplicationCountWithSchool() {
-    return Application.aggregate([{ $group: { _id: "$schoolId", count: { $sum: 1 } } }]);
+    return Application.aggregate([
+      { $group: { _id: "$schoolId", count: { $sum: 1 } } },
+    ]);
   }
 
   async addOrupdatePayment(applicationId, id, body) {
     const application = await this.findById(applicationId);
     const school = await this.schoolService.findById(application.schoolId);
-    
+
     const payment = await this.studentPaymentService.addApplicationPayment(
       applicationId,
       application.studentId,
@@ -284,7 +314,10 @@ class ApplicationService {
       body.currency,
       body
     );
-    return Application.updateOne({ _id: applicationId }, { $push: { payments: payment.id } });
+    return Application.updateOne(
+      { _id: applicationId },
+      { $push: { payments: payment.id } }
+    );
     if (body.sfId) {
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
       const sfRes = await sendDataToSF(data, url);
@@ -299,8 +332,15 @@ class ApplicationService {
   }
 
   async getPayments(applicationId) {
-    const payments = await this.studentPaymentService.getByApplicationId(applicationId);
-    return this.parsePaymentsResponse(payments);
+    // const payments = await this.studentPaymentService.getByApplicationId(applicationId);
+    // return this.parsePaymentsResponse(payments);
+    const application = await Application.findById(applicationId);
+    if (application) {
+      const url = `${process.env.SF_API_URL}/services/data/v50.0/query?q=SELECT+Id,Name,School__c,Programme__c,Student__c,Amount__c,Application__c,Payment_Date__c,Status__c+FROM+Payment__c+WHERE+Application__c+=+'${application?.salesforceId}'`;
+      const result = await getDataFromSF(url);
+      return result?.records;
+    }
+    throw new Error("No Application Found");
   }
 
   async parsePaymentsResponse(payments) {
@@ -334,14 +374,18 @@ class ApplicationService {
   async getApplication(applicationId) {
     try {
       const application = await Application.findById(applicationId);
-      const student = await this.studentModel.findOne({ salesforceId: application.studentId });
+      const student = await this.studentModel.findOne({
+        salesforceId: application.studentId,
+      });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
-      console.log('programsss', program)
+      console.log("programsss", program);
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
-        const processingOfficer = await this.staffService.findById(application.processingOfficerId);
+        const processingOfficer = await this.staffService.findById(
+          application.processingOfficerId
+        );
         processingOfficerResponse = {
           id: application.processingOfficerId,
           name: processingOfficer.fullName,
@@ -367,7 +411,6 @@ class ApplicationService {
 
       let intake = null;
       if (application.intakeId) {
-
         intake = await this.intakeService.findById(application.intakeId);
       }
 
@@ -385,7 +428,7 @@ class ApplicationService {
           name: school?.Name,
           schoolId: school?.Id,
           logo: school?.Logo__c,
-          currency: school?.CurrencyIsoCode
+          currency: school?.CurrencyIsoCode,
         },
         program: {
           id: program?.id,
@@ -404,29 +447,32 @@ class ApplicationService {
           currency: school.currency,
         },
         intake: {
-          name: intake?.Name
+          name: intake?.Name,
         },
       };
     } catch (error) {
-      console.log('errror', error)
+      console.log("errror", error);
     }
   }
   async updateApplication(applicationSfId, requestData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const checkApplicationExist = await Application.findOne({ salesforceId: applicationSfId });
+        const checkApplicationExist = await Application.findOne({
+          salesforceId: applicationSfId,
+        });
         if (!checkApplicationExist) {
-          return reject({ message: `Application does not exist with ${applicationSfId}` });
+          return reject({
+            message: `Application does not exist with ${applicationSfId}`,
+          });
         }
         await Application.updateOne(
           {
-            $and:
-              [
-                { salesforceId: applicationSfId },
-                { "stages.key": requestData.Current_Stage__c }
-              ]
+            $and: [
+              { salesforceId: applicationSfId },
+              { "stages.key": requestData.Current_Stage__c },
+            ],
           },
-          { $set: { 'stages.value': new Date() } }, 
+          { $set: { "stages.value": new Date() } },
           { new: true }
         );
 
@@ -457,7 +503,11 @@ class ApplicationService {
       { $match: { agentId: agentId, createdAt: { $exists: true } } },
       {
         $redact: {
-          $cond: [{ $eq: [{ $year: "$createdAt" }, parseInt(year.toString())] }, "$$KEEP", "$$PRUNE"],
+          $cond: [
+            { $eq: [{ $year: "$createdAt" }, parseInt(year.toString())] },
+            "$$KEEP",
+            "$$PRUNE",
+          ],
         },
       },
       {
@@ -474,7 +524,10 @@ class ApplicationService {
 
 function parseStudentName(student) {
   let studentName = student.studentInformation.firstName;
-  if (student.studentInformation.middleName && student.studentInformation.middleName.length > 0) {
+  if (
+    student.studentInformation.middleName &&
+    student.studentInformation.middleName.length > 0
+  ) {
     studentName += ` ${student.studentInformation.middleName}`;
   }
   studentName += ` ${student.studentInformation.lastName}`;
