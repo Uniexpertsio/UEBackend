@@ -37,7 +37,7 @@ class DocumentService {
     });
   }
 
-  async addOrUpdateStudentDocument(modifiedBy, userId, body) {
+  async addOrUpdateStudentDocument(modifiedBy, studentId, body, applicationId) {
     try {
       const updatedDocuments = [];
 
@@ -48,7 +48,8 @@ class DocumentService {
             {
               $set: {
                 ...document,
-                userId,
+                studentId,
+                applicationId,
                 modifiedBy,
                 createdBy: modifiedBy,
                 externalId: uuid.v4(),
@@ -67,7 +68,8 @@ class DocumentService {
 
       const documentsToInsert = body.documents.map((doc) => ({
         ...doc,
-        userId,
+        studentId,
+        applicationId,
         modifiedBy,
         createdBy: modifiedBy,
         externalId: uuid.v4(),

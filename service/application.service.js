@@ -78,14 +78,14 @@ class ApplicationService {
     let applicationCount = 1;
     try {
       let latestApplication = await Application.findOne({}, { applicationId: 1 }, { sort: { 'applicationId': -1 } });
-        if (latestApplication) {
-            applicationCount = parseInt(latestApplication.applicationId.split('-')[1]) + 1;
-        }
+      if (latestApplication) {
+        applicationCount = parseInt(latestApplication.applicationId.split('-')[1]) + 1;
+      }
     } catch (error) {
       console.log('Error finding latest application:', error);
     }
     const applicationId = `A-${applicationCount.toString().padStart(6, '0')}`;
-    console.log('applicationId',applicationId)
+    console.log('applicationId', applicationId)
 
     await this.findStudentById(body.studentId);
     await this.schoolService.findById(body.schoolId);
@@ -124,8 +124,8 @@ class ApplicationService {
     return student;
   }
 
-  async getApplications(agentId, query,role,createdBy) {
-    let filter = role==='consultant' ? {createdBy} : { agentId };
+  async getApplications(agentId, query, role, createdBy) {
+    let filter = role === 'consultant' ? { createdBy } : { agentId };
 
     if (query.studentId) {
       filter = { ...filter, studentId: query.studentId };
@@ -255,7 +255,7 @@ class ApplicationService {
   }
 
   async getDocuments(applicationId) {
-    console.log('application---',applicationId)
+    console.log('application---', applicationId)
     return await this.documentService.getByUserId(applicationId);
   }
 
@@ -271,9 +271,10 @@ class ApplicationService {
     return Application.aggregate([{ $group: { _id: "$schoolId", count: { $sum: 1 } } }]);
   }
 
-  async addPayment(applicationId, id, body) {
+  async addOrupdatePayment(applicationId, id, body) {
     const application = await this.findById(applicationId);
     const school = await this.schoolService.findById(application.schoolId);
+    
     const payment = await this.studentPaymentService.addApplicationPayment(
       applicationId,
       application.studentId,
@@ -284,6 +285,11 @@ class ApplicationService {
       body
     );
     return Application.updateOne({ _id: applicationId }, { $push: { payments: payment.id } });
+    if (body.sfId) {
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
+      const sfRes = await sendDataToSF(data, url);
+      sfIdFound = true; // Set the flag to true if sfId is found
+    }
   }
 
   async findById(id) {
@@ -317,7 +323,7 @@ class ApplicationService {
           program: program?.Name,
           programId: payment?.programmeId,
           amount: payment?.amount,
-          // currency: await this.currencyService.getCurrency(payment.currency),
+          currency: await this.currencyService.getCurrency(payment.currency),
           date: payment?.date,
           status: payment?.status,
         };
@@ -327,13 +333,11 @@ class ApplicationService {
 
   async getApplication(applicationId) {
     try {
-      console.log('application id--',applicationId)
       const application = await Application.findById(applicationId);
-      console.log('application',application)
       const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
-      console.log('scholl>>>>',student, school, program)
+      console.log('programsss', program)
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
@@ -363,7 +367,7 @@ class ApplicationService {
 
       let intake = null;
       if (application.intakeId) {
-        
+
         intake = await this.intakeService.findById(application.intakeId);
       }
 
@@ -379,14 +383,15 @@ class ApplicationService {
         school: {
           id: school?.id,
           name: school?.Name,
-          schoolId: school?.School_Id__c,
+          schoolId: school?.Id,
           logo: school?.Logo__c,
+          currency: school?.CurrencyIsoCode
         },
         program: {
-          id: program.id,
-          name: program.Name,
-          programLevel: program?.about?.details?.programLevel,
-          requiredProgramLevel: program?.about?.details?.requiredProgramLevel,
+          id: program?.id,
+          name: program?.Name,
+          programLevel: program?.Program_level__c,
+          requiredProgramLevel: program?.Required_Level__c,
           length: program?.about?.details?.length,
           deliveryMethod: program?.Delivery_Method__c,
         },
@@ -406,26 +411,26 @@ class ApplicationService {
       console.log('errror', error)
     }
   }
-
   async updateApplication(applicationSfId, requestData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const checkApplicationExist = await Application.findOne({ salesforceId: applicationSfId })
-        if(!checkApplicationExist) {
-          return reject({message: `application not exist with ${applicationSfId}`});
+        const checkApplicationExist = await Application.findOne({ salesforceId: applicationSfId });
+        if (!checkApplicationExist) {
+          return reject({ message: `Application does not exist with ${applicationSfId}` });
         }
-        const data = {
-          stage: requestData?.Current_Stage__c,
+        await Application.updateOne(
+          {
+            $and:
+              [
+                { salesforceId: applicationSfId },
+                { "stages.key": requestData.Current_Stage__c }
+              ]
+          },
+          { $set: { 'stages.value': new Date() } }, 
+          { new: true }
+        );
 
-        }
-        
-          await Application.updateOne(
-            { salesforceId: applicationSfId },
-            { $set: { ...data } },
-            { new: true }
-          );
-          resolve({ message: "Success", status: 200, sf: applicationSfIdSfId });
-        
+        resolve({ message: "Success", status: 200, sf: applicationSfId });
       } catch (error) {
         console.log(error);
         reject(error);
