@@ -1,30 +1,29 @@
-const Agent = require("../models/Agent");
-const Staff = require("../models/Staff");
-const axios = require("axios");
-const path = require("path");
-const jwt = require("jsonwebtoken");
-const querystring = require("querystring");
+const fs = require("fs"); // Importing fs module for file system operations
+const axios = require("axios"); // Importing axios for making HTTP requests
+const path = require("path"); // Importing path for handling file paths
+const jwt = require("jsonwebtoken"); // Importing jwt for token generation and verification
+
+// Importing custom error handler
 const { SFerrorHandler } = require("../utils/sfErrorHandeling");
 
+// Function to generate JWT token
 const generateToken = async () => {
-  const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8");
-  const publicKey = fs.readFileSync("SFkeys/server.crt", "utf-8");
-  const unixTimestampInSeconds = Math.floor(Date.now() / 1000);
-  // Add two hours (2 * 3600 seconds) to the timestamp
-  const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600;
+  const privateKey = fs.readFileSync("SFkeys/server.key", "utf-8"); // Read private key
+  const publicKey = fs.readFileSync("SFkeys/server.crt", "utf-8"); // Read public key
+  const unixTimestampInSeconds = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+  const newTimestampInSeconds = unixTimestampInSeconds + 2 * 3600; // Add two hours to current timestamp
   const payload = {
-    iss: process.env.SF_ISS,
-    sub: process.env.SF_SUB,
-    aud: process.env.SF_URL,
-    exp: newTimestampInSeconds,
+    iss: process.env.SF_ISS, // Salesforce issuer
+    sub: process.env.SF_SUB, // Salesforce subject
+    aud: process.env.SF_URL, // Salesforce audience
+    exp: newTimestampInSeconds, // Expiry time
   };
-
-  // // Create the token
+  // Create the token
   const token = jwt.sign(payload, privateKey, { algorithm: "RS256" });
   try {
-    const isVerified = await verifyToken(token, publicKey);
+    const isVerified = await verifyToken(token, publicKey); // Verify generated token
     if (isVerified) {
-      const data = await getData(token);
+      const data = await getData(token); // Get data using token
       return data;
     } else {
       return false; // Token verification failed
@@ -35,19 +34,20 @@ const generateToken = async () => {
   }
 };
 
+// Function to verify JWT token
 const verifyToken = async (token, publicKey) => {
   try {
     await jwt.verify(token, publicKey, { algorithms: ["RS256"] });
     return true; // Verification successful
   } catch (err) {
-    console.log("Token verification failed:", err.message);
     console.error("Token verification failed:", err.message);
     return false; // Verification failed
   }
 };
 
+// Function to get data using token
 const getData = async (token) => {
-  const querystring = require("querystring");
+  const querystring = require("querystring"); // Importing querystring module
   const { data } = await axios.post(
     `${process.env.SF_URL}services/oauth2/token`,
     querystring.stringify({
@@ -58,11 +58,7 @@ const getData = async (token) => {
   return data;
 };
 
-const getMapperPath = (mapperPath) => {
-  const paths = path.join(__dirname, "..", "Agent", "DB_SF", mapperPath);
-  return paths;
-};
-
+// Function to generate headers with access token
 const generateHeaders = (token) => {
   return {
     "Content-Type": "application/json",
@@ -70,6 +66,7 @@ const generateHeaders = (token) => {
   };
 };
 
+// Function to remove undefined values from object
 const filterUndefined = (body) => {
   Object.keys(body).forEach((key) => {
     if (body[key] === undefined || body[key] === null || body[key] === "") {
@@ -80,6 +77,13 @@ const filterUndefined = (body) => {
   });
 };
 
+// Function to get file path for mapper
+const getMapperPath = (mapperPath) => {
+  const paths = path.join(__dirname, "..", "Agent", "DB_SF", mapperPath);
+  return paths;
+};
+
+// Function to get Terms and Conditions
 const getTnc = async (sfId) => {
   try {
     const token = await generateToken();
@@ -93,6 +97,7 @@ const getTnc = async (sfId) => {
   }
 };
 
+// Function to download Terms and Conditions
 const downloadTnc = async (sfId, ip) => {
   try {
     const token = await generateToken();
@@ -106,64 +111,40 @@ const downloadTnc = async (sfId, ip) => {
   }
 };
 
-
-
+// Function to send data to Salesforce
 const sendDataToSF = async (body, url) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Generate token for Salesforce authentication
-      const token = await generateToken();
-
-      // Generate headers with the token
-      const headers = generateHeaders(token);
-
-      // Check if the URL is for updating a document in Salesforce
-      if (url.match(/DMS_Documents__c\/.+/)) {
-        // Patch request for updating document in Salesforce
-        const data = await axios.patch(url, body, { headers });
-
-        // Handle any errors from Salesforce response
-        // const sfResponse = await SFerrorHandler(data);
-
-        // Resolve with the response data
-        return resolve(data);
-      } else {
-        // Post request for creating a record in Salesforce
-        const data = await axios.post(url, body, { headers });
-
-        // Resolve with the response data
-        resolve(data?.data);
-      }
-    } catch (err) {
-        reject(err)
-        console.log("error:::",err?.response.data[0]);
-        // console.log(err?.response?.data[0]?.duplicateResult?.matchResults);
-    }
-  });
-};
-
-const updateDataToSF = async (body, url) => {
-  const token = await generateToken();
-  const headers = generateHeaders(token);
   try {
-    const data = await axios.patch(url, body, { headers });
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const data = await axios.post(url, body, { headers });
     return data?.data;
   } catch (err) {
-    console.log("Error: " + err);
+    console.error("Error: " + err);
     handleSfError(err);
   }
 };
 
+// Function to update data in Salesforce
+const updateDataToSF = async (body, url) => {
+  try {
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    const data = await axios.patch(url, body, { headers });
+    return data?.data;
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
+};
+
+// Function to send data to Salesforce using mapper
 const sendToSF = async (fileName, rawBody) => {
-  const token = await generateToken();
-  const headers = generateHeaders(token);
-
-  let flPath = getMapperPath(fileName);
-
+  const flPath = getMapperPath(fileName);
   try {
     const mapper = require(flPath);
-    let body = await mapper(rawBody, rawBody.commonId);
-    // filterUndefined(body);
+    const body = await mapper(rawBody, rawBody.commonId);
+    const token = await generateToken();
+    const headers = generateHeaders(token);
     const url = `${token.instance_url}/services/data/v55.0/sobjects/${rawBody.url}`;
     const { data } = await axios.patch(url, body, { headers });
     return data;
@@ -175,23 +156,9 @@ const sendToSF = async (fileName, rawBody) => {
   }
 };
 
-// Get External IDs of documents
-const getExternalIdFuncs = () => {
-  return {
-    getAgentId: async function (id) {
-      const agent = await Agent.findOne({ _id: id });
-      if (!agent) throw Error("Agent with id" + id + " not found");
-      return agent.commonId;
-    },
-  };
-};
-
-// Get External IDs of documents
+// Function to get Partner ID from Salesforce
 const getPartnerId = async (sfId) => {
   try {
-    // const mapper = require(flPath);
-    // let body = await mapper(rawBody, rawBody.commonId);
-    // filterUndefined(body);
     const token = await generateToken();
     const headers = generateHeaders(token);
     const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Account/${sfId}`;
@@ -201,17 +168,11 @@ const getPartnerId = async (sfId) => {
     console.error("Error: " + err);
     handleSfError(err);
   }
-  //  finally {
-  // delete require.cache[require.resolve(flPath)];
-  // }
 };
 
-// Get External IDs of documents
+// Function to get Contact ID from Salesforce
 const getContactId = async (sfId) => {
   try {
-    // const mapper = require(flPath);
-    // let body = await mapper(rawBody, rawBody.commonId);
-    // filterUndefined(body);
     const token = await generateToken();
     const headers = generateHeaders(token);
     const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Contact/${sfId}`;
@@ -221,12 +182,9 @@ const getContactId = async (sfId) => {
     console.error("Error: " + err);
     handleSfError(err);
   }
-  //  finally {
-  // delete require.cache[require.resolve(flPath)];
-  // }
 };
 
-// Get External IDs of documents
+// Function to get data from Salesforce
 const getDataFromSF = async (url) => {
   try {
     const token = await generateToken();
@@ -239,6 +197,7 @@ const getDataFromSF = async (url) => {
   }
 };
 
+// Function to handle Salesforce errors
 const handleSfError = (err) => {
   if (err.response) {
     console.log("Error Response", err.response);
@@ -250,24 +209,47 @@ const handleSfError = (err) => {
   }
 };
 
+// Function to get report headers
 const getReportHeaders = async () => {
-  const token = await generateToken();
-  const headers = generateHeaders(token);
-  return {
-    ...headers,
-    Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  };
+  try {
+    const token = await generateToken();
+    const headers = generateHeaders(token);
+    return {
+      ...headers,
+      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    };
+  } catch (err) {
+    console.error("Error: " + err);
+    handleSfError(err);
+  }
 };
 
+// Function to parse boolean value to "Yes" or "No"
 const parseBoolean = (value) => {
   return value ? "Yes" : "No";
 };
 
+// Function to get External IDs of documents
+const getExternalIdFuncs = () => {
+  return {
+    getAgentId: async function (id) {
+      const agent = await Agent.findOne({ _id: id });
+      if (!agent) throw Error("Agent with id" + id + " not found");
+      return agent.commonId;
+    },
+    getStaffId: async function (id) {
+      const staff = await Staff.findOne({ _id: id });
+      if (!staff) throw Error("Staff with id" + id + " not found");
+      return staff.commonId;
+    },
+  };
+};
+
+// Exporting functions and constants
 module.exports = {
   parseBoolean,
   getReportHeaders,
   handleSfError,
-  getExternalIdFuncs,
   filterUndefined,
   sendToSF,
   generateHeaders,
@@ -280,4 +262,5 @@ module.exports = {
   getDataFromSF,
   getPartnerId,
   getContactId,
+  getExternalIdFuncs
 };

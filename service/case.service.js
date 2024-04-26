@@ -1,3 +1,4 @@
+// Importing required modules
 const Case = require("../models/Case");
 const Comment = require("../models/Comment");
 const ReplyComment = require("../models/replyComment");
@@ -8,95 +9,68 @@ const {
 } = require("../service/salesforce.service");
 const CommentService = require("./comment.service");
 
+// Defining the CaseService class
 class CaseService {
   constructor() {
     this.commentService = new CommentService();
   }
 
+  // Method to retrieve all cases associated with a contact ID from Salesforce
   async getAllCases(contactId) {
-    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ Id,ContactId,CaseNumber,AccountId,Reason,Subject,Priority,Description,Case_Sub_Reason__c,Attachment__c,Status,Account_Name__c,Contact_Name__c+FROM+case+where+ContactId+=+'${contactId}'`;
-    const sfData = await getDataFromSF(url);
-    if (sfData && sfData?.records?.length > 0) {
-
-      const operations = sfData.records.map(async (data) => {
-        try {
-          const payload = {
-            caseId: data?.Id,
-            contactId: data?.ContactId,
-            accountId: data?.AccountId,
-            type: data?.Reason,
-            subject: data?.Subject,
-            priority: data?.Priority,
-            description: data?.Description,
-            subType: data?.Case_Sub_Reason__c,
-            attachment: data?.Attachment__c,
-            status: data?.Status,
-            accountName: data?.Account_Name__c,
-            contactName: data?.Contact_Name__c,
-            caseNumber: data?.CaseNumber,
-          }
-          const ifexist = await Case.find({ caseId: data?.Id });
-          if (ifexist && ifexist?.length > 0) {
-            await Case.updateOne({ caseId: data?.Id }, payload);
-          }
-          else {
-            await new Case(payload).save();
-          }
-
-          console.log(`Successfully updated/inserted document with Id`);
-        } catch (error) {
-          console.error(`Error updating`, error);
-        }
-      });
-      // Wait for all update operations to complete
-      await Promise.all(operations);
-
-    }
+    // Return all cases associated with the contact ID
     return await Case.find({ contactId });
   }
 
+  // Method to get a case by its ID
   async getCaseById(id) {
     return await Case.findById(id);
   }
 
+  // Method to create a comment for a case
   async createCaseComment(body, modifiedBy, caseId) {
     try {
       // Add comment
-      const comment = await this.commentService.add(body.message, modifiedBy, caseId);
+      const comment = await this.commentService.add(
+        body.message,
+        modifiedBy,
+        caseId
+      );
 
-      // Update student with the new comment
+      // Update case with the new comment
       const result = await Case.updateOne(
         { _id: caseId },
         { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
       );
-      // Check if student was found and updated
+      // Check if case was found and updated
       if (result.modifiedCount === 0) {
         throw new Error("Case not found");
       }
       const caseData = await Case.findById(caseId);
 
-
       // Prepare data for sending to Salesforce
       const data = {
-        "ParentId": caseData?.caseId, //Case SF Id
-        "IsPublished": false, //To set Public Set it as 'true' otherwise 'false'
-        "CommentBody": body?.message, //Comment
-      }
+        ParentId: caseData?.caseId, //Case SF Id
+        IsPublished: false, //To set Public Set it as 'true' otherwise 'false'
+        CommentBody: body?.message, //Comment
+      };
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/CaseComment`;
       const sendingComment = await sendDataToSF(data, url);
       if (sendingComment?.id && comment?.comment?._id) {
-        await this.commentService.updateCommentSfId(comment?.comment?._id, sendingComment?.id)
+        await this.commentService.updateCommentSfId(
+          comment?.comment?._id,
+          sendingComment?.id
+        );
       }
       return comment;
     } catch (error) {
       // Handle errors
-      console.error('Error in addStudentComment:', error);
+      console.error("Error in addStudentComment:", error);
       throw error; // Rethrow the error for the caller to handle
     }
   }
 
-  
+  // Method to retrieve comments for a case
   async getCaseComments(caseId) {
     const caseData = await Case.findById(caseId);
     if (!caseData) throw new Error("Case not found");
@@ -107,6 +81,7 @@ class CaseService {
     );
   }
 
+  // Method to retrieve reasons for cases from Salesforce
   async getReasonService() {
     try {
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Reason`;
@@ -117,6 +92,7 @@ class CaseService {
     }
   }
 
+  // Method to retrieve sub-reasons for cases from Salesforce
   async getSubReasonService() {
     try {
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Case/picklist-values/012000000000000AAA/Case_Sub_Reason__c`;
@@ -127,6 +103,7 @@ class CaseService {
     }
   }
 
+  // Method to convert data to format suitable for Case creation
   convertToCaseData(data) {
     const caseData = {
       ContactId: data?.contactId,
@@ -140,51 +117,53 @@ class CaseService {
     return caseData;
   }
 
+  // Method to create a Case and send it to Salesforce
+  async createCase(caseData, res) {
+    try {
+      // Creating a new Case document and saving it to the database
+      let createCase = await new Case(caseData).save();
 
-  
-  // Async function to create a Case and send it to Salesforce
-async  createCase(caseData, res) {
-  try {
-    // Creating a new Case document and saving it to the database
-  let createCase = await new Case(caseData).save();
+      // Constructing the URL for Salesforce API
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
 
-    // Constructing the URL for Salesforce API
-    const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case`;
+      // Converting case data to a format suitable for Salesforce
+      const data = this.convertToCaseData(caseData);
 
-    // Converting case data to a format suitable for Salesforce
-    const data = this.convertToCaseData(caseData);
+      // Sending case data to Salesforce
+      const sfRes = await sendDataToSF(data, url);
+      // If the response from Salesforce is successful
+      if (sfRes && sfRes.success) {
+        // Construct URL for Salesforce query
+        const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${sfRes?.id}`;
+        // Fetch data from Salesforce
+        const sfData = await getDataFromSF(url);
+        // Check if sfData contains valid data
+        if (sfData && sfData.Id && sfData.CaseNumber) {
+          // Updating the local case document with the Salesforce case ID
+          createCase = await Case.findOneAndUpdate(
+            { _id: createCase._id },
+            { $set: { caseId: sfData.Id, caseNumber: sfData.CaseNumber } },
+            { new: true }
+          );
+        }
+      }
+      // If case creation/update was unsuccessful, return a 404 error
+      if (!createCase) {
+        return res
+          .status(404)
+          .send({ statuscode: 404, message: "Case not created" });
+      }
 
-    // Sending case data to Salesforce
-    const sfRes = await sendDataToSF(data, url);
-    let caseDatafromSf;
-
-    // If the response from Salesforce is successful
-    if (sfRes && sfRes.success) {
-       // Updating the local case document with the Salesforce case ID
-       console.log(createCase._id);
-       createCase = await Case.findOneAndUpdate(
-        { _id: createCase._id },
-        { $set: { caseId: sfRes?.id } }
-      );
+      // Returning the created case document merged with Salesforce case data
+      return { ...createCase?._doc };
+    } catch (err) {
+      // Handling errors by sending a 400 error response and logging the error
+      res.status(400).send({ statuscode: 400, message: err.message });
+      console.error("Create case error:", err);
     }
-
-    // If case creation/update was unsuccessful, return a 404 error
-    if (!createCase) {
-      return res
-        .status(404)
-        .send({ statuscode: 404, message: "Case not created" });
-    }
-
-    // Returning the created case document merged with Salesforce case data
-    return { ...createCase?._doc, ...caseDatafromSf };
-  } catch (err) {
-    // Handling errors by sending a 400 error response and logging the error
-    res.status(400).send({ statuscode: 400, message: err.message });
-    console.error("Create case error:", err);
   }
-}
 
-
+  // Method to update attachment data for a case
   async updateAttachmentService(id, caseData, res) {
     try {
       let cases = await Case.findOne({ _id: caseData?._id });
@@ -219,63 +198,29 @@ async  createCase(caseData, res) {
     }
   }
 
+  // Method to update a case
   async updateCase(id, caseData) {
     return await Case.findByIdAndUpdate(id, caseData, { new: true });
   }
 
-  // async updateCase(id, caseData, res) {
-  //   try {
-  //     let cases = await Case.findOne({ _id: caseData?._id });
-  //     if (!cases) {
-  //       return res
-  //         .status(404)
-  //         .send({ statuscode: 404, message: `No case data with this ${id}` });
-  //     }
-  //     cases = await Case.findOneAndUpdate(
-  //       { _id: caseData?._id },
-  //       {
-  //         $set: {
-  //           attachment: caseData?.attachment,
-  //         },
-  //       },
-  //       { new: true }
-  //     );
-  //     const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${caseData?.id}`;
-  //     const sfRes = await updateDataToSF(
-  //       { Attachment__c: caseData?.attachment },
-  //       url
-  //     );
-  //     if (!cases && !sfRes) {
-  //       return res
-  //         .status(400)
-  //         .send({ statuscode: 400, message: "case data not updated" });
-  //     }
-  //     return res.status(200).send({
-  //       statuscode: 200,
-  //       message: "Case data updated succesfully",
-  //       data: cases,
-  //     });
-  //   } catch (err) {
-  //     res.status(500).send({ statuscode: 500, message:err.message });
-  //     console.log("update case error:: ", err);
-  //   }
-  // }
-
+  // Method to delete a case
   async deleteCase(id) {
     return await Case.findByIdAndDelete(id);
   }
 
+  // Method to update reply comment for a case
   async updateReplyComment(sfId, commentData) {
     return new Promise(async (resolve, reject) => {
       try {
         const replyComment = await new ReplyComment(commentData).save();
         if (!replyComment) {
-          throw new Error('Reply comment not created');
+          throw new Error("Reply comment not created");
         }
         await Comment.findOneAndUpdate(
-          { commentSfId: sfId }, 
-          { $push: { replyComment: replyComment._id } }, 
-          { new: true })
+          { commentSfId: sfId },
+          { $push: { replyComment: replyComment._id } },
+          { new: true }
+        );
         resolve({ message: "Success", status: 200, sf: sfId });
       } catch (error) {
         console.log(error);
@@ -285,4 +230,5 @@ async  createCase(caseData, res) {
   }
 }
 
+// Exporting the CaseService class
 module.exports = CaseService;

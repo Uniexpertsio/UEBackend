@@ -23,6 +23,7 @@ const {
 } = require("./salesforce.service");
 const Staff = require("../models/Staff");
 const { parseInMongoObjectId } = require("../utils/sfErrorHandeling");
+const Application = require("../models/Application");
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -75,7 +76,8 @@ class StudentService {
       MobilePhone: "+" + data?.studentInformation?.mobile,
       Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
       Email: data?.studentInformation?.email,
-      Preferred_Country__c: data?.studentInformation?.preferredCountry.join(";"),
+      Preferred_Country__c:
+        data?.studentInformation?.preferredCountry.join(";"),
       Intake_Preferred__c: data?.studentInformation?.intakePreferred,
       Medical_History_Detail__c:
         data.demographicInformation.medicalHistoryDetails,
@@ -171,14 +173,14 @@ class StudentService {
       Affiliated_University__c: data.affiliatedUniversity,
       Verification_Status__c: "", // You may update this based on your specific logic
       Student__c: data?.sfId, // Replace with the actual student ID
-      Primary_Language_of_Instruction__c: data?.instituteLanguage||null,
+      Primary_Language_of_Instruction__c: data?.instituteLanguage || null,
       Grade__c: data?.grade,
     };
 
     return convertedData;
   }
 
-  convertWorkHistoryData(data,studentId) {
+  convertWorkHistoryData(data, studentId) {
     const convertedData = {
       Name: data?.employerName,
       Designation__c: data?.designation,
@@ -343,8 +345,6 @@ class StudentService {
     return outputData;
   }
 
-
-  
   async createStudent(modifiedBy, agentId, studentInformation) {
     try {
       // Check if the staffId and counsellorId are valid users
@@ -352,12 +352,12 @@ class StudentService {
         studentInformation.studentInformation.staffId,
         studentInformation.studentInformation.counsellorId
       );
-  
+
       // Proceed only if both staff and counsellor are found
       if (isValid) {
         // Generate a unique external ID for the student
         const externalId = uuid();
-  
+
         // Create a new student in the database
         const student = await StudentModel.create({
           ...studentInformation, // Spread the studentInformation object
@@ -366,31 +366,31 @@ class StudentService {
           externalId,
           createdBy: modifiedBy,
         });
-  
+
         // Convert student information to Salesforce format
         const studentData = this.converttoSfBody(studentInformation);
-  
+
         // Construct the URL for Salesforce API to create a Contact
         const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-  
+
         // Send student data to Salesforce
         const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-  
+
         // Get the Salesforce ID if the student was successfully created in Salesforce
         const sfId = sfStudentResponse?.id;
         let contactDetails;
-  
+
         // Update the student in the database with the Salesforce ID
         if (sfId) {
           await StudentModel.updateOne(
             { _id: student._id },
             { $set: { salesforceId: sfId } }
           );
-  
+
           // Retrieve additional contact details from Salesforce
           contactDetails = await getContactId(sfId);
         }
-  
+
         // Return relevant information about the created student
         return {
           id: student._id, // Return the MongoDB ID of the student
@@ -404,111 +404,132 @@ class StudentService {
       throw error;
     }
   }
-  
-  
-
 
   async preferredCountries() {
     return PreferredCountries;
   }
 
   async getStudent(agentId, query, role, createdBy, searchData) {
-    let filter = role === 'consultant' ? { createdBy } : { agentId };
+    let filter = role === "consultant" ? { createdBy } : { agentId };
     const sortByType = query.sortByType === "Ascending" ? 1 : -1;
     const sortBy = {};
     if (query.sortBy) {
-        sortBy[`${query.sortBy}`] = sortByType;
+      sortBy[`${query.sortBy}`] = sortByType;
     }
 
     // Incorporate search query into filter
     if (searchData) {
-        switch (searchData.searchType) {
-            case 'name':
-                filter['$or'] = [
-                    { 'studentInformation.firstName': new RegExp(searchData.searchTerm, 'i') },
-                    { 'studentInformation.middleName': new RegExp(searchData.searchTerm, 'i') },
-                    { 'studentInformation.lastName': new RegExp(searchData.searchTerm, 'i') },
-                    {
-                        $expr: {
-                            $regexMatch: {
-                                input: {
-                                    $concat: [
-                                        '$studentInformation.firstName',
-                                        ' ',
-                                        '$studentInformation.middleName',
-                                        ' ',
-                                        '$studentInformation.lastName'
-                                    ]
-                                },
-                                regex: new RegExp(searchData.searchTerm, 'i')
-                            }
-                        }
-                    }
-                ];
-                break;
-            case 'email':
-                filter['studentInformation.email'] = new RegExp(searchData.searchTerm, 'i');
-                break;
-            case 'mobile':
-                filter['studentInformation.mobile'] = new RegExp(searchData.searchTerm, 'i');
-                break;
-            case 'country':
-                filter['address.country'] = new RegExp(searchData.searchTerm, 'i');
-                break;
-            case 'createdBy':
-                filter['createdBy'] = new RegExp(searchData.searchTerm, 'i');
-                break;
-            default:
-                console.log('Invalid search type');
-                break;
-        }
+      switch (searchData.searchType) {
+        case "name":
+          filter["$or"] = [
+            {
+              "studentInformation.firstName": new RegExp(
+                searchData.searchTerm,
+                "i"
+              ),
+            },
+            {
+              "studentInformation.middleName": new RegExp(
+                searchData.searchTerm,
+                "i"
+              ),
+            },
+            {
+              "studentInformation.lastName": new RegExp(
+                searchData.searchTerm,
+                "i"
+              ),
+            },
+            {
+              $expr: {
+                $regexMatch: {
+                  input: {
+                    $concat: [
+                      "$studentInformation.firstName",
+                      " ",
+                      "$studentInformation.middleName",
+                      " ",
+                      "$studentInformation.lastName",
+                    ],
+                  },
+                  regex: new RegExp(searchData.searchTerm, "i"),
+                },
+              },
+            },
+          ];
+          break;
+        case "email":
+          filter["studentInformation.email"] = new RegExp(
+            searchData.searchTerm,
+            "i"
+          );
+          break;
+        case "mobile":
+          filter["studentInformation.mobile"] = new RegExp(
+            searchData.searchTerm,
+            "i"
+          );
+          break;
+        case "country":
+          filter["address.country"] = new RegExp(searchData.searchTerm, "i");
+          break;
+        case "createdBy":
+          filter["createdBy"] = new RegExp(searchData.searchTerm, "i");
+          break;
+        default:
+          console.log("Invalid search type");
+          break;
+      }
     }
 
     const student = await StudentModel.find(filter)
-        .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
-        .sort(sortBy)
-        .limit(parseInt(query.perPage));
+      .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
+      .sort(sortBy)
+      .limit(parseInt(query.perPage));
     const count = await StudentModel.countDocuments(filter);
     const studentList = [];
     for (let i = 0; i < student.length; i++) {
-        const staff = await Staff.findOne({ _id: student[i].createdBy });
-        const counsellor = await Staff.findOne({ _id: student[i].studentInformation.counsellorId });
+      const staff = await Staff.findOne({ _id: student[i].createdBy });
+      const counsellor = await Staff.findOne({
+        _id: student[i].studentInformation.counsellorId,
+      });
 
-        if (staff) {
-            student[i].createdBy = staff.fullName;
-        }
+      if (staff) {
+        student[i].createdBy = staff.fullName;
+      }
 
-        if (counsellor) {
-            student[i].studentInformation.counsellorId = staff.fullName;
-        }
+      if (counsellor) {
+        student[i].studentInformation.counsellorId = staff.fullName;
+      }
 
-        studentList.push(student[i]);
+      studentList.push(student[i]);
     }
     console.log(studentList, count);
     return { studentList, count };
-}
-
+  }
 
   async getStudentGeneralInformation(studentId) {
     const objId = parseInMongoObjectId(studentId);
 
     const student = await StudentModel.aggregate([
       {
-        $match: { _id: objId } // Replace studentId with the specific student ID you're querying
+        $match: { _id: objId }, // Replace studentId with the specific student ID you're querying
       },
       {
         $lookup: {
           from: "staffs",
-          let: { councellorId: { $toObjectId: "$studentInformation.counsellorId" } },
+          let: {
+            councellorId: { $toObjectId: "$studentInformation.counsellorId" },
+          },
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$_id", "$$councellorId"] }
-              }
-            }
+                $expr: { $eq: ["$_id", "$$councellorId"] },
+              },
+            },
           ],
-          as: "staff"
-        }
+          as: "staff",
+        },
       },
       {
         $lookup: {
@@ -517,41 +538,46 @@ class StudentService {
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$_id", "$$staffId"] }
-              }
-            }
+                $expr: { $eq: ["$_id", "$$staffId"] },
+              },
+            },
           ],
-          as: "agent"
-        }
+          as: "agent",
+        },
       },
       {
-        $unwind: "$staff"
+        $unwind: "$staff",
       },
       {
-        $unwind: "$agent"
+        $unwind: "$agent",
       },
       {
         $project: {
           studentData: "$$ROOT",
           councellorName: "$staff.fullName",
-          agentName: "$agent.company.companyName"
-        }
+          agentName: "$agent.company.companyName",
+        },
       },
       {
         $addFields: {
           "studentdata.studentInformation.counsellorName": "$councellorName",
-          "studentData.studentInformation.staffName": "$agentName"
-        }
+          "studentData.studentInformation.staffName": "$agentName",
+        },
       },
       {
-        $replaceRoot: { newRoot: "$studentData" }
-      }
+        $replaceRoot: { newRoot: "$studentData" },
+      },
     ]);
     if (!student) throw new Error("Student not found");
     return student[0];
   }
 
-  async updateStudentGeneralInformation(studentId, modifiedBy, studentDetails,isFrontend) {
+  async updateStudentGeneralInformation(
+    studentId,
+    modifiedBy,
+    studentDetails,
+    isFrontend
+  ) {
     if (studentDetails.studentInformation) {
       await this.checkForValidUsers(
         studentDetails.studentInformation.staffId,
@@ -559,7 +585,9 @@ class StudentService {
       );
     }
 
-    const student = isFrontend? await this.findById(studentId): await this.findBySFId(studentId);
+    const student = isFrontend
+      ? await this.findById(studentId)
+      : await this.findBySFId(studentId);
     console.log(student);
     student.set({
       ...studentDetails,
@@ -567,15 +595,14 @@ class StudentService {
     });
 
     await student.save();
-    if(isFrontend){
+    if (isFrontend) {
       const studentData = this.converttoSfBody(studentDetails);
       const studentUrl = `${process.env.SF_API_URL}Contact/${student?.salesforceId}`;
       const sfCompanyData = await updateDataToSF(studentData, studentUrl);
       const contactDetails = await getContactId(student?.salesforceId);
       return { id: student.id, partnerId: contactDetails?.Student_ID__c };
-    }
-    else{
-      return {id:student.id};
+    } else {
+      return { id: student.id };
     }
   }
 
@@ -605,8 +632,11 @@ class StudentService {
     const educationData = this.convertEducationData(body);
     const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
-    if(sfEducationResponse?.id){
-      await this.educationService.updateSfId(education.id,sfEducationResponse?.id)
+    if (sfEducationResponse?.id) {
+      await this.educationService.updateSfId(
+        education.id,
+        sfEducationResponse?.id
+      );
     }
     return { id: education.id, sf: sfEducationResponse };
   }
@@ -640,30 +670,36 @@ class StudentService {
       // Fetch education and student asynchronously
       const [education, student] = await Promise.all([
         this.educationService.getEducationFromSFID(educationId),
-        StudentModel.findOne({ salesforceId: studentId })
+        StudentModel.findOne({ salesforceId: studentId }),
       ]);
-  
+
       // Check if education and student exist
       if (!education || !student) {
-        throw new Error('Education or student not found.');
+        throw new Error("Education or student not found.");
       }
-  
+
       // Check if the education belongs to the student
-      const isStudent = await this.checkIfEducationBelongsToStudent(student._id, education._id);
+      const isStudent = await this.checkIfEducationBelongsToStudent(
+        student._id,
+        education._id
+      );
       if (!isStudent) {
-        throw new Error('Education does not belong to the student.');
+        throw new Error("Education does not belong to the student.");
       }
-  
+
       // Update education
-      const updatedEducation = await this.educationService.update(modifiedBy, education._id, body);
+      const updatedEducation = await this.educationService.update(
+        modifiedBy,
+        education._id,
+        body
+      );
       return updatedEducation;
     } catch (error) {
       // Handle errors
-      console.error('Error in updateStudentEducation:', error);
+      console.error("Error in updateStudentEducation:", error);
       throw error; // Rethrow the error for the caller to handle
     }
   }
-  
 
   async deleteEducation(studentId, modifiedBy, educationId) {
     await this.checkIfEducationBelongsToStudent(studentId, educationId);
@@ -688,7 +724,7 @@ class StudentService {
   }
 
   async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
-   const student= await this.findById(studentId);
+    const student = await this.findById(studentId);
     const workHistory = await this.workHistoryService.add(
       studentId,
       modifiedBy,
@@ -704,14 +740,20 @@ class StudentService {
       throw new Error("student not found");
     }
     console.log(result);
-    const workHistoryData = this.convertWorkHistoryData(body,student?.salesforceId);
+    const workHistoryData = this.convertWorkHistoryData(
+      body,
+      student?.salesforceId
+    );
     const workHistoryUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Work_history__c`;
     const sfWorkHistoryResponse = await sendDataToSF(
       workHistoryData,
       workHistoryUrl
     );
-    if(sfWorkHistoryResponse?.id){
-      await this.workHistoryService.updateSFID(workHistory?.id,sfWorkHistoryResponse?.id);
+    if (sfWorkHistoryResponse?.id) {
+      await this.workHistoryService.updateSFID(
+        workHistory?.id,
+        sfWorkHistoryResponse?.id
+      );
     }
     return workHistory;
   }
@@ -721,33 +763,39 @@ class StudentService {
       // Fetch work history and student asynchronously
       const [workHistory, student] = await Promise.all([
         this.workHistoryService.getDatafromSfid(workHistoryId),
-        StudentModel.findOne({ salesforceId: studentId })
+        StudentModel.findOne({ salesforceId: studentId }),
       ]);
-  
+
       // Check if work history and student exist
       if (!workHistory || !student) {
-        throw new Error('Work history or student not found.');
+        throw new Error("Work history or student not found.");
       }
-  
+
       // Check if the work history belongs to the student
-      const isStudent = await this.checkIfWorkHistoryBelongsToStudent(student?._id, workHistory?._id);
+      const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
+        student?._id,
+        workHistory?._id
+      );
       if (!isStudent) {
-        throw new Error('Work history does not belong to the student.');
+        throw new Error("Work history does not belong to the student.");
       }
-  
+
       // Update work history
-      const updatedWorkHistory = await this.workHistoryService.update(modifiedBy, workHistory?._id, body);
-      
+      const updatedWorkHistory = await this.workHistoryService.update(
+        modifiedBy,
+        workHistory?._id,
+        body
+      );
+
       // Perform additional operations if needed
-  
+
       return updatedWorkHistory;
     } catch (error) {
       // Handle errors
-      console.error('Error in updateStudentWorkHistory:', error);
+      console.error("Error in updateStudentWorkHistory:", error);
       throw error; // Rethrow the error for the caller to handle
     }
   }
-  
 
   async deleteStudentWorkHistory(studentId, modifiedBy, workHistoryId) {
     await this.checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId);
@@ -811,8 +859,6 @@ class StudentService {
   //   return { id: testScore.id ,sfId:testScoreSfResponse?.id};
   // }
 
-
-
   async deleteStudentTestScore(studentId, modifiedBy, testScoreId) {
     await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
     await this.testScoreService.delete(testScoreId);
@@ -821,8 +867,6 @@ class StudentService {
       { $pull: { testScore: testScoreId }, $set: { modifiedBy } }
     );
   }
-
-
 
   // async addDocumentToStudent(studentId, documentData) {
   //   const student = await this.findById(studentId);
@@ -1121,10 +1165,13 @@ class StudentService {
       testScoreUrl
     );
 
-    if(testScoreSfResponse?.id){
-      await this.testScoreService.updateTestScoreSfId(testScore?.id,testScoreSfResponse?.id)
+    if (testScoreSfResponse?.id) {
+      await this.testScoreService.updateTestScoreSfId(
+        testScore?.id,
+        testScoreSfResponse?.id
+      );
     }
-    return { id: testScore.id ,sfId:testScoreSfResponse?.id};
+    return { id: testScore.id, sfId: testScoreSfResponse?.id };
   }
 
   async updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
@@ -1132,28 +1179,34 @@ class StudentService {
       // Fetch test score and student asynchronously
       const [testScore, student] = await Promise.all([
         this.testScoreService.getTestScoreFromSfId(testScoreId),
-        StudentModel.findOne({ salesforceId: studentId })
+        StudentModel.findOne({ salesforceId: studentId }),
       ]);
       // Check if test score and student exist
       if (!testScore || !student) {
-        throw new Error('Test score or student not found.');
+        throw new Error("Test score or student not found.");
       }
       // Check if the test score belongs to the student
-      const isStudent = await this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id);
+      const isStudent = await this.checkIfTestScoreBelongsToStudent(
+        student?._id,
+        testScore?._id
+      );
       if (!isStudent) {
-        throw new Error('Test score does not belong to the student.');
+        throw new Error("Test score does not belong to the student.");
       }
-  
+
       // Update test score
-      const updatedTestScore = await this.testScoreService.update(modifiedBy, testScore?._id, body);
+      const updatedTestScore = await this.testScoreService.update(
+        modifiedBy,
+        testScore?._id,
+        body
+      );
       return updatedTestScore;
     } catch (error) {
       // Handle errors
-      console.error('Error in updateStudentTestScore:', error);
+      console.error("Error in updateStudentTestScore:", error);
       throw error; // Rethrow the error for the caller to handle
     }
   }
-  
 
   async deleteStudentTestScore(studentId, modifiedBy, testScoreId) {
     await this.checkIfTestScoreBelongsToStudent(studentId, testScoreId);
@@ -1182,12 +1235,28 @@ class StudentService {
       studentId,
       body
     );
+    const applicationId = body?.applicationId;
+    let result;
     const documentIds = documents.map((document) => document.id);
 
-    const result = await StudentModel.updateOne(
-      { _id: studentId },
-      { $set: { documents: documentIds, modifiedBy } }
-    );
+    if (applicationId && body?.usedFor === "Both") {
+      result = await StudentModel.updateOne(
+        { _id: studentId },
+        { $set: { documents: documentIds, modifiedBy } }
+      );
+    }
+    if (!applicationId) {
+      result = await StudentModel.updateOne(
+        { _id: studentId },
+        { $set: { documents: documentIds, modifiedBy } }
+      );
+    }
+    if (applicationId) {
+      await Application.updateOne(
+        { _id: applicationId },
+        { $set: { documents: documentIds, modifiedBy } }
+      );
+    }
 
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
@@ -1225,10 +1294,16 @@ class StudentService {
   //   return document.id;
   // }
 
-  async updateStudentDocument(studentId, modifiedBy, body,isFrontend) {
+  async updateStudentDocument(studentId, modifiedBy, body, isFrontend) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = isFrontend? await StudentModel.findOne({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
+        const student = isFrontend
+          ? await StudentModel.findOne({ _id: studentId })
+          : await StudentModel.findOne({ salesforceId: studentId });
+        const application =
+          isFrontend && body?.applicationId
+            ? await Application.findOne({ _id: body?.applicationId })
+            : await Application.findOne({ salesforceId: body?.applicationId });
         if (!student) throw "student not found";
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
@@ -1236,12 +1311,26 @@ class StudentService {
           body
         );
         const documentIds = document.map((document) => document.id);
-        await StudentModel.updateOne(
-          { _id:   student?._id },
-          { $set: { documents: documentIds } }
-        );
+        if (application && body?.usedFor === "Both") {
+          result = await StudentModel.updateOne(
+            { _id: studentId },
+            { $set: { documents: documentIds, modifiedBy } }
+          );
+        }
+        if (!applicationId) {
+          result = await StudentModel.updateOne(
+            { _id: studentId },
+            { $set: { documents: documentIds, modifiedBy } }
+          );
+        }
+        if (application) {
+          await Application.updateOne(
+            { _id: application._id },
+            { $set: { documents: documentIds, modifiedBy } }
+          );
+        }
 
-        if(isFrontend){
+        if (isFrontend) {
           await Promise.all(
             document.map(async (doc) => {
               // let dtype = await this.documentTypeService.findById(doc.documentTypeId);
@@ -1267,7 +1356,7 @@ class StudentService {
                 School__c: "",
                 Student__c: student?.salesforceId,
                 // Document_Master__c: "",
-                Application__c: "",
+                Application__c: application?.salesforceId || "",
                 Programme__c: "",
                 Used_For__c: doc?.usedFor,
                 S3_DMS_URL__c: doc?.url,
@@ -1281,7 +1370,7 @@ class StudentService {
                   sfIdFound = true; // Set the flag to true if sfId is found
                 }
               }
-  
+
               if (!sfIdFound) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
                 const sfRes = await sendDataToSF(data, url);
@@ -1295,7 +1384,7 @@ class StudentService {
             })
           );
         }
-      
+
         resolve(document);
       } catch (error) {
         console.log(error);
@@ -1453,8 +1542,13 @@ class StudentService {
   async addStudentComment(studentId, modifiedBy, body) {
     try {
       // Add comment
-      const comment = await this.commentService.add(body.message, modifiedBy, studentId, body.attachment);
-  
+      const comment = await this.commentService.add(
+        body.message,
+        modifiedBy,
+        studentId,
+        body.attachment
+      );
+
       // Update student with the new comment
       const result = await StudentModel.updateOne(
         { _id: studentId },
@@ -1464,41 +1558,43 @@ class StudentService {
       if (result.modifiedCount === 0) {
         throw new Error("Student not found");
       }
-  
+
       // Fetch student Salesforce ID
       const studentSFId = await StudentModel.findById(studentId);
       // Prepare data for sending to Salesforce
       const data = {
-        "RecordTypeId": "0125g0000003QWlAAM",
-        "Enter_Note__c": null,
-        "Application__c": null,
-        "Application_Owner_Email__c": null,
-        "Partner_User__c": null,
-        "Lead__c": null,
-        "PartnerNote__c": null,
-        "School__c": "",
-        "University_Notes__c": null,
-        "Subject__c": "Offer Related",
-        "Student__c": studentSFId?.salesforceId,
-        "Message_Body__c": body?.message,
-        "Type__c": "Inbound",
-        "External__c": true,
-        "CourseEnquiry__c": null,
-    }
+        RecordTypeId: "0125g0000003QWlAAM",
+        Enter_Note__c: null,
+        Application__c: null,
+        Application_Owner_Email__c: null,
+        Partner_User__c: null,
+        Lead__c: null,
+        PartnerNote__c: null,
+        School__c: "",
+        University_Notes__c: null,
+        Subject__c: "Offer Related",
+        Student__c: studentSFId?.salesforceId,
+        Message_Body__c: body?.message,
+        Type__c: "Inbound",
+        External__c: true,
+        CourseEnquiry__c: null,
+      };
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
-      if(sendingComment?.id && comment?.comment?._id){
-        await this.commentService.updateCommentSfId(comment?.comment?._id,sendingComment?.id)
+      if (sendingComment?.id && comment?.comment?._id) {
+        await this.commentService.updateCommentSfId(
+          comment?.comment?._id,
+          sendingComment?.id
+        );
       }
       return comment;
     } catch (error) {
       // Handle errors
-      console.error('Error in addStudentComment:', error);
+      console.error("Error in addStudentComment:", error);
       throw error; // Rethrow the error for the caller to handle
     }
   }
-  
 
   getStudentEducation(studentId) {
     return this.educationService.getByStudentId(studentId);
@@ -1566,71 +1662,71 @@ class StudentService {
       const { searchType, searchTerm } = req.query;
       let query;
       switch (searchType) {
-        case 'name':
-        query = {
-          $or: [
-            { 'studentInformation.firstName': new RegExp(searchTerm, 'i') },
-            { 'studentInformation.middleName': new RegExp(searchTerm, 'i') },
-            { 'studentInformation.lastName': new RegExp(searchTerm, 'i') },
-            {
-              $expr: {
-                $regexMatch: {
-                  input: {
-                    $concat: [
-                      '$studentInformation.firstName',
-                      ' ',
-                      '$studentInformation.middleName',
-                      ' ',
-                      '$studentInformation.lastName'
-                    ]
+        case "name":
+          query = {
+            $or: [
+              { "studentInformation.firstName": new RegExp(searchTerm, "i") },
+              { "studentInformation.middleName": new RegExp(searchTerm, "i") },
+              { "studentInformation.lastName": new RegExp(searchTerm, "i") },
+              {
+                $expr: {
+                  $regexMatch: {
+                    input: {
+                      $concat: [
+                        "$studentInformation.firstName",
+                        " ",
+                        "$studentInformation.middleName",
+                        " ",
+                        "$studentInformation.lastName",
+                      ],
+                    },
+                    regex: new RegExp(searchTerm, "i"),
                   },
-                  regex: new RegExp(searchTerm, 'i')
-                }
-              }
-            }
-          ]
-        };
-        break;
-        case 'email':
-          query = { 'studentInformation.email': new RegExp(searchTerm, 'i') };
+                },
+              },
+            ],
+          };
           break;
-        case 'mobile':
-          query = { 'studentInformation.mobile': new RegExp(searchTerm, 'i') };
+        case "email":
+          query = { "studentInformation.email": new RegExp(searchTerm, "i") };
           break;
-        case 'country':
-          query = { 'address.country': new RegExp(searchTerm, 'i') };
+        case "mobile":
+          query = { "studentInformation.mobile": new RegExp(searchTerm, "i") };
           break;
-        case 'createdBy':
-          query = { createdBy: new RegExp(searchTerm, 'i') };
+        case "country":
+          query = { "address.country": new RegExp(searchTerm, "i") };
+          break;
+        case "createdBy":
+          query = { createdBy: new RegExp(searchTerm, "i") };
           break;
         default:
-          console.log('Invalid search type');
+          console.log("Invalid search type");
           return;
       }
-      query.agentId=req?.user?.agentId;
-    const student = await StudentModel.find(query).sort({createdBy: -1 });
-    const count = await StudentModel.countDocuments();
-    const studentList = [];
-    for (let i = 0; i < student.length; i++) {
-      const staff = await Staff.findOne({ _id: student[i].createdBy });
-      const counsellor = await Staff.findOne({
-        _id: student[i].studentInformation.counsellorId,
-      });
+      query.agentId = req?.user?.agentId;
+      const student = await StudentModel.find(query).sort({ createdBy: -1 });
+      const count = await StudentModel.countDocuments();
+      const studentList = [];
+      for (let i = 0; i < student.length; i++) {
+        const staff = await Staff.findOne({ _id: student[i].createdBy });
+        const counsellor = await Staff.findOne({
+          _id: student[i].studentInformation.counsellorId,
+        });
 
-      if (staff) {
-        student[i].createdBy = staff.fullName;
+        if (staff) {
+          student[i].createdBy = staff.fullName;
+        }
+
+        if (counsellor) {
+          student[i].studentInformation.counsellorId = staff.fullName;
+        }
+
+        studentList.push(student[i]);
       }
-
-      if (counsellor) {
-        student[i].studentInformation.counsellorId = staff.fullName;
-      }
-
-      studentList.push(student[i]);
-    }
-    console.log(studentList,count)
-    return { studentList, count };
+      console.log(studentList, count);
+      return { studentList, count };
     } catch (error) {
-      return error.message
+      return error.message;
     }
   }
 
@@ -1641,9 +1737,9 @@ class StudentService {
     }
     return student;
   }
-  
+
   async findBySFId(id) {
-    const student = await StudentModel.findOne({salesforceId:id});
+    const student = await StudentModel.findOne({ salesforceId: id });
 
     if (!student) {
       throw new Error("Student not found");
@@ -1698,12 +1794,12 @@ class StudentService {
         this.staffService.findByAgentId(staffId),
         this.staffService.findById(counsellorId),
       ]);
-  
+
       // Check if either staff or counsellor is not found
       if (!staff || !counsellor) {
         throw new Error("Student not found");
       }
-  
+
       // Return true if both staff and counsellor are found
       return true;
     } catch (error) {
@@ -1712,9 +1808,6 @@ class StudentService {
       throw error;
     }
   }
-
-
-
 
   async findById(studentId) {
     const student = await StudentModel.findById(studentId);

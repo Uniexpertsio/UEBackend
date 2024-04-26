@@ -1,32 +1,39 @@
+// Importing the CaseService module
 const CaseService = require("../service/case.service");
 
+// Defining the CaseController class
 class CaseController {
   constructor() {
     this.caseService = new CaseService();
   }
 
+  // Method to get all cases associated with a user
   async getAllCases(req, res) {
     const { sfId } = req.user;
     const cases = await this.caseService.getAllCases(sfId);
     res.json(cases);
   }
 
+  // Method to get a case by its ID
   async getCaseById(req, res) {
     const { id } = req.params;
     const caseData = await this.caseService.getCaseById(id);
     res.json(caseData);
   }
 
+  // Method to get reason for a case
   async getReason(req, res) {
     const caseData = await this.caseService.getReasonService();
     res.json(caseData);
   }
 
+  // Method to get sub-reason for a case
   async getSubReason(req, res) {
     const caseData = await this.caseService.getSubReasonService();
     res.json(caseData);
   }
 
+  // Method to create a new case
   async createCase(req, res) {
     const caseData = req.body;
     const newCase = await this.caseService.createCase(caseData, res);
@@ -37,11 +44,10 @@ class CaseController {
     });
   }
 
-  
+  // Method to create a comment for a case
   async createCaseComment(req, res) {
     const commentData = req.body;
     const { caseId } = req.params;
-    console.log(req);
     const { id } = req.user;
     const newCase = await this.caseService.createCaseComment(commentData, id, caseId);
     res.status(201).send({
@@ -50,6 +56,8 @@ class CaseController {
       data: newCase,
     });
   }
+
+  // Method to get comments for a case
   getCaseComments = async (req, res) => {
     try {
       const { caseId } = req.params;
@@ -60,6 +68,7 @@ class CaseController {
     }
   };
 
+  // Method to update a case
   async updateCase(req, res) {
     const { id } = req.params;
     const caseData = req.body;
@@ -67,6 +76,7 @@ class CaseController {
     res.status(200).json(updatedCase);
   }
 
+  // Method to update attachment data for a case
   async updateAttachment(req, res) {
     const { id } = req.params;
     const caseData = req.body;
@@ -82,12 +92,14 @@ class CaseController {
     });
   }
 
+  // Method to delete a case
   async deleteCase(req, res) {
     const { id } = req.params;
     await this.caseService.deleteCase(id);
     res.sendStatus(204);
   }
 
+  // Method to reply to a comment on a case
   async replyComment(req, res) {
     try {
       const { sfId } = req.params;
@@ -100,4 +112,5 @@ class CaseController {
   }
 }
 
+// Exporting the CaseController class
 module.exports = CaseController;
