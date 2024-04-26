@@ -251,7 +251,7 @@ class StudentController {
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
-        const { searchType, searchTerm } = req.query;
+        const { searchType, searchTerm, applicationId } = req.query;
         const studentData = await StudentModel.findOne({ _id: studentId });
         if(!studentData) {
           throw new Error(`Student not with id: ${studentId}`);
@@ -275,7 +275,13 @@ class StudentController {
             query = {};
             break;
         }
-        query["userId"] = studentId;
+        if(studentId) {
+          // query["studentId"] = studentId;
+          query = {$and: [{studentId, applicationId: {$exists: false}}]}
+        }
+        if(studentId && applicationId){
+          query = {$or: [{studentId}, {$and: [{studentId, applicationId}]}]}
+        }
         const documentData = await DocumentModel.find(query);
         res.status(200).json(documentData); 
     } catch (error) {
