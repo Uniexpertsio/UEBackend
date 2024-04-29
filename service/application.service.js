@@ -11,7 +11,7 @@ const CurrencyService = require("./currency.service");
 const Student = require("../models/Student");
 const School = require("../models/School");
 const Application = require("../models/Application");
-const { sendDataToSF } = require("./salesforce.service");
+const { sendDataToSF, getDataFromSF } = require("./salesforce.service");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -75,40 +75,32 @@ class ApplicationService {
 
 
   async addApplication(id, agentId, body) {
-    let applicationCount = 1;
     try {
-      let latestApplication = await Application.findOne({}, { applicationId: 1 }, { sort: { 'applicationId': -1 } });
-      if (latestApplication) {
-        applicationCount = parseInt(latestApplication.applicationId.split('-')[1]) + 1;
+      await this.findStudentById(body.studentId);
+      await this.schoolService.findById(body.schoolId);
+      await this.programService.findById(body.programId);
+      await this.intakeService.findById(body.intakeId);
+
+      const externalId = uuid.v4();
+      const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
+      const applicationSfData = this.convertApplicationData(body);
+      const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
+      const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
+      const sfId = applicationSfResponse?.id;
+      if (sfId) {
+        await Application.updateOne(
+          { _id: application._id },
+          { $set: { salesforceId: sfId } },
+          { new: true }
+        );
       }
+      application["salesforceId"] = sfId
+      console.log("applicationSfResponse", applicationSfResponse);
+
+      return application;
     } catch (error) {
-      console.log('Error finding latest application:', error);
+      return error;
     }
-    const applicationId = `A-${applicationCount.toString().padStart(6, '0')}`;
-    console.log('applicationId', applicationId)
-
-    await this.findStudentById(body.studentId);
-    await this.schoolService.findById(body.schoolId);
-    await this.programService.findById(body.programId);
-    await this.intakeService.findById(body.intakeId);
-
-    const externalId = uuid.v4();
-    const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId, applicationId });
-    const applicationSfData = this.convertApplicationData(body);
-    const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
-    const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
-    const sfId = applicationSfResponse?.id;
-    if (sfId) {
-      await Application.updateOne(
-        { _id: application._id },
-        { $set: { salesforceId: sfId } },
-        { new: true }
-      );
-    }
-    application["salesforceId"] = sfId
-    console.log("applicationSfResponse", applicationSfResponse);
-
-    return application;
   }
 
   async getApplicationById(id) {
@@ -251,7 +243,7 @@ class ApplicationService {
   async addOrupdatePayment(applicationId, id, body) {
     const application = await this.findById(applicationId);
     const school = await this.schoolService.findById(application.schoolId);
-    
+
     const payment = await this.studentPaymentService.addApplicationPayment(
       applicationId,
       application.studentId,
@@ -305,10 +297,20 @@ class ApplicationService {
 
   async getApplication(applicationId) {
     try {
-      const application = await Application.findById(applicationId);
+      const application = await Application.findOne({salesforceId: applicationId});
       const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
+      // const stages = await Stages.findOne({schoolId: application.schoolId});
+
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationId}`;
+      const sfData = await getDataFromSF(url);
+      if(application.applicationId === "--") {
+        await Application.findOneAndUpdate(
+          {salesforceId: applicationId},
+          {$set: {applicationId: sfData.Name}},
+          {new: true})
+      }
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
@@ -368,7 +370,7 @@ class ApplicationService {
         },
         application: {
           id: application.id,
-          applicationId: application.applicationId,
+          applicationId: sfData?.Name,
           processingOfficer: processingOfficerResponse,
           stage: application.stage,
           stages,
@@ -390,16 +392,16 @@ class ApplicationService {
         if (!checkApplicationExist) {
           return reject({ message: `Application does not exist with ${applicationSfId}` });
         }
-  
+
         const currentStageIndex = checkApplicationExist.stages.findIndex(stage => stage.key === requestData.Current_Stage__c);
         if (currentStageIndex === -1) {
           return reject({ message: `Stage ${requestData.Current_Stage__c} not found` });
         }
-  
+
         checkApplicationExist.stages[currentStageIndex].value = new Date();
-  
+
         checkApplicationExist.stages[0].value = checkApplicationExist.createdAt;
-  
+
         await checkApplicationExist.save();
         resolve({ message: "Success", status: 200, sf: applicationSfId });
       } catch (error) {
