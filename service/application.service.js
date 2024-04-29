@@ -297,17 +297,18 @@ class ApplicationService {
 
   async getApplication(applicationId) {
     try {
-      const application = await Application.findOne({salesforceId: applicationId});
+      const application = await Application.findById(applicationId);
       const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
       // const stages = await Stages.findOne({schoolId: application.schoolId});
 
-      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationId}`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${application?.salesforceId}`;
       const sfData = await getDataFromSF(url);
+      console.log('sfData',sfData.Name,application.applicationId)
       if(application.applicationId === "--") {
         await Application.findOneAndUpdate(
-          {salesforceId: applicationId},
+          {_id: applicationId},
           {$set: {applicationId: sfData.Name}},
           {new: true})
       }
@@ -370,7 +371,7 @@ class ApplicationService {
         },
         application: {
           id: application.id,
-          applicationId: sfData?.Name,
+          applicationId: application?.applicationId,
           processingOfficer: processingOfficerResponse,
           stage: application.stage,
           stages,
