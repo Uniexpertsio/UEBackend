@@ -233,7 +233,6 @@ class ApplicationService {
   }
 
   async getDocuments(applicationId) {
-    console.log('application---', applicationId)
     return await this.documentService.getByUserId(applicationId);
   }
 
@@ -263,11 +262,6 @@ class ApplicationService {
       body
     );
     return Application.updateOne({ _id: applicationId }, { $push: { payments: payment.id } });
-    if (body.sfId) {
-      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
-      const sfRes = await sendDataToSF(data, url);
-      sfIdFound = true; // Set the flag to true if sfId is found
-    }
   }
 
   async findById(id) {
@@ -315,7 +309,6 @@ class ApplicationService {
       const student = await this.studentModel.findOne({ salesforceId: application.studentId });
       const school = await this.schoolService.findById(application.schoolId);
       const program = await this.programService.findById(application.programId);
-      console.log('programsss', program)
 
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
