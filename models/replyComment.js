@@ -4,7 +4,7 @@ const replyCommentSchema = new mongoose.Schema(
   {
     message: { type: String, required: true },
     name: { type: String, required: true },
-    studentSfId: { type: String, required: false }
+    salesforceId: { type: String, required: false }
   },
   { timestamps: true }
 );
