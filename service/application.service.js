@@ -336,7 +336,8 @@ class ApplicationService {
     // return this.parsePaymentsResponse(payments);
     const application = await Application.findById(applicationId);
     if (application) {
-      const url = `${process.env.SF_API_URL}/services/data/v50.0/query?q=SELECT+Id,Name,School__c,Programme__c,Student__c,Amount__c,Application__c,Payment_Date__c,Status__c+FROM+Payment__c+WHERE+Application__c+=+'${application?.salesforceId}'`;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,School__c,Programme__c,Student__c,Amount__c,Application__c,Payment_Date__c,Status__c,currencycode__c+FROM+Payment__c+WHERE+Application__c+=+'a045g00000JnIRfAAN'`;
+      console.log(url);
       const result = await getDataFromSF(url);
       return result?.records;
     }
