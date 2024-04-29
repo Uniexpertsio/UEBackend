@@ -132,7 +132,6 @@ class ApplicationController {
     try {
       const { applicationId } = req.params;
       const result = await this.applicationService.getApplication(applicationId);
-      console.log('result>>>',result)
       res.status(200).json(result);
     } catch (error) {
       console.log('errrorrr',error)
