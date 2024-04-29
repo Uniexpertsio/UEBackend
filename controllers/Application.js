@@ -118,12 +118,12 @@ class ApplicationController {
     }
   }
 
-  async addPayment(req, res) {
+  async addOrUpdatePayment(req, res) {
     try {
       const { applicationId } = req.params;
       const { id } = req.user;
       const body = req.body;
-      const result = await this.applicationService.addPayment(applicationId, id, body);
+      const result = await this.applicationService.addOrupdatePayment(applicationId, id, body);
       res.status(200).json(result);
     } catch (err) {
       const { statusCode, errorMessage } = await sendResponse(err);
@@ -146,10 +146,22 @@ class ApplicationController {
     try {
       const { applicationId } = req.params;
       const result = await this.applicationService.getApplication(applicationId);
+      console.log('result>>>',result)
       res.status(200).json(result);
     } catch (err) {
       const { statusCode, errorMessage } = await sendResponse(err);
       res.status(statusCode).json({ error: errorMessage });
+    }
+  }
+
+  async updateApplication(req, res) {
+    try { 
+      const { applicationSfId } = req.params;
+      const requestData = req.body;
+      const result = await this.applicationService.updateApplication(applicationSfId, requestData);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   }
 }

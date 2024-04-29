@@ -15,8 +15,9 @@ router.post('/:applicationId/task/:taskId/comment', Middleware.checkAuth, applic
 router.get('/:applicationId/comment', Middleware.checkAuth, applicationController.getComments.bind(applicationController));
 router.post('/:applicationId/comment', Middleware.checkAuth, applicationController.addComment.bind(applicationController));
 router.get('/:applicationId/document', Middleware.checkAuth, applicationController.getStudentDocuments.bind(applicationController));
-router.post('/:applicationId/payment', Middleware.checkAuth, applicationController.addPayment.bind(applicationController));
+router.post('/:applicationId/payment', Middleware.checkAuth, applicationController.addOrUpdatePayment.bind(applicationController));
 router.get('/:applicationId/payment', Middleware.checkAuth, applicationController.getPayments.bind(applicationController));
 router.get('/:applicationId', Middleware.checkAuth, applicationController.getApplication.bind(applicationController));
+router.patch('/:applicationSfId',Middleware.checkAuth, applicationController.updateApplication.bind(applicationController));
 
 module.exports = router;

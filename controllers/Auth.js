@@ -20,6 +20,7 @@ const {
 const logger = require('./../utils/logger');
 const { sendResponse } = require("../utils/errorHandler");
 const emailValidator = require('../utils/emailValidator');
+const { forgotPasswordRateLimit } = require('../utils/forgotPasswordHelper');
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -444,15 +445,22 @@ Auth.post.forgotPassword = async (req, res) => {
     if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
-    await sendEmailWithOTP(email, otp);
-    return res
-      .status(200)
-      .json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+    const sendMailResponse = await sendEmailWithOTP(email, otp);
+    if (sendMailResponse.statusCode === 200) {
+      console.log('send ----',sendMailResponse.statusCode)
+      await forgotPasswordRateLimit(email);
+  
+      return res.status(200).json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+    } else {
+      return res.status(sendMailResponse.statusCode).json({ message: "Failed to send email" });
+    }
   } catch (error) {
-    console.error("Error sending email:", error);
-    return res
-      .status(500)
-      .json({ statusCode: 500, message: "Failed To Send OTP Mail" });
+    if (error.message === 'Too many requests. Please try again later.') {
+      return res.status(429).json({ statusCode: 429, message: error.message });
+    } else {
+      console.error("Error sending email:", error);
+      return res.status(500).json({ statusCode: 500, message: "Failed To Send OTP Mail" });
+    }
   }
 };
 

@@ -165,7 +165,8 @@ const ProgramSchema = new mongoose.Schema(
     "Verbal_Reasoning_Percentile__c": { type: String },
     "Verbal_Reasoning_Score__c": { type: String },
     "Verbal_Score__c": { type: String },
-    "Writing__c": { type: String }
+    "Writing__c": { type: String },
+    "Required_Level__c": { type: String }
   },
   { timestamps: true }
 );

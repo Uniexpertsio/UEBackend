@@ -281,33 +281,39 @@ class StudentController {
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
-      const { searchType, searchTerm } = req.query;
-      const studentData = await StudentModel.findOne({ _id: studentId });
-      if (!studentData) {
-        throw new Error(`Student not with id: ${studentId}`);
-      }
-      let query;
-      switch (searchType) {
-        case 'name':
+        const { searchType, searchTerm, applicationId } = req.query;
+        const studentData = await StudentModel.findOne({ _id: studentId });
+        if(!studentData) {
+          throw new Error(`Student not with id: ${studentId}`);
+        }
+        let query;
+        switch (searchType) {
+          case 'name':
           query = { name: new RegExp(searchTerm, 'i') };
           break;
-        case 'category':
-          query = { category: new RegExp(searchTerm, 'i') };
-          break;
-        case 'used for':
-          query = { 'used for': new RegExp(searchTerm, 'i') };
-          break;
-        case 'status':
-          query = { status: new RegExp(searchTerm, 'i') };
-          break;
-        default:
-          console.log('Invalid search type');
-          query = {};
-          break;
-      }
-      query["userId"] = studentId;
-      const documentData = await DocumentModel.find(query);
-      res.status(200).json(documentData);
+          case 'category':
+            query = { category: new RegExp(searchTerm, 'i') };
+            break;
+          case 'used for':
+            query = { 'used for': new RegExp(searchTerm, 'i') };
+            break;
+          case 'status':
+            query = { status: new RegExp(searchTerm, 'i') };
+            break;
+          default:
+            console.log('Invalid search type');
+            query = {};
+            break;
+        }
+        if(studentId) {
+          // query["studentId"] = studentId;
+          query = {$and: [{studentId, applicationId: {$exists: false}}]}
+        }
+        if(studentId && applicationId){
+          query = {$or: [{studentId}, {$and: [{studentId, applicationId}]}]}
+        }
+        const documentData = await DocumentModel.find(query);
+        res.status(200).json(documentData); 
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
@@ -333,7 +339,8 @@ class StudentController {
       const { studentId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.updateStudentDocument(studentId, id, body, req.query?.frontend);
+      const { applicationId } = req.query;
+      const result = await this.studentService.updateStudentDocument(studentId, id, body, req.query?.frontend,applicationId);
       logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
       res.status(200).json(result);
     } catch (error) {

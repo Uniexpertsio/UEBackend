@@ -23,6 +23,12 @@ class SchoolController {
   async getSchoolByCountryStateOrSchoolType(req, res) {
     return res.status(200).json(await this.schoolService.getSchoolByCountryStateOrSchoolType(req.query));
   }
+
+  async getSchoolProgram(req, res) {
+    const { schoolId } = req.params;
+    const {page, limit} = req.query;
+    return res.status(200).json(await this.schoolService.getSchoolProgram(schoolId, page, limit));
+  }
 }
 
 module.exports = SchoolController;

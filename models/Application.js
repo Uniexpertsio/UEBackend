@@ -5,6 +5,23 @@ const StageSchema = {
   value: { type: Date, required: false, default: null },
 };
 
+const defaultFieldsOfStages = [
+  {key: "Pre-Submission"},
+  {key: "Application Submitted"},
+  {key: "Accepted(Conditional)"},
+  {key: "Accepted(Unconditional)"},
+  {key: "Payment"},
+  {key: "Visa Letter Requested"},
+  {key: "Additional Documents Req."},
+  {key: "Visa Letter Approved"},
+  {key: "Visa Applied"},
+  {key: "Visa Approved"},
+  {key: "Pre Departure"},
+  {key: "Post-Arrival"},
+  {key: "Commission"},
+  {key: "Rejected"}
+]
+
 const ApplicationSchema = new mongoose.Schema(
   {
     applicationId: { type: String, required: false, default: "--" },
@@ -17,7 +34,7 @@ const ApplicationSchema = new mongoose.Schema(
     intakeId: { type: String, required: false },
     status: { type: String, required: false, default: "New" },
     stage: { type: String, required: true, default: "PRE_SUBMISSION" },
-    stages: { type: [StageSchema], required: false, default: [] },
+    stages: { type: [StageSchema], required: false, default: defaultFieldsOfStages },
     tasks: { type: [String], required: false, default: [] },
     comments: { type: [String], required: false, default: [] },
     documents: { type: [String], required: false, default: [] },
