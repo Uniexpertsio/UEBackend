@@ -213,41 +213,6 @@ class StudentController {
     }
   }
 
-  // getStudentDocuments = async (req, res) => {
-  //   try {
-  //     const { studentId } = req.params;
-  //       const { searchType, searchTerm } = req.query;
-  //       const studentData = await StudentModel.findOne({ _id: studentId });
-  //       if(!studentData) {
-  //         throw new Error(`Student not with id: ${studentId}`);
-  //       }
-  //       let query;
-  //       switch (searchType) {
-  //         case 'name':
-  //         query = { name: new RegExp(searchTerm, 'i') };
-  //         break;
-  //         case 'category':
-  //           query = { category: new RegExp(searchTerm, 'i') };
-  //           break;
-  //         case 'used for':
-  //           query = { 'used for': new RegExp(searchTerm, 'i') };
-  //           break;
-  //         case 'status':
-  //           query = { status: new RegExp(searchTerm, 'i') };
-  //           break;
-  //         default:
-  //           console.log('Invalid search type');
-  //           query = {};
-  //           break;
-  //       }
-  //       query.userId=studentId;
-  //       const documentData = await DocumentModel.find(query);
-  //       res.status(200).json(documentData); 
-  //   } catch (error) {
-  //     res.status(500).json({ error: error.message });
-  //   }
-  // }
-
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
