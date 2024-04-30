@@ -412,6 +412,33 @@ class ApplicationService {
     });
   }
 
+  async createApplicationStages() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const url =`${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/`;
+        const sfData = await getDataFromSF(url);
+        
+        const picklisturl = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/picklist-values/${sfData}/Current_Stage__c`;
+        const sfResponse = await getDataFromSF(picklisturl);
+
+        const currentStageIndex = checkApplicationExist.stages.findIndex(stage => stage.key === requestData.Current_Stage__c);
+        if (currentStageIndex === -1) {
+          return reject({ message: `Stage ${requestData.Current_Stage__c} not found` });
+        }
+
+        checkApplicationExist.stages[currentStageIndex].value = new Date();
+
+        checkApplicationExist.stages[0].value = checkApplicationExist.createdAt;
+
+        await checkApplicationExist.save();
+        resolve({ message: "Success", status: 200, sf: applicationSfId });
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
+  }
+
   getPaidApplications(agentId, year) {
     const MonthFilter = {
       $addFields: {

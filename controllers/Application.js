@@ -149,6 +149,16 @@ class ApplicationController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async createApplicationStages(req, res) {
+    try { 
+      const { countrySfId } = req.params;
+      const result = await this.applicationService.createApplicationStages(countrySfId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new ApplicationController();
