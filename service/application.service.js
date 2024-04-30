@@ -84,10 +84,12 @@ class ApplicationService {
       const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
       const applicationSfData = this.convertApplicationData(body);
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
+      console.log('applicationSfUrl',applicationSfUrl)
       const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
       const sfId = applicationSfResponse?.id;
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationSfResponse?.id}`;
       const sfData = await getDataFromSF(url);
+      console.log('sfData....',sfData)
       
       if (sfId) {
         await Application.updateOne(
@@ -390,6 +392,8 @@ class ApplicationService {
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/picklist-values/${application?.country}/Current_Stage__c`
       const countryListFromSf = await getDataFromSF(url);
      
+      const sfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${application?.salesforceId}`;
+      const sfData = await getDataFromSF(sfUrl);
 
       return {
         student: {
@@ -419,7 +423,7 @@ class ApplicationService {
           id: application.id,
           applicationId: application?.applicationId,
           processingOfficer: processingOfficerResponse,
-          stage: application.stage,
+          currentStage: sfData?.Current_Stage__c,
           stages: countryListFromSf?.values,
           currency: school.currency,
         },
