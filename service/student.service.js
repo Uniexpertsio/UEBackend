@@ -1455,7 +1455,7 @@ class StudentService {
                 School__c: "",
                 Student__c: student?.salesforceId,
                 // Document_Master__c: "",
-                Application__c: "",
+                Application__c: applicationSalesforceId,
                 Programme__c: "",
                 Used_For__c: doc?.usedFor,
                 S3_DMS_URL__c: doc?.url,
