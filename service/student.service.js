@@ -1275,26 +1275,6 @@ class StudentService {
     return documentIds;
   }
 
-  // async updateStudentDocument(studentId, modifiedBy, body) {
-  //   const document = await this.documentService.addDocument(
-  //     modifiedBy,
-  //     studentId,
-  //     body
-  //   );
-
-  //   const result = await StudentModel.updateOne(
-  //     { _id: studentId },
-  //     { $push: { documents: document.id }, $set: { modifiedBy } }
-  //   );
-
-  //   if (result.modifiedCount === 0) {
-  //     throw new Error("Student not found");
-  //   }
-  //   // await sendToSF(MappingFiles.STUDENT_document, { ...document, studentId: (await this.findById(studentId)).externalId, _user: { id: modifiedBy } });
-
-  //   return document.id;
-  // }
-
   async updateStudentDocument(studentId, modifiedBy, body, isFrontend, applicationId) {
     return new Promise(async (resolve, reject) => {
       try {
