@@ -1406,11 +1406,16 @@ class StudentService {
           ? await StudentModel.findById({ _id: studentId })
           : await StudentModel.findOne({ salesforceId: studentId });
         if (!student) throw "student not found";
+        
+        let applicationSalesforceId = ""; 
+
         if (applicationId) {
           const application = isFrontend
             ? await ApplicationModel.findById({ _id: applicationId })
             : await ApplicationModel.findOne({ salesforceId: applicationId });
           if (!application) throw "Application not found";
+
+          applicationSalesforceId = application.salesforceId; 
         }
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
@@ -1456,6 +1461,7 @@ class StudentService {
                 S3_DMS_URL__c: doc?.url,
                 ContentUrl__c: doc?.url,
               };
+              console.log('============',data)
               let sfIdFound = false;
               for (const document of body.documents) {
                 if (document.sfId) {
