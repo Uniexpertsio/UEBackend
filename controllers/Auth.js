@@ -2,8 +2,6 @@ const config = require("../config/config");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid/v4");
 const Common = require("./Common");
-const nodemailer = require("nodemailer");
-const { MappingFiles } = require("./../constants/Agent.constants");
 const Document = require("../models/Document");
 
 const Config = require("../models/Config");
@@ -11,7 +9,6 @@ const Agent = require("../models/Agent");
 const { sendEmailWithOTP } = require("../utils/sendMail");
 const Staff = require("../models/Staff");
 const {
-  sendToSF,
   sendDataToSF,
   updateDataToSF,
   getTnc,
@@ -48,8 +45,6 @@ function convertToCompanyData(inputData) {
     Name: inputData.company.companyName,
     Lock_Record__c: true,
     BDM_User__c: "",
-    //"Parent": "",
-    //"PrimaryContact__r": "",
     Students_Per_Year__c: inputData.company.studentPerYear.replace("+", ""),
     CurrencyIsoCode: "GBP",
     Year_Founded__c: inputData.company.yearFounded,
@@ -95,11 +90,8 @@ function convertToAgentData(inputData, id) {
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
     Title: inputData?.personalDetails?.jobTitle,
-    // Whatsapp_No__c: inputData.personalDetails.phone,
     Email: inputData.personalDetails.email,
     Password__c: inputData?.password,
-    // Phone: "8987678987",
-    // Birthdate: "2022-07-11", // Assuming a default value
     AccountId: id, // Assuming a default value
     Active__c: true,
     MailingCity: inputData.address.city,
@@ -120,6 +112,7 @@ Auth.get.background = async (req, res, next) => {
   }
 };
 
+
 Auth.get.config = async (req, res, next) => {
   try {
     let bankFields = await Config.findOne({ type: "AUTH_BACKGROUND_IMG" });
@@ -134,30 +127,42 @@ Auth.get.config = async (req, res, next) => {
   }
 };
 
+
+// Function to handle user login
 Auth.post.login = async (req, res) => {
   try {
+    // Extract email and password from request body
     const email = req.body.email;
     const password = req.body.password;
+
+    // Find staff based on email
     let staff = await Staff.findOne({ email: email });
+
+    // Find agent associated with staff
     let agent = await Agent.findById(staff?.agentId);
+
+    // Get current date
     const currentDate = new Date();
 
     if (!staff) {
+      // Return error if user does not exist
       const error = new Error("User does not exist");
       error.statusCode = 404;
       error.error = "User does not exist"
       throw error;
     } else if (!staff.isActive) {
+      // Return error if user account is blocked
       const error = new Error("Your account is blocked. Please contact admin.");
       error.statusCode = 400;
       error.error = "Your account is blocked. Please contact admin."
       throw error;
     } else {
-      // Check if lastLoginDate is older than 15 days
+      // Check if last login date is older than 15 days
       const lastLoginDate = new Date(staff.lastLoginDate);
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
       if (lastLoginDate < fifteenDaysAgo && staff?.role !== 'admin') {
+        // Block account if inactive for more than 15 days
         await Staff.updateOne(
           { _id: staff._id },
           { $set: { isActive: false } }
@@ -168,30 +173,27 @@ Auth.post.login = async (req, res) => {
         throw error;
       }
 
+      // Update last login date
       await Staff.updateOne(
         { _id: staff._id },
         { $set: { lastLoginDate: currentDate } }
       );
 
+      // Compare password
       let matched = Common.comparePassword(staff.password, password);
       if (matched) {
+        // Generate JWT token for authentication
         const token = jwt.sign(
-          {
-            id: staff._id,
-            email: email,
-          },
+          { id: staff._id, email: email },
           config.keys.secret,
-          {
-            expiresIn: "24d",
-          }
+          { expiresIn: "24d" }
         );
 
-        let loggedInMessage =
-          `${staff.email} logged in at ${req.x_request_ts} [${req.ip}]`.green;
-
+        // Check if documents are uploaded for the agent
         const docs = await Document.find({ userId: agent._id });
         let docUploaded = docs.length > 0;
 
+        // Return success response with token and document upload status
         return res.status(200).json({
           data: {
             docUploaded,
@@ -201,6 +203,7 @@ Auth.post.login = async (req, res) => {
           tokens: token,
         });
       } else {
+        // Return error if password does not match
         res.status(401).json({
           statusCode: 401,
           message: "You have entered an invalid email or password",
@@ -209,6 +212,7 @@ Auth.post.login = async (req, res) => {
       }
     }
   } catch (err) {
+    // Return error response
     console.log("Request: ", err);
     return res.status(400).json({
       statusCode: 400,
@@ -218,6 +222,9 @@ Auth.post.login = async (req, res) => {
   }
 };
 
+
+
+// Function used for signup
 Auth.post.signup = async (req, res, next) => {
   try {
     const externalId = uuid();
@@ -263,7 +270,7 @@ Auth.post.signup = async (req, res, next) => {
       ],
       externalId: externalStaffId,
       agentId: agent._id,
-      password: await Common.hashPassword(agentData.password),
+      password: await Common.hashPassword(agentData.password), ////Password Encryption
       notifications: {
         student: true,
         comments: true,
@@ -278,9 +285,7 @@ Auth.post.signup = async (req, res, next) => {
         document: true,
       },
     });
-
-    const url = "Contact/ExternalId__c/2573t236423e";
-    //const sf = await sendToSF(MappingFiles.AGENT_account, { ...agentData, externalId, commonId: agent.commonId, url });
+    
     const token = jwt.sign(
       {
         id: staff._id,
@@ -292,8 +297,6 @@ Auth.post.signup = async (req, res, next) => {
       }
     );
 
-    //console.log("sf::: ", sf);
-    // sf:  { id: '0036D00000mEoFiQAK', success: true, errors: [], created: false }
     const companyData = convertToCompanyData(req.body);
     const companyUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Account`;
     const sfCompanyData = await sendDataToSF(companyData, companyUrl);
@@ -339,6 +342,9 @@ Auth.post.signup = async (req, res, next) => {
     });
   }
 };
+
+
+
 
 Auth.patch.signup = async (req, res, next) => {
   try {
