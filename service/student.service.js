@@ -1295,14 +1295,122 @@ class StudentService {
   //   return document.id;
   // }
 
-  async updateStudentDocument(studentId, modifiedBy, body, isFrontend, applicationId) {
+  // async updateStudentDocument(studentId, modifiedBy, body, isFrontend, applicationId) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       const student = isFrontend? await StudentModel.findById({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
+  //       if (!student) throw "student not found";
+  //       if(applicationId) {
+  //         const application = isFrontend? await ApplicationModel.findById({ _id: applicationId }): await ApplicationModel.findOne({ salesforceId: applicationId });
+  //         if(!application) throw "Application not found";
+  //       }
+  //       const document = await this.documentService.addOrUpdateStudentDocument(
+  //         modifiedBy,
+  //         student?._id,
+  //         body,
+  //         applicationId
+  //       );
+  //       const documentIds = document.map((document) => document.id);
+  //       if (application && body?.usedFor === "Both") {
+  //         result = await StudentModel.updateOne(
+  //           { _id: studentId },
+  //           { $set: { documents: documentIds, modifiedBy } }
+  //         );
+  //       }
+  //       if (!applicationId) {
+  //         result = await StudentModel.updateOne(
+  //           { _id: studentId },
+  //           { $set: { documents: documentIds, modifiedBy } }
+  //         );
+  //       }
+  //       if (application) {
+  //         await Application.updateOne(
+  //           { _id: application._id },
+  //           { $set: { documents: documentIds, modifiedBy } }
+  //         );
+  //       }
+
+  //       if (isFrontend) {
+  //         await Promise.all(
+  //           document.map(async (doc) => {
+  //             // let dtype = await this.documentTypeService.findById(doc.documentTypeId);
+  //             const data = {
+  //               Name: doc?.name,
+  //               Lock_Record__c: false,
+  //               Active__c: "",
+  //               LatestDocumentId__c: "",
+  //               ReviewRemarks__c: "",
+  //               BypassDocumentation__c: false,
+  //               Status__c: doc?.status,
+  //               IsPublic__c: "",
+  //               IsNewDoc__c: true,
+  //               FileType__c: "",
+  //               ExpiryDate__c: "2023-01-25",
+  //               Is_Downloaded__c: false,
+  //               Sequence__c: 30,
+  //               Mandatory__c: doc?.mandatory,
+  //               Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
+  //               Document_Category__c: doc?.category,
+  //               ObjectType__c: doc?.objectType, //Student,Application,Agent
+  //               Account__c: "",
+  //               School__c: "",
+  //               Student__c: student?.salesforceId,
+  //               // Document_Master__c: "",
+  //               Application__c: application?.salesforceId || "",
+  //               Programme__c: "",
+  //               Used_For__c: doc?.usedFor,
+  //               S3_DMS_URL__c: doc?.url,
+  //               ContentUrl__c: doc?.url,
+  //             };
+  //             let sfIdFound = false;
+  //             for (const document of body.documents) {
+  //               if (document.sfId) {
+  //                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
+  //                 const sfRes = await sendDataToSF(data, url);
+  //                 sfIdFound = true; // Set the flag to true if sfId is found
+  //               }
+  //             }
+
+  //             if (!sfIdFound) {
+  //               const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
+  //               const sfRes = await sendDataToSF(data, url);
+  //               doc["sfId"] = sfRes.id;
+  //               await Document.findOneAndUpdate(
+  //                 { _id: doc._id },
+  //                 { $set: { sfId: sfRes.id } },
+  //                 { new: true }
+  //               );
+  //             }
+  //           })
+  //         );
+  //       }
+
+  //       resolve(document);
+  //     } catch (error) {
+  //       console.log(error);
+  //       reject(error);
+  //     }
+  //   });
+  // }
+
+  async updateStudentDocument(
+    studentId,
+    modifiedBy,
+    body,
+    isFrontend,
+    applicationId
+  ) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = isFrontend? await StudentModel.findById({ _id: studentId }): await StudentModel.findOne({ salesforceId: studentId });
+        const student = isFrontend
+          ? await StudentModel.findById({ _id: studentId })
+          : await StudentModel.findOne({ salesforceId: studentId });
         if (!student) throw "student not found";
-        if(applicationId) {
-          const application = isFrontend? await ApplicationModel.findById({ _id: applicationId }): await ApplicationModel.findOne({ salesforceId: applicationId });
-          if(!application) throw "Application not found";
+        if (applicationId) {
+          const application = isFrontend
+            ? await ApplicationModel.findById({ _id: applicationId })
+            : await ApplicationModel.findOne({ salesforceId: applicationId });
+          if (!application) throw "Application not found";
         }
         const document = await this.documentService.addOrUpdateStudentDocument(
           modifiedBy,
@@ -1311,24 +1419,10 @@ class StudentService {
           applicationId
         );
         const documentIds = document.map((document) => document.id);
-        if (application && body?.usedFor === "Both") {
-          result = await StudentModel.updateOne(
-            { _id: studentId },
-            { $set: { documents: documentIds, modifiedBy } }
-          );
-        }
-        if (!applicationId) {
-          result = await StudentModel.updateOne(
-            { _id: studentId },
-            { $set: { documents: documentIds, modifiedBy } }
-          );
-        }
-        if (application) {
-          await Application.updateOne(
-            { _id: application._id },
-            { $set: { documents: documentIds, modifiedBy } }
-          );
-        }
+        await StudentModel.updateOne(
+          { _id: student?._id },
+          { $set: { documents: documentIds } }
+        );
 
         if (isFrontend) {
           await Promise.all(
@@ -1356,7 +1450,7 @@ class StudentService {
                 School__c: "",
                 Student__c: student?.salesforceId,
                 // Document_Master__c: "",
-                Application__c: application?.salesforceId || "",
+                Application__c: "",
                 Programme__c: "",
                 Used_For__c: doc?.usedFor,
                 S3_DMS_URL__c: doc?.url,
