@@ -209,7 +209,7 @@ class CaseService {
   }
 
   // Method to update reply comment for a case
-  async updateReplyComment(sfId, commentData) {
+  async updateReplyComment(commentData) {
     return new Promise(async (resolve, reject) => {
       try {
         const replyComment = await new ReplyComment(commentData).save();
@@ -217,11 +217,11 @@ class CaseService {
           throw new Error("Reply comment not created");
         }
         await Comment.findOneAndUpdate(
-          { commentSfId: sfId },
+          { commentSfId: commentData.commentSfId },
           { $push: { replyComment: replyComment._id } },
           { new: true }
         );
-        resolve({ message: "Success", status: 200, sf: sfId });
+        resolve({ message: "Success", status: 200, sf: commentData.commentSfId });
       } catch (error) {
         console.log(error);
         reject(error);

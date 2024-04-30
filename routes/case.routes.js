@@ -42,7 +42,7 @@ router.delete("/:id", caseController.deleteCase.bind(caseController));
 
 // Route to reply to a comment on a case, with authentication middleware
 router.patch(
-  "/:sfId/replyComment",
+  "/replyComment",
   Middleware.checkAuth,
   caseController.replyComment.bind(caseController)
 );

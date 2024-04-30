@@ -102,9 +102,8 @@ class CaseController {
   // Method to reply to a comment on a case
   async replyComment(req, res) {
     try {
-      const { sfId } = req.params;
       const commentData = req.body;
-      const updatedComment = await this.caseService.updateReplyComment(sfId, commentData);
+      const updatedComment = await this.caseService.updateReplyComment(commentData);
       res.status(200).json(updatedComment);
     } catch (error) {
       res.status(500).json(error);
