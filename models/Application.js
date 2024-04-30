@@ -43,6 +43,7 @@ const ApplicationSchema = new mongoose.Schema(
     externalId: { type: String, required: true },
     modifiedBy: { type: String, required: true },
     salesforceId: { type: String, required: false, default: "--" },
+    country: { type: String, required: false },
   },
   { timestamps: true }
 );

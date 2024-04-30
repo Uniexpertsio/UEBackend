@@ -86,15 +86,19 @@ class ApplicationService {
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
       const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
       const sfId = applicationSfResponse?.id;
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationSfResponse?.id}`;
+      const sfData = await getDataFromSF(url);
+      
       if (sfId) {
         await Application.updateOne(
           { _id: application._id },
-          { $set: { salesforceId: sfId } },
+          { $set: { salesforceId: sfId,applicationId: sfData.Name,country: sfData.RecordTypeId} },
           { new: true }
         );
       }
       application["salesforceId"] = sfId
-      console.log("applicationSfResponse", applicationSfResponse);
+      application["applicationId"] = sfData?.Name
+      application["country"] = sfData?.RecordTypeId
 
       return application;
     } catch (error) {
@@ -350,16 +354,6 @@ class ApplicationService {
       const program = await this.programService.findById(application.programId);
       // const stages = await Stages.findOne({schoolId: application.schoolId});
 
-      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${application?.salesforceId}`;
-      const sfData = await getDataFromSF(url);
-      console.log('sfData',sfData.Name,application.applicationId)
-      if(application.applicationId === "--") {
-        await Application.findOneAndUpdate(
-          {_id: applicationId},
-          {$set: {applicationId: sfData.Name}},
-          {new: true})
-      }
-
       let processingOfficerResponse = null;
       if (application.processingOfficerId) {
         const processingOfficer = await this.staffService.findById(
@@ -372,26 +366,30 @@ class ApplicationService {
         };
       }
 
-      let stages = application.stages;
-      if (stages.length < 1) {
-        let isCurrentStage = true;
-        Object.values(ApplicationStage).forEach((key) => {
-          let date = null;
-          if (isCurrentStage) {
-            const stage = application.stage;
-            if (key === stage) {
-              isCurrentStage = false;
-            }
-            date = application.createdAt;
-          }
-          stages.push({ key: key, value: date });
-        });
-      }
+      // let stages = application.stages;
+      // if (stages.length < 1) {
+      //   let isCurrentStage = true;
+      //   Object.values(ApplicationStage).forEach((key) => {
+      //     let date = null;
+      //     if (isCurrentStage) {
+      //       const stage = application.stage;
+      //       if (key === stage) {
+      //         isCurrentStage = false;
+      //       }
+      //       date = application.createdAt;
+      //     }
+      //     stages.push({ key: key, value: date });
+      //   });
+      // }
 
       let intake = null;
       if (application.intakeId) {
         intake = await this.intakeService.findById(application.intakeId);
       }
+
+      const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/picklist-values/${application?.country}/Current_Stage__c`
+      const countryListFromSf = await getDataFromSF(url);
+     
 
       return {
         student: {
@@ -422,7 +420,7 @@ class ApplicationService {
           applicationId: application?.applicationId,
           processingOfficer: processingOfficerResponse,
           stage: application.stage,
-          stages,
+          stages: countryListFromSf?.values,
           currency: school.currency,
         },
         intake: {
