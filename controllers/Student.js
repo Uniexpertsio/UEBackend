@@ -137,7 +137,8 @@ class StudentController {
       const studentId = req.params.studentId;
       const { id, agentId } = req.user;
       const body = req.body;
-      const workHistory = await this.studentService.addStudentWorkHistory(studentId, id, body, agentId);
+      const {addStudentPage} = req.query;
+      const workHistory = await this.studentService.addStudentWorkHistory(studentId, id, body, agentId, addStudentPage);
       res.status(200).json(workHistory);
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -358,15 +358,16 @@ class StudentService {
       if (isValid) {
         // Generate a unique external ID for the student
         const externalId = uuid();
-
         // Create a new student in the database
-        const student = await StudentModel.create({
-          ...studentInformation, // Spread the studentInformation object
-          modifiedBy,
-          agentId,
-          externalId,
-          createdBy: modifiedBy,
-        });
+        
+          const student = await StudentModel.create({
+            ...studentInformation, 
+            modifiedBy,
+            agentId,
+            externalId,
+            createdBy: modifiedBy,
+            currentStage: 1
+          });
 
         // Convert student information to Salesforce format
         const studentData = this.converttoSfBody(studentInformation);
@@ -621,10 +622,20 @@ class StudentService {
       modifiedBy,
       body
     );
-    const result = await StudentModel.updateOne(
+
+    const checkEducationExist = await StudentModel.findById(studentId);
+    let result;
+    if(checkEducationExist.educations.length === 0) {
+    result = await StudentModel.updateOne(
       { _id: studentId },
-      { $push: { educations: education.id }, $set: { modifiedBy } }
+      { $push: { educations: education.id }, $set: { modifiedBy,currentStage: 2 } }
     );
+    } else {
+      result = await StudentModel.updateOne(
+        { _id: studentId },
+        { $push: { educations: education.id }, $set: { modifiedBy } }
+      );
+    }
 
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
@@ -724,7 +735,7 @@ class StudentService {
     return student;
   }
 
-  async addStudentWorkHistory(studentId, modifiedBy, body, agentId) {
+  async addStudentWorkHistory(studentId, modifiedBy, body, agentId, addStudentPage) {
     const student = await this.findById(studentId);
     const workHistory = await this.workHistoryService.add(
       studentId,
@@ -732,10 +743,19 @@ class StudentService {
       body
     );
 
-    const result = await StudentModel.updateOne(
+    const checkWorkHistoryExist = await StudentModel.findById(studentId);
+    let result;
+    if(addStudentPage && checkWorkHistoryExist.workHistory.length === 0) {
+    result = await StudentModel.updateOne(
       { _id: studentId },
-      { $push: { workHistory: workHistory.id }, $set: { modifiedBy } }
+      { $push: { workHistory: workHistory.id }, $set: { modifiedBy,currentStage: 4 } }
     );
+    } else {
+      result = await StudentModel.updateOne(
+        { _id: studentId },
+        { $push: { workHistory: workHistory.id }, $set: { modifiedBy } }
+      );
+    }
 
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
@@ -1151,10 +1171,19 @@ class StudentService {
       body,
       agentId
     );
-    const result = await StudentModel.updateOne(
+    const checkEducationExist = await StudentModel.findById(studentId);
+    let result;
+    if(checkEducationExist.testScore.length === 0) {
+    result = await StudentModel.updateOne(
       { _id: studentId },
-      { $push: { testScore: testScore.id }, $set: { modifiedBy } }
+      { $push: { testScore: testScore.id }, $set: { modifiedBy,currentStage: 3 } }
     );
+    } else {
+      result = await StudentModel.updateOne(
+        { _id: studentId },
+        { $push: { testScore: testScore.id }, $set: { modifiedBy} }
+      );
+    }
     if (result.modifiedCount === 0) {
       throw new Error("Student not found");
     }
@@ -1393,7 +1422,7 @@ class StudentService {
   //   });
   // }
 
-  async updateStudentDocument(
+  async   updateStudentDocument(
     studentId,
     modifiedBy,
     body,
@@ -1423,11 +1452,13 @@ class StudentService {
           body,
           applicationId
         );
-        const documentIds = document.map((document) => document.id);
-        await StudentModel.updateOne(
-          { _id: student?._id },
-          { $set: { documents: documentIds } }
-        );
+        // const documentIds = document.map((document) => document.id);
+        
+        
+      // await StudentModel.updateOne(
+      //   { _id: student?._id },
+      //   { $set: { documents: documentIds} }
+      // );
 
         if (isFrontend) {
           await Promise.all(
@@ -1461,7 +1492,6 @@ class StudentService {
                 S3_DMS_URL__c: doc?.url,
                 ContentUrl__c: doc?.url,
               };
-              console.log('============',data)
               let sfIdFound = false;
               for (const document of body.documents) {
                 if (document.sfId) {
