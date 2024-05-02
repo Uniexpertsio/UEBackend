@@ -128,6 +128,7 @@ const StudentSchema = new mongoose.Schema(
     salesforceId: { type: String, required: false, default: "--" },
     externalId: { type: String, required: false, default: "" },
     createdBy: { type: String, required: false },
+    currentStage: { type: Number, required: false,default: 0 },
   },
   { timestamps: true }
 );

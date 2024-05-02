@@ -84,12 +84,10 @@ class ApplicationService {
       const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
       const applicationSfData = this.convertApplicationData(body);
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
-      console.log('applicationSfUrl',applicationSfUrl)
       const applicationSfResponse = await sendDataToSF(applicationSfData, applicationSfUrl);
       const sfId = applicationSfResponse?.id;
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationSfResponse?.id}`;
       const sfData = await getDataFromSF(url);
-      console.log('sfData....',sfData)
       
       if (sfId) {
         await Application.updateOne(
