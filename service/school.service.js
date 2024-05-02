@@ -81,56 +81,69 @@ class SchoolService {
   //   }
   // }
 
+  // async getAllSchool(page, pageSize) {
+  //   const skip = (page - 1) * pageSize;
+  //   console.log(page, pageSize, skip);
+  //   try {
+  //     const [schools, totalCount] = await Promise.all([
+  //       School.aggregate([
+  //         {
+  //           $lookup: {
+  //             from: "programs",
+  //             localField: "Id", // Assuming Id is the field referencing School__c
+  //             foreignField: "School__c", // Assuming School__c is the field referenced by Id
+  //             as: "programs",
+  //           },
+  //         },
+  //         {
+  //           $match: {
+  //             programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
+  //           },
+  //         },
+  //         {
+  //           $skip: skip,
+  //         },
+  //         {
+  //           $limit: parseInt(pageSize), // Convert pageSize to a number
+  //         },
+  //       ]),
+  //       School.aggregate([
+  //         {
+  //           $lookup: {
+  //             from: "programs",
+  //             localField: "Id", // Assuming Id is the field referencing School__c
+  //             foreignField: "School__c", // Assuming School__c is the field referenced by Id
+  //             as: "programs",
+  //           },
+  //         },
+  //         {
+  //           $match: {
+  //             programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
+  //           },
+  //         },
+  //         {
+  //           $count: "totalCount",
+  //         },
+  //       ]),
+  //     ]);
+
+  //     // Extracting totalCount from the result of the second aggregation
+  //     const totalSchoolsWithPrograms =
+  //       totalCount.length > 0 ? totalCount[0].totalCount : 0;
+
+  //     return { schools, totalSchoolsWithPrograms };
+  //   } catch (error) {
+  //     // Handle error
+  //     console.error("Error:", error);
+  //     throw error;
+  //   }
+  // }
+
   async getAllSchool(page, pageSize) {
     const skip = (page - 1) * pageSize;
-    console.log(page, pageSize, skip);
     try {
-      const [schools, totalCount] = await Promise.all([
-        School.aggregate([
-          {
-            $lookup: {
-              from: "programs",
-              localField: "Id", // Assuming Id is the field referencing School__c
-              foreignField: "School__c", // Assuming School__c is the field referenced by Id
-              as: "programs",
-            },
-          },
-          {
-            $match: {
-              programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
-            },
-          },
-          {
-            $skip: skip,
-          },
-          {
-            $limit: parseInt(pageSize), // Convert pageSize to a number
-          },
-        ]),
-        School.aggregate([
-          {
-            $lookup: {
-              from: "programs",
-              localField: "Id", // Assuming Id is the field referencing School__c
-              foreignField: "School__c", // Assuming School__c is the field referenced by Id
-              as: "programs",
-            },
-          },
-          {
-            $match: {
-              programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
-            },
-          },
-          {
-            $count: "totalCount",
-          },
-        ]),
-      ]);
-
-      // Extracting totalCount from the result of the second aggregation
-      const totalSchoolsWithPrograms =
-        totalCount.length > 0 ? totalCount[0].totalCount : 0;
-
+      const schools= await School.find().limit(pageSize).skip(skip);
+      const totalSchoolsWithPrograms=await School.countDocuments();
       return { schools, totalSchoolsWithPrograms };
     } catch (error) {
       // Handle error
@@ -190,7 +203,7 @@ class SchoolService {
   }
 
   async findById(id) {
-    const school = await School.findOne({ Id: id });
+    const school = await School.findById(id);
 
     if (!school) {
       throw new Error(`No school found for id - ${id}`);
