@@ -75,15 +75,7 @@ class DocumentService {
         externalId: uuid.v4()
       }));
 
-      let documents;
-      const checkDocumentExist = await Document.findOne({ studentId: studentId });
-      if (!checkDocumentExist) {
-        documents = await Document.insertMany(documentsToInsert);
-        await Student.findOneAndUpdate({_id: studentId},{$set: {currentStage: 5}},{new: true})
-
-      } else {
-        documents = await Document.insertMany(documentsToInsert);
-      }
+      const documents = await Document.insertMany(documentsToInsert);
       return documents;
     } catch (error) {
       console.error("Error in add Or Update Student Document:", error);
