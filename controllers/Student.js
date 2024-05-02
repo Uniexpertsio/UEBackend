@@ -237,12 +237,10 @@ class StudentController {
             query = { status: new RegExp(searchTerm, 'i') };
             break;
           default:
-            console.log('Invalid search type');
             query = {};
             break;
         }
         if(studentId) {
-          // query["studentId"] = studentId;
           query = {$and: [{studentId, applicationId: {$exists: false}}]}
         }
         if(studentId && applicationId){
@@ -275,6 +273,16 @@ class StudentController {
       const { id } = req.user;
       const { applicationId } = req.query;
       const result = await this.studentService.updateStudentDocument(studentId, id, body,req.query?.frontend,applicationId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  updateStudentCurrentStage = async (req, res) => {
+    try {
+      const { studentId } = req.params;
+      const result = await this.studentService.updateStudentCurrentStage(studentId);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });

@@ -723,7 +723,6 @@ class StudentService {
   }
 
   async checkIfEducationBelongsToStudent(studentId, educationId) {
-    console.log("student request---539", studentId, educationId);
     const student = await StudentModel.findById(studentId);
     if (!student) {
       throw new Error("Student not found");
@@ -1171,9 +1170,9 @@ class StudentService {
       body,
       agentId
     );
-    const checkEducationExist = await StudentModel.findById(studentId);
+    const checkTestScoreExist = await StudentModel.findById(studentId);
     let result;
-    if(checkEducationExist.testScore.length === 0) {
+    if(checkTestScoreExist.testScore.length === 0) {
     result = await StudentModel.updateOne(
       { _id: studentId },
       { $push: { testScore: testScore.id }, $set: { modifiedBy,currentStage: 3 } }
@@ -1518,6 +1517,17 @@ class StudentService {
         resolve(document);
       } catch (error) {
         console.log(error);
+        reject(error);
+      }
+    });
+  }
+
+  async updateStudentCurrentStage(studentId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const student = await StudentModel.findOneAndUpdate({_id: studentId},{$set: {currentStage: 5}},{new: true});
+        resolve(student);
+      } catch (error) {
         reject(error);
       }
     });
