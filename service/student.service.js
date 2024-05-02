@@ -1813,7 +1813,7 @@ class StudentService {
     if ((student.testScore.length ? student.testScore.length : 0) > 0) {
       progress++;
     }
-    if ((student.documents.length ? student.documents.length : 0) > 0) {
+    if (student?.currentStage === 5) {
       progress++;
     }
     return (progress / total) * 100;
