@@ -103,8 +103,8 @@ class CaseController {
   async replyComment(req, res) {
     try {
       const commentData = req.body;
-      const updatedComment = await this.caseService.updateReplyComment(commentData);
-      res.status(200).json(updatedComment);
+      const replyComment = await this.caseService.ReplyComment(commentData);
+      res.status(200).json(replyComment);
     } catch (error) {
       res.status(500).json(error);
     }

@@ -41,7 +41,7 @@ router.put("/:id", caseController.updateCase.bind(caseController));
 router.delete("/:id", caseController.deleteCase.bind(caseController));
 
 // Route to reply to a comment on a case, with authentication middleware
-router.patch(
+router.post(
   "/replyComment",
   Middleware.checkAuth,
   caseController.replyComment.bind(caseController)
