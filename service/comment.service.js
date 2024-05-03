@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const StaffService = require("./staff.service");
 const Comment = require("../models/Comment");
+const ReplyComment = require("../models/replyComment");
 
 class CommentService {
   constructor() {
@@ -44,11 +45,12 @@ class CommentService {
     );
   }
 
-  async getComment(id) {
-    const comment = await this.commentModel.findById(id).populate('replyComment');
+  async getComment(id, caseSfId) {
+    const comment = await this.commentModel.findById(id);
+    const replyComment = await ReplyComment.findOne({salesforceId: caseSfId});
     if (!comment) throw new Error("Comment not found");
     const user = await this.staffService.findById(comment.userId);
-    return { comment, user };
+    return { comment, replyComment, user };
   }
 }
 

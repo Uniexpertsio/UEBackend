@@ -225,21 +225,19 @@ class ApplicationService {
     );
     const application = await Application.findById(applicationId);
     const data = {
-      RecordTypeId: "0125g0000003QWlAAM",
-      Enter_Note__c: null,
-      Application__c: application?.salesforceId,
-      Application_Owner_Email__c: null,
-      Partner_User__c: null,
-      Lead__c: null,
-      PartnerNote__c: null,
-      School__c: "",
-      University_Notes__c: null,
-      Subject__c: "Offer Related",
-      Student__c: null,
-      Message_Body__c: body?.message,
-      Type__c: "Inbound",
-      External__c: true,
-      CourseEnquiry__c: null,
+       "Enter_Note__c": null,
+       "Application__c": application?.salesforceId,
+       "Partner_User__c": null,
+       "Lead__c": null,
+       "PartnerNote__c": null,
+       "University_Notes__c": null,
+       "Subject__c": "Offer Related",
+       "Student__c": null,
+       "Message_Body__c": body?.message,
+       "Type__c": "Inbound",
+       "External__c": true,
+       "CourseEnquiry__c": null,
+       "Cases__c": null,
     };
     // Send comment data to Salesforce endpoint
     const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
