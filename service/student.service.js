@@ -366,7 +366,7 @@ class StudentService {
           agentId,
           externalId,
           createdBy: modifiedBy,
-          currentStage: 1
+          currentStage: 1,
         });
 
         // Convert student information to Salesforce format
@@ -391,6 +391,10 @@ class StudentService {
 
           // Retrieve additional contact details from Salesforce
           contactDetails = await getContactId(sfId);
+          await StudentModel.updateOne(
+            { _id: student._id },
+            { $set: { partnerId: contactDetails?.Student_ID__c } }
+          );
         }
 
         // Return relevant information about the created student
@@ -628,7 +632,10 @@ class StudentService {
     if (checkEducationExist.educations.length === 0) {
       result = await StudentModel.updateOne(
         { _id: studentId },
-        { $push: { educations: education.id }, $set: { modifiedBy, currentStage: 2 } }
+        {
+          $push: { educations: education.id },
+          $set: { modifiedBy, currentStage: 2 },
+        }
       );
     } else {
       result = await StudentModel.updateOne(
@@ -734,7 +741,13 @@ class StudentService {
     return student;
   }
 
-  async addStudentWorkHistory(studentId, modifiedBy, body, agentId, addStudentPage) {
+  async addStudentWorkHistory(
+    studentId,
+    modifiedBy,
+    body,
+    agentId,
+    addStudentPage
+  ) {
     const student = await this.findById(studentId);
     const workHistory = await this.workHistoryService.add(
       studentId,
@@ -747,7 +760,10 @@ class StudentService {
     if (addStudentPage && checkWorkHistoryExist.workHistory.length === 0) {
       result = await StudentModel.updateOne(
         { _id: studentId },
-        { $push: { workHistory: workHistory.id }, $set: { modifiedBy, currentStage: 4 } }
+        {
+          $push: { workHistory: workHistory.id },
+          $set: { modifiedBy, currentStage: 4 },
+        }
       );
     } else {
       result = await StudentModel.updateOne(
@@ -1175,7 +1191,10 @@ class StudentService {
     if (checkTestScoreExist.testScore.length === 0) {
       result = await StudentModel.updateOne(
         { _id: studentId },
-        { $push: { testScore: testScore.id }, $set: { modifiedBy, currentStage: 3 } }
+        {
+          $push: { testScore: testScore.id },
+          $set: { modifiedBy, currentStage: 3 },
+        }
       );
     } else {
       result = await StudentModel.updateOne(
@@ -1453,7 +1472,6 @@ class StudentService {
         );
         // const documentIds = document.map((document) => document.id);
 
-
         // await StudentModel.updateOne(
         //   { _id: student?._id },
         //   { $set: { documents: documentIds} }
@@ -1525,7 +1543,11 @@ class StudentService {
   async updateStudentCurrentStage(studentId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const student = await StudentModel.findOneAndUpdate({ _id: studentId }, { $set: { currentStage: 5 } }, { new: true });
+        const student = await StudentModel.findOneAndUpdate(
+          { _id: studentId },
+          { $set: { currentStage: 5 } },
+          { new: true }
+        );
         resolve(student);
       } catch (error) {
         reject(error);
@@ -1787,7 +1809,7 @@ class StudentService {
     if ((student.testScore.length ? student.testScore.length : 0) > 0) {
       progress++;
     }
-    if ((student.documents.length ? student.documents.length : 0) > 0) {
+    if (student?.currentStage === 5) {
       progress++;
     }
     return (progress / total) * 100;

@@ -19,6 +19,7 @@
 		"express": "~4.16.1",
 		"express-fileupload": "^1.2.0",
 		"http-errors": "~1.6.3",
+		"jsdom": "^24.0.0",
 		"jsonwebtoken": "^9.0.2",
 		"md5": "^2.2.1",
 		"md5-file": "^5.0.0",
