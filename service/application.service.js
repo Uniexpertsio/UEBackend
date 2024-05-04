@@ -246,7 +246,7 @@ class ApplicationService {
     if (sendingComment?.id && comment?.comment?._id) {
       await this.commentService.updateCommentSfId(
         comment?.comment?._id,
-        sendingComment?.id
+        application?.salesforceId
       );
     }
     const result = await Application.updateOne(

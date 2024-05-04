@@ -64,7 +64,7 @@ class CaseService {
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          sendingComment?.id
+          caseData?.caseId
         );
       }
       return comment;
@@ -245,7 +245,7 @@ class CaseService {
         //   { $push: { replyComment: replyComment._id } },
         //   { new: true }
         // );
-        resolve({ message: "Success", status: 200, sf: commentData.commentSfId });
+        resolve({ message: "Success", status: 200 });
       } catch (error) {
         console.log(error);
         reject(error);
