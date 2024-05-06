@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const StaffService = require("./staff.service");
 const Comment = require("../models/Comment");
+const ReplyComment = require("../models/replyComment");
 
 class CommentService {
   constructor() {
@@ -40,15 +41,17 @@ class CommentService {
   async updateCommentSfId(id, sfId) {
     return await this.commentModel.updateOne(
       { _id: id },
-      { $set: { commentSfId: sfId } }
+      { $set: { salesforceId: sfId } }
     );
   }
 
-  async getComment(id) {
-    const comment = await this.commentModel.findById(id).populate('replyComment');
+  async getComment(id, sfId) {
+    const comment = await this.commentModel.findById(id);
+    console.log('..........',id, sfId)
+    const replyComment = await ReplyComment.findOne({salesforceId: sfId});
     if (!comment) throw new Error("Comment not found");
     const user = await this.staffService.findById(comment.userId);
-    return { comment, user };
+    return { comment, replyComment, user };
   }
 }
 

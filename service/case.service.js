@@ -17,7 +17,6 @@ class CaseService {
 
   // Method to retrieve all cases associated with a contact ID from Salesforce
   async getAllCases(contactId) {
-    // Return all cases associated with the contact ID
     return await Case.find({ contactId });
   }
 
@@ -29,7 +28,6 @@ class CaseService {
   // Method to create a comment for a case
   async createCaseComment(body, modifiedBy, caseId) {
     try {
-      // Add comment
       const comment = await this.commentService.add(
         body.message,
         modifiedBy,
@@ -41,42 +39,49 @@ class CaseService {
         { _id: caseId },
         { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
       );
-      // Check if case was found and updated
       if (result.modifiedCount === 0) {
         throw new Error("Case not found");
       }
       const caseData = await Case.findById(caseId);
 
-      // Prepare data for sending to Salesforce
       const data = {
-        ParentId: caseData?.caseId, //Case SF Id
-        IsPublished: false, //To set Public Set it as 'true' otherwise 'false'
-        CommentBody: body?.message, //Comment
+       "Enter_Note__c": null,
+       "Application__c": null,
+       "Partner_User__c": null,
+       "Lead__c": null,
+       "PartnerNote__c": null,
+       "University_Notes__c": null,
+       "Subject__c": "Offer Related",
+       "Student__c": null,
+       "Message_Body__c": body.message,
+       "Type__c": "Inbound",
+       "External__c": true,
+       "CourseEnquiry__c": null,
+       "Cases__c": caseData?.caseId,
       };
-      // Send comment data to Salesforce endpoint
-      const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/CaseComment`;
+      const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          sendingComment?.id
+          caseData?.caseId
         );
       }
       return comment;
     } catch (error) {
-      // Handle errors
       console.error("Error in addStudentComment:", error);
-      throw error; // Rethrow the error for the caller to handle
+      throw error;
     }
   }
 
   // Method to retrieve comments for a case
   async getCaseComments(caseId) {
     const caseData = await Case.findById(caseId);
+    const caseSfId = caseData.caseId;
     if (!caseData) throw new Error("Case not found");
     return Promise.all(
       caseData.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment);
+        return await this.commentService.getComment(comment, caseSfId);
       })
     );
   }
@@ -209,19 +214,38 @@ class CaseService {
   }
 
   // Method to update reply comment for a case
-  async updateReplyComment(commentData) {
+  async ReplyComment(commentData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const replyComment = await new ReplyComment(commentData).save();
+        const data = {
+          name: commentData?.Created_By_Name__c,
+          message: commentData?.Message_Body__c
+        };
+        
+        switch (true) {
+          case !!commentData?.Application__c:
+            data.salesforceId = commentData.Application__c;
+            break;
+          case !!commentData?.Student__c:
+            data.salesforceId = commentData.Student__c;
+            break;
+          case !!commentData?.Cases__c:
+            data.salesforceId = commentData.Cases__c;
+            break;
+          default:
+            break;
+        }
+        const replyComment = await new ReplyComment(data).save();
+        console.log('replyComment',replyComment)
         if (!replyComment) {
           throw new Error("Reply comment not created");
         }
-        await Comment.findOneAndUpdate(
-          { commentSfId: commentData.commentSfId },
-          { $push: { replyComment: replyComment._id } },
-          { new: true }
-        );
-        resolve({ message: "Success", status: 200, sf: commentData.commentSfId });
+        // await Comment.findOneAndUpdate(
+        //   { commentSfId: commentData.commentSfId },
+        //   { $push: { replyComment: replyComment._id } },
+        //   { new: true }
+        // );
+        resolve({ message: "Success", status: 200 });
       } catch (error) {
         console.log(error);
         reject(error);

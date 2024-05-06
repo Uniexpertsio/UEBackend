@@ -1703,7 +1703,6 @@ class StudentService {
 
   async addStudentComment(studentId, modifiedBy, body) {
     try {
-      // Add comment
       const comment = await this.commentService.add(
         body.message,
         modifiedBy,
@@ -1712,49 +1711,46 @@ class StudentService {
       );
 
       // Update student with the new comment
-      const result = await StudentModel.updateOne(
-        { _id: studentId },
-        { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
-      );
+      // const result = await StudentModel.updateOne(
+      //   { _id: studentId },
+      //   { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
+      // );
+
+      const studentData = await StudentModel.findById(studentId);
       // Check if student was found and updated
-      if (result.modifiedCount === 0) {
+      if (!studentData) {
         throw new Error("Student not found");
       }
 
-      // Fetch student Salesforce ID
-      const studentSFId = await StudentModel.findById(studentId);
-      // Prepare data for sending to Salesforce
       const data = {
-        RecordTypeId: "0125g0000003QWlAAM",
-        Enter_Note__c: null,
-        Application__c: null,
-        Application_Owner_Email__c: null,
-        Partner_User__c: null,
-        Lead__c: null,
-        PartnerNote__c: null,
-        School__c: "",
-        University_Notes__c: null,
-        Subject__c: "Offer Related",
-        Student__c: studentSFId?.salesforceId,
-        Message_Body__c: body?.message,
-        Type__c: "Inbound",
-        External__c: true,
-        CourseEnquiry__c: null,
+        "Enter_Note__c": null,
+        "Application__c": null,
+        "Partner_User__c": null,
+        "Lead__c": null,
+        "PartnerNote__c": null,
+        "University_Notes__c": null,
+        "Subject__c": "Offer Related",
+        "Student__c": studentData?.salesforceId,
+        "Message_Body__c": body.message,
+        "Type__c": "Inbound",
+        "External__c": true,
+        "CourseEnquiry__c": null,
+        "Cases__c": null,
       };
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
+      console.log('sendingComment',sendingComment)
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          sendingComment?.id
+          studentData?.salesforceId,
         );
       }
       return comment;
     } catch (error) {
-      // Handle errors
       console.error("Error in addStudentComment:", error);
-      throw error; // Rethrow the error for the caller to handle
+      throw error;
     }
   }
 
@@ -1784,14 +1780,20 @@ class StudentService {
   }
 
   async getStudentComments(studentId) {
+    try {
     const student = await StudentModel.findById(studentId);
+    console.log('sfId----',student)
+    const sfId = student?.salesforceId;
     if (!student) throw new Error("Student not found");
 
     return Promise.all(
       student.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment);
+        return await this.commentService.getComment(comment, sfId);
       })
     );
+  } catch (error) {
+    console.error('Error fetching student:', error);
+}
   }
 
   async getStudentProgress(studentId) {
