@@ -1,7 +1,9 @@
 // Importing required modules
+const Application = require("../models/Application");
 const Case = require("../models/Case");
 const Comment = require("../models/Comment");
-const ReplyComment = require("../models/replyComment");
+const Student = require("../models/Student");
+const uuid = require("uuid");
 const {
   getDataFromSF,
   sendDataToSF,
@@ -75,15 +77,15 @@ class CaseService {
   }
 
   // Method to retrieve comments for a case
-  async getCaseComments(caseId) {
+  async getCaseComments(caseId, staffId) {
     const caseData = await Case.findById(caseId);
-    const caseSfId = caseData.caseId;
+    const id = caseData.caseId;
     if (!caseData) throw new Error("Case not found");
-    return Promise.all(
-      caseData.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment, caseSfId);
-      })
-    );
+    // return Promise.all(
+      // caseData.comments.map(async (comment) => {
+        return await this.commentService.getComment(id, staffId);
+      // })
+    // );
   }
 
   // Method to retrieve reasons for cases from Salesforce
@@ -214,37 +216,41 @@ class CaseService {
   }
 
   // Method to update reply comment for a case
-  async ReplyComment(commentData) {
+  async ReplyComment(commentData, id) {
     return new Promise(async (resolve, reject) => {
       try {
+    const externalId = uuid.v4();
         const data = {
           name: commentData?.Created_By_Name__c,
-          message: commentData?.Message_Body__c
+          message: commentData?.Message_Body__c, 
+          isReply: true,
+          externalId: externalId,
+          userId: id
         };
-        
+        let comment;
         switch (true) {
           case !!commentData?.Application__c:
             data.salesforceId = commentData.Application__c;
+            comment = await Application.findOne({salesforceId: data.salesforceId})
+            data.relationId = comment?._id;
             break;
           case !!commentData?.Student__c:
             data.salesforceId = commentData.Student__c;
+            comment = await Student.findOne({salesforceId: data.salesforceId})
+            data.relationId = comment?._id;
             break;
           case !!commentData?.Cases__c:
             data.salesforceId = commentData.Cases__c;
+            comment = await Case.findOne({caseId: data.salesforceId})
+            data.relationId = comment?._id;
             break;
           default:
             break;
         }
-        const replyComment = await new ReplyComment(data).save();
-        console.log('replyComment',replyComment)
+        const replyComment = await new Comment(data).save();
         if (!replyComment) {
           throw new Error("Reply comment not created");
         }
-        // await Comment.findOneAndUpdate(
-        //   { commentSfId: commentData.commentSfId },
-        //   { $push: { replyComment: replyComment._id } },
-        //   { new: true }
-        // );
         resolve({ message: "Success", status: 200 });
       } catch (error) {
         console.log(error);

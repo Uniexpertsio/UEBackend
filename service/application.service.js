@@ -76,7 +76,7 @@ class ApplicationService {
   async addApplication(id, agentId, body) {
     try {
       await this.findStudentById(body.studentId);
-      await this.schoolService.findById(body.schoolId);
+      await this.schoolService.findBySfId(body.schoolId);
       await this.programService.findById(body.programId);
       await this.intakeService.findById(body.intakeId);
 
@@ -149,7 +149,7 @@ class ApplicationService {
           intake = (await this.intakeService.findById(application.intakeId))
             .Name;
         }
-        const school = await this.schoolService.findById(application.schoolId);
+        const school = await this.schoolService.findBySfId(application.schoolId);
         return {
           id: application?.id,
           applicationId: application?.applicationId,

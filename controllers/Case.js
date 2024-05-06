@@ -61,7 +61,8 @@ class CaseController {
   getCaseComments = async (req, res) => {
     try {
       const { caseId } = req.params;
-      const comments = await this.caseService.getCaseComments(caseId);
+      const { id } = req.user;
+      const comments = await this.caseService.getCaseComments(caseId, id);
       res.status(200).json(comments);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -103,7 +104,8 @@ class CaseController {
   async replyComment(req, res) {
     try {
       const commentData = req.body;
-      const replyComment = await this.caseService.ReplyComment(commentData);
+      const { id } = req.user;
+      const replyComment = await this.caseService.ReplyComment(commentData, id);
       res.status(200).json(replyComment);
     } catch (error) {
       res.status(500).json(error);
