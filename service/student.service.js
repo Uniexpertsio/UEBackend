@@ -762,7 +762,7 @@ class StudentService {
         { _id: studentId },
         {
           $push: { workHistory: workHistory.id },
-          $set: { modifiedBy, currentStage: 4 },
+          $set: { modifiedBy, currentStage: 4, noWorkHistory: true },
         }
       );
     } else {
@@ -1543,7 +1543,6 @@ class StudentService {
   async updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('noWorkHistory',noWorkHistory)
         let currentStage;
         if(noWorkHistory && addStudentPage) {
           currentStage = 4;
@@ -1552,7 +1551,7 @@ class StudentService {
         }
         const student = await StudentModel.findOneAndUpdate(
           { _id: studentId },
-          { $set: { currentStage} },
+          { $set: { currentStage, noWorkHistory: true} },
           { new: true }
         );
         resolve(student);
@@ -1816,14 +1815,15 @@ class StudentService {
     if ((student.educations.length ? student.educations.length : 0) > 0) {
       progress++;
     }
-    if ((student.workHistory.length ? student.workHistory.length : 0) > 0) {
+    if ((student.testScore.length ? student.testScore.length : 0) > 0) {
       progress++;
     }
-    if ((student.testScore.length ? student.testScore.length : 0) > 0) {
+    if (student?.noWorkHistory === true) {
       progress++;
     }
     if (student?.currentStage === 5) {
       progress++;
+
     }
     return (progress / total) * 100;
   }
