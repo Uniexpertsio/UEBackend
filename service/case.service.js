@@ -233,26 +233,21 @@ class CaseService {
             data.salesforceId = commentData.Application__c;
             comment = await Application.findOne({salesforceId: data.salesforceId})
             data.relationId = comment?._id;
-            console.log('1111',data.relationId)
             break;
           case !!commentData?.Student__c:
             data.salesforceId = commentData.Student__c;
             comment = await Student.findOne({salesforceId: data.salesforceId})
             data.relationId = comment?._id;
-            console.log('2222222',data.relationId)
             break;
           case !!commentData?.Cases__c:
             data.salesforceId = commentData.Cases__c;
             comment = await Case.findOne({caseId: data.salesforceId})
-            console.log('cseeee',comment)
             data.relationId = comment?._id;
-            console.log('33333',data.relationId)
             break;
           default:
             break;
         }
         const replyComment = await new Comment(data).save();
-        console.log('replyComment----',replyComment)
         if (!replyComment) {
           throw new Error("Reply comment not created");
         }
