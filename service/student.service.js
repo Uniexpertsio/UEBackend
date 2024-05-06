@@ -1540,12 +1540,19 @@ class StudentService {
     });
   }
 
-  async updateStudentCurrentStage(studentId) {
+  async updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage) {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log('noWorkHistory',noWorkHistory)
+        let currentStage;
+        if(noWorkHistory && addStudentPage) {
+          currentStage = 4;
+        } else {
+          currentStage = 5;
+        }
         const student = await StudentModel.findOneAndUpdate(
           { _id: studentId },
-          { $set: { currentStage: 5 } },
+          { $set: { currentStage} },
           { new: true }
         );
         resolve(student);

@@ -282,7 +282,8 @@ class StudentController {
   updateStudentCurrentStage = async (req, res) => {
     try {
       const { studentId } = req.params;
-      const result = await this.studentService.updateStudentCurrentStage(studentId);
+      const { noWorkHistory, addStudentPage } = req.query;
+      const result = await this.studentService.updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
