@@ -41,13 +41,14 @@ class CommentService {
   async updateCommentSfId(id, sfId) {
     return await this.commentModel.updateOne(
       { _id: id },
-      { $set: { commentSfId: sfId } }
+      { $set: { salesforceId: sfId } }
     );
   }
 
-  async getComment(id, caseSfId) {
+  async getComment(id, sfId) {
     const comment = await this.commentModel.findById(id);
-    const replyComment = await ReplyComment.findOne({salesforceId: caseSfId});
+    console.log('..........',id, sfId)
+    const replyComment = await ReplyComment.findOne({salesforceId: sfId});
     if (!comment) throw new Error("Comment not found");
     const user = await this.staffService.findById(comment.userId);
     return { comment, replyComment, user };

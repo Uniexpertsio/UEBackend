@@ -1744,7 +1744,7 @@ class StudentService {
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          sendingComment?.id
+          studentData?.salesforceId,
         );
       }
       return comment;
@@ -1780,14 +1780,20 @@ class StudentService {
   }
 
   async getStudentComments(studentId) {
+    try {
     const student = await StudentModel.findById(studentId);
+    console.log('sfId----',student)
+    const sfId = student?.salesforceId;
     if (!student) throw new Error("Student not found");
 
     return Promise.all(
       student.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment);
+        return await this.commentService.getComment(comment, sfId);
       })
     );
+  } catch (error) {
+    console.error('Error fetching student:', error);
+}
   }
 
   async getStudentProgress(studentId) {
