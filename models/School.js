@@ -118,6 +118,13 @@ const SchoolSchema = new mongoose.Schema(
     Min_Class__c: { type: String },
     Min_Score__c: { type: Number },
     Min_Division__c: { type: String },
+    Fast_Offers__c: { type: Boolean },
+    First_Choice_of_Students__c: { type: Number },
+    Highest_Acceptance_Rate__c: { type: Boolean },
+    No_IELTS_Required__c: { type: Boolean },
+    Offers_in_48_Hrs__c: { type: Boolean },
+    Recommended__c: { type: Boolean },
+    Top_Hundred_School__c: { type: Number }
   },
   { timestamps: true }
 );
