@@ -348,7 +348,7 @@ class ApplicationService {
       const student = await this.studentModel.findOne({
         salesforceId: application.studentId,
       });
-      const school = await this.schoolService.findById(application.schoolId);
+      const school = await this.schoolService.findBySfId(application.schoolId);
       const program = await this.programService.findById(application.programId);
       // const stages = await Stages.findOne({schoolId: application.schoolId});
 

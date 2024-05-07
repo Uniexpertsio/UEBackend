@@ -203,7 +203,6 @@ class SchoolService {
   }
 
   async findById(id) {
-    console.log('school id::', id)
     const school = await School.findById(id);
 
     if (!school) {
@@ -214,6 +213,7 @@ class SchoolService {
   }
 
   async findBySfId(id) {
+    console.log('schiolll', id)
     const school = await School.findOne({Id: id});
 
     if (!school) {
