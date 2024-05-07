@@ -139,11 +139,19 @@ class SchoolService {
   //   }
   // }
 
-  async getAllSchool(page, pageSize) {
+  async getAllSchool(page, pageSize, schoolFilter) {
     const skip = (page - 1) * pageSize;
     try {
-      const schools= await School.find().limit(pageSize).skip(skip);
-      const totalSchoolsWithPrograms=await School.countDocuments();
+      // console.log(JSON.parse(schoolFilter));
+      let filter = {};
+      if (schoolFilter) {
+        filter = {
+          ...JSON.parse(schoolFilter),
+        };
+      }
+      const schools = await School.find(filter).limit(pageSize).skip(skip);
+
+      const totalSchoolsWithPrograms = await School.countDocuments(filter);
       return { schools, totalSchoolsWithPrograms };
     } catch (error) {
       // Handle error
