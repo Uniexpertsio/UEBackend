@@ -39,7 +39,7 @@ class ProgramService {
           ...JSON.parse(programFilter),
         };
       }
-      const programs = await this.programModel.find(filter).limit(limit).skip(skip);
+      const programs = await this.programModel.find({Top_Programs__c:{$ne:null}}).limit(limit).skip(skip).sort({Top_Programs__c:1});
 
       const totalPrograms = await this.programModel.countDocuments(filter);
       return { programs, totalPrograms };
