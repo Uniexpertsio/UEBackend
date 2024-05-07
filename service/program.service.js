@@ -30,6 +30,25 @@ class ProgramService {
     return data;
   }
 
+  async getAllProgram(page, limit, programFilter) {
+    try {
+      const skip = (page - 1) * limit;
+      let filter = {};
+      if (programFilter) {
+        filter = {
+          ...JSON.parse(programFilter),
+        };
+      }
+      const programs = await this.programModel.find(filter).limit(limit).skip(skip);
+
+      const totalPrograms = await this.programModel.countDocuments(filter);
+      return { programs, totalPrograms };
+    } catch (error) {
+      console.error("Error:", error);
+      throw error;
+    }
+  }
+
   async parseProgram(data) {
     data = data["_doc"];
     data.id = data._id;

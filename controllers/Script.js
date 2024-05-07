@@ -2,6 +2,7 @@ const { getDataFromSF } = require("../service/salesforce.service");
 const { JSDOM } = require("jsdom");
 const { URL } = require("url");
 const School = require("../models/School");
+const Program = require("../models/Program");
 
 class ScriptController {
   // async schoolSync(req, res) {
@@ -73,6 +74,36 @@ class ScriptController {
     await School.insertMany(processedData);
     const datarec = await School.find();
     return res.status(200).json(datarec);
+  }
+
+
+  async programSync(req, res) {
+    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,CurrencyIsoCode,School__c,Admission_Requirements__c,Country__c,Department__c,Intake__c,Master_Commission__c,Program_level__c,Scholarship__c,University_Image__c,Program_Description__c,Admission_Requirements1__c,International_Health_Insurance_Fee__c,Career_Advising_and_Transition_Services__c,Note__c,Link__c,Length__c,Application_fee__c,Tuition__c,Cost_of_Living__c,Starting_Dates__c,Submission_deadlines__c,Status__c,Delivery_Method__c,Required_Level__c,Fast_Offer__c,Most_Chosen__c,Recommended__c,Top_Programs__c+FROM+Programme__c ORDER BY Name `;
+    const data = await getDataFromSF(url);
+    // await Program.deleteMany();
+    // const replacableUrl =
+    //   "https://uniexperts.my.salesforce-sites.com/AccessImage/";
+
+    // const processedData = data?.records
+    //   ?.map((item) => {
+    //     if (item?.Logo__c) {
+    //       const dom = new JSDOM(item?.Logo__c);
+    //       var imgElement = dom.window.document.querySelector("img");
+    //       var srcValue = imgElement.getAttribute("src");
+    //       const logo = srcValue.replace(
+    //         "https://uniexperts.file.force.com/",
+    //         replacableUrl
+    //       );
+    //       return { ...item, Logo__c: logo };
+    //     } else {
+    //       return item;
+    //     }
+    //   })
+    //   .filter((item) => item); // Remove null elements
+
+    // await Program.insertMany(data?.records);
+    // const datarec = await Program.find();
+    return res.status(200).json(data);
   }
 }
 
