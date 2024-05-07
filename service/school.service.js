@@ -211,7 +211,18 @@ class SchoolService {
   }
 
   async findById(id) {
+    console.log('school id::', id)
     const school = await School.findById(id);
+
+    if (!school) {
+      throw new Error(`No school found for id - ${id}`);
+    }
+
+    return await this.parseSchool(school);
+  }
+
+  async findBySfId(id) {
+    const school = await School.findOne({Id: id});
 
     if (!school) {
       throw new Error(`No school found for id - ${id}`);
