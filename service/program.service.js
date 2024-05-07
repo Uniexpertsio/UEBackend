@@ -30,18 +30,88 @@ class ProgramService {
     return data;
   }
 
-  async getAllProgram(page, limit, programFilter) {
+  // async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
+  //   try {
+  //     const skip = (page - 1) * limit;
+  //     let filter = {};
+  //     if (programFilter) {
+  //       filter = {
+  //         ...JSON.parse(programFilter),
+  //       };
+  //     }
+  //     let query;
+  //       switch (searchType) {
+  //         case 'Country__c':
+  //         query = { Country__c: new RegExp(searchTerm, 'i') };
+  //           const schools = await School.find(query);
+  //           const schoolIds = schools.map(school => school.Id);
+  //           console.log('schoolIds>>>>>>>',schoolIds)
+
+  //           const programs = await this.programModel.find({
+  //               School__c: { $in: schoolIds }
+  //           });
+  //           console.log('programs...........',programs)
+  //         break;
+  //         case 'Program_level__c' && 'Country__c':
+  //           query= {Program_level__c: new RegExp(searchTerm, 'i')};
+  //           query = { Country__c: new RegExp(searchTerm, 'i') };
+  //           const schools = await School.find(query);
+  //           const schoolIds = schools.map(school => school.Id);
+  //           console.log('schoolIds>>>>>>>',schoolIds)
+
+  //           const programs = await this.programModel.find({
+  //               School__c: { $in: schoolIds }
+  //           });
+  //         break;
+  //         default:
+  //           break;
+  //       }
+  //     const programs = await this.programModel.find(filter).limit(limit).skip(skip);
+
+  //     const totalPrograms = await this.programModel.countDocuments(filter);
+  //     return { programs, totalPrograms };
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     throw error;
+  //   }
+  // }
+
+  async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
       const skip = (page - 1) * limit;
       let filter = {};
       if (programFilter) {
-        filter = {
-          ...JSON.parse(programFilter),
-        };
+        filter = { ...JSON.parse(programFilter) };
       }
-      const programs = await this.programModel.find({Top_Programs__c:{$ne:null}}).limit(limit).skip(skip).sort({Top_Programs__c:1});
 
-      const totalPrograms = await this.programModel.countDocuments(filter);
+      let countryQuery = {};
+      let programLevelQuery = {};
+      let schoolIds = [];
+
+      if (searchType === 'Country__c') {
+        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+        const schools = await School.find(countryQuery);
+        schoolIds = schools.map(school => school.Id);
+        console.log('schoolIds>>>>',schoolIds)
+      } else if (searchType === 'Program_level__c&&Country__c') {
+        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
+        programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+        console.log('programLevelQuery',programLevelQuery)
+        const schools = await School.find(countryQuery);
+        schoolIds = schools.map(school => school.Id);
+        console.log('scholllll',schoolIds)
+      }
+
+      const query = {
+        ...filter,
+        ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
+        ...programLevelQuery,
+      };
+      console.log('query============',query)
+
+      const programs = await this.programModel.find(query).limit(limit).skip(skip);
+      const totalPrograms = await this.programModel.countDocuments(query);
+
       return { programs, totalPrograms };
     } catch (error) {
       console.error("Error:", error);
