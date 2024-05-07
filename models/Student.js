@@ -1,9 +1,6 @@
 const mongoose = require("mongoose");
 
-
-
-
-/// schema matching to be confirmed from nilesh 
+/// schema matching to be confirmed from nilesh
 
 const AddressSchema = {
   address: { type: String, required: true },
@@ -32,7 +29,7 @@ const StudentInformationSchema = {
   email: { type: String, required: false },
   dp: { type: String, required: false },
   isLocked: { type: Boolean, required: false, default: true },
-  processingOfficer:{type:String,required:false},
+  processingOfficer: { type: String, required: false },
 };
 
 const DemographicInformationSchema = {
@@ -128,13 +125,28 @@ const StudentSchema = new mongoose.Schema(
     salesforceId: { type: String, required: false, default: "--" },
     externalId: { type: String, required: false, default: "" },
     createdBy: { type: String, required: false },
+    noWorkHistory: {type: Boolean, default: false},
+    currentStage: { type: Number, required: false, default: 0 },
+    partnerId: { type: String, required: false },
   },
   { timestamps: true }
 );
 
 StudentSchema.methods.getGeneralInformation = function () {
-  const { studentInformation, demographicInformation, address, emergencyContact, backgroundInformation } = this;
-  return { studentInformation, demographicInformation, address, emergencyContact, backgroundInformation };
+  const {
+    studentInformation,
+    demographicInformation,
+    address,
+    emergencyContact,
+    backgroundInformation,
+  } = this;
+  return {
+    studentInformation,
+    demographicInformation,
+    address,
+    emergencyContact,
+    backgroundInformation,
+  };
 };
 
 const MaritalStatus = {
@@ -185,4 +197,4 @@ const StudyPermit = {
   TestResults: "Australian Study Visa",
 };
 
-module.exports = mongoose.model("Student", StudentSchema)
+module.exports = mongoose.model("Student", StudentSchema);

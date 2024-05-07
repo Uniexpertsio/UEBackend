@@ -34,7 +34,7 @@ const ApplicationSchema = new mongoose.Schema(
     intakeId: { type: String, required: false },
     status: { type: String, required: false, default: "New" },
     stage: { type: String, required: true, default: "PRE_SUBMISSION" },
-    stages: { type: [StageSchema], required: false, default: defaultFieldsOfStages },
+    stages: { type: [String], required: false, default: [] },
     tasks: { type: [String], required: false, default: [] },
     comments: { type: [String], required: false, default: [] },
     documents: { type: [String], required: false, default: [] },
@@ -43,6 +43,7 @@ const ApplicationSchema = new mongoose.Schema(
     externalId: { type: String, required: true },
     modifiedBy: { type: String, required: true },
     salesforceId: { type: String, required: false, default: "--" },
+    country: { type: String, required: false },
   },
   { timestamps: true }
 );

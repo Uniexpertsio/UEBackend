@@ -72,7 +72,7 @@ class DocumentService {
         applicationId,
         modifiedBy,
         createdBy: modifiedBy,
-        externalId: uuid.v4(),
+        externalId: uuid.v4()
       }));
 
       const documents = await Document.insertMany(documentsToInsert);

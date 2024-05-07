@@ -33,6 +33,8 @@ Common.hashPassword = (pwd) => {
 Common.comparePassword = (source, input) => {
 	return Common.hashPassword(input) === source;
 };
+
+
 Common.s3Url = (path = "") => {
 	if (!path) {
 		return null;

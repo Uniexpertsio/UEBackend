@@ -19,5 +19,6 @@ router.post('/:applicationId/payment', Middleware.checkAuth, applicationControll
 router.get('/:applicationId/payment', Middleware.checkAuth, applicationController.getPayments.bind(applicationController));
 router.get('/:applicationId', Middleware.checkAuth, applicationController.getApplication.bind(applicationController));
 router.patch('/:applicationSfId',Middleware.checkAuth, applicationController.updateApplication.bind(applicationController));
+router.get('/stages',Middleware.checkAuth, applicationController.createApplicationStages.bind(applicationController));
 
 module.exports = router;

@@ -146,7 +146,6 @@ class ApplicationController {
     try {
       const { applicationId } = req.params;
       const result = await this.applicationService.getApplication(applicationId);
-      console.log('result>>>',result)
       res.status(200).json(result);
     } catch (err) {
       const { statusCode, errorMessage } = await sendResponse(err);
@@ -159,6 +158,16 @@ class ApplicationController {
       const { applicationSfId } = req.params;
       const requestData = req.body;
       const result = await this.applicationService.updateApplication(applicationSfId, requestData);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createApplicationStages(req, res) {
+    try { 
+      const { countrySfId } = req.params;
+      const result = await this.applicationService.createApplicationStages(countrySfId);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
