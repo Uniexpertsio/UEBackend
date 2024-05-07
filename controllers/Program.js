@@ -72,9 +72,8 @@ class ProgramController {
 
   getAllProgram = async (req, res) => {
     try {
-      const { page, limit,filter, searchType, searchTerm } = req.query;
-      console.log('page, limit...', page, limit)
-      const program = await this.programService.getAllProgram(page, limit,filter, searchType, searchTerm);
+      const { page, limit,filter, searchType, searchTerm, topProgram } = req.query;
+      const program = await this.programService.getAllProgram(page, limit,filter, searchType, searchTerm, topProgram);
       
       res.status(200).json({ success: true, data: program });
     } catch (error) {
