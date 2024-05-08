@@ -88,18 +88,19 @@ class ProgramService {
       let programLevelQuery = {};
       let schoolIds = [];
 
-      if (searchType === 'Country__c') {
-        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+      if (searchType === "Country__c") {
+        countryQuery = { Country__c: new RegExp(searchTerm, "i") };
         const schools = await School.find(countryQuery);
-        schoolIds = schools.map(school => school.Id);
-        console.log('schoolIds>>>>',schoolIds)
-      } else if (searchType === 'Program_level__c&&Country__c') {
-        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
-        programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
-        console.log('programLevelQuery',programLevelQuery)
+        schoolIds = schools.map((school) => school.Id);
+      } else if (searchType === "Program_level__c&&Country__c") {
+        countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
+        programLevelQuery = {
+          Program_level__c: new RegExp(searchTerm[0], "i"),
+        };
+        console.log("programLevelQuery", programLevelQuery);
         const schools = await School.find(countryQuery);
-        schoolIds = schools.map(school => school.Id);
-        console.log('scholllll',schoolIds)
+        schoolIds = schools.map((school) => school.Id);
+        console.log("scholllll", schoolIds);
       }
 
       const query = {
@@ -107,9 +108,12 @@ class ProgramService {
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
       };
-      console.log('query============',query)
+      console.log("query============", query);
 
-      const programs = await this.programModel.find(query).limit(limit).skip(skip);
+      const programs = await this.programModel
+        .find(query)
+        .limit(limit)
+        .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
 
       return { programs, totalPrograms };
