@@ -30,56 +30,6 @@ class ProgramService {
     return data;
   }
 
-  // async getAllProgram(page, limit, programFilter, searchType, searchTerm, topProgram) {
-  //   try {
-  //     const skip = (page - 1) * limit;
-  //     let filter = {};
-  //     if (programFilter) {
-  //       filter = { ...JSON.parse(programFilter) };
-  //     }
-
-  //     let countryQuery = {};
-  //     let programLevelQuery = {};
-  //     let schoolIds = [];
-  //     let topProgramQuery = {};
-  //     if(topProgram) {
-  //       topProgramQuery = {Top_Programs__c: { $ne: null }}
-  //       console.log('topProgram....',topProgram,topProgramQuery)
-  //     }
-
-  //     if (searchType === 'Country__c') {
-  //       countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
-  //       const schools = await School.find(countryQuery);
-  //       schoolIds = schools.map(school => school.Id);
-  //     } else if (searchType === 'Program_level__c&&Country__c') {
-  //       countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
-  //       programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
-  //       const schools = await School.find(countryQuery);
-  //       schoolIds = schools.map(school => school.Id);
-  //     }
-
-  //     const query = {
-  //       ...filter,
-  //       ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
-  //       ...programLevelQuery,
-  //       ...topProgramQuery,
-  //     };
-
-  //     const programs = await this.programModel.find({
-  //       ...query,
-  //     })
-  //       .sort({ Top_Programs__c: 1, })
-  //       .limit(limit)
-  //       .skip(skip);
-  //     const totalPrograms = await this.programModel.countDocuments(query);
-
-  //     return { programs, totalPrograms };
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     throw error;
-  //   }
-  // }
-
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
       const skip = (page - 1) * limit;
@@ -106,8 +56,6 @@ class ProgramService {
           sortQuery = { Name: 1 };
           break;
         default:
-          // filter = { Top_Programs__c: { $ne: null } };
-          // sortQuery = { Top_Programs__c: 1 };
           break;
       }
 
@@ -130,13 +78,9 @@ class ProgramService {
         ...filter,
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
-        // ...topProgramQuery,
       };
 
-      const programs = await this.programModel.find({
-        ...query,
-      })
-        // .sort({ Top_Programs__c: 1, })
+      const programs = await this.programModel.find({ ...query })
         .sort(sortQuery)
         .limit(limit)
         .skip(skip);
