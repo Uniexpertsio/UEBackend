@@ -86,10 +86,10 @@ class ProgramService {
       let filter = {};
       let sortQuery = {};
       switch (programFilter) {
-        // case "Top Programs":
-        //   filter = { Top_Programs__c: { $ne: null } };
-        //   sortQuery = { Top_Programs__c: 1 };
-        //   break;
+        case "Top Programs":
+          filter = { Top_Programs__c: { $ne: null } };
+          sortQuery = { Top_Programs__c: 1 };
+          break;
         case "Recommended":
           filter = { Recommended__c: true };
           sortQuery = { Name: 1 };
@@ -106,8 +106,8 @@ class ProgramService {
           sortQuery = { Name: 1 };
           break;
         default:
-          filter = { Top_Programs__c: { $ne: null } };
-          sortQuery = { Top_Programs__c: 1 };
+          // filter = { Top_Programs__c: { $ne: null } };
+          // sortQuery = { Top_Programs__c: 1 };
           break;
       }
 
