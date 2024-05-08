@@ -30,22 +30,38 @@ class ProgramService {
     return data;
   }
 
-  async getAllProgram(page, limit, programFilter, searchType, searchTerm, topProgram) {
+  async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
       const skip = (page - 1) * limit;
       let filter = {};
-      if (programFilter) {
-        filter = { ...JSON.parse(programFilter) };
+      let sortQuery = {};
+      switch (programFilter) {
+        case "Top Programs":
+          filter = { Top_Programs__c: { $ne: null } };
+          sortQuery = { Top_Programs__c: 1 };
+          break;
+        case "Recommended":
+          filter = { Recommended__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Most Chosen":
+          filter = { Most_Chosen__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Fast Offers":
+          filter = { Fast_Offer__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "All Programs":
+          sortQuery = { Name: 1 };
+          break;
+        default:
+          break;
       }
 
       let countryQuery = {};
       let programLevelQuery = {};
       let schoolIds = [];
-      let topProgramQuery = {};
-      if(topProgram) {
-        topProgramQuery = {Top_Programs__c: { $ne: null }}
-        console.log('topProgram....',topProgram,topProgramQuery)
-      }
 
       if (searchType === 'Country__c') {
         countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
@@ -62,13 +78,10 @@ class ProgramService {
         ...filter,
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
-        ...topProgramQuery,
       };
 
-      const programs = await this.programModel.find({
-        ...query,
-      })
-        .sort({ Top_Programs__c: 1, })
+      const programs = await this.programModel.find({ ...query })
+        .sort(sortQuery)
         .limit(limit)
         .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
