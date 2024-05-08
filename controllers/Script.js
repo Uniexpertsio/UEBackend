@@ -78,8 +78,8 @@ class ScriptController {
 
 
   async programSync(req, res) {
-    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,CurrencyIsoCode,School__c,Admission_Requirements__c,Country__c,Department__c,Intake__c,Master_Commission__c,Program_level__c,Scholarship__c,University_Image__c,Program_Description__c,Admission_Requirements1__c,International_Health_Insurance_Fee__c,Career_Advising_and_Transition_Services__c,Note__c,Link__c,Length__c,Application_fee__c,Tuition__c,Cost_of_Living__c,Starting_Dates__c,Submission_deadlines__c,Status__c,Delivery_Method__c,Required_Level__c,Fast_Offer__c,Most_Chosen__c,Recommended__c,Top_Programs__c+FROM+Programme__c ORDER BY Name `;
-    const data = await getDataFromSF(url);
+    // const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,CurrencyIsoCode,School__c,Admission_Requirements__c,Country__c,Department__c,Intake__c,Master_Commission__c,Program_level__c,Scholarship__c,University_Image__c,Program_Description__c,Admission_Requirements1__c,International_Health_Insurance_Fee__c,Career_Advising_and_Transition_Services__c,Note__c,Link__c,Length__c,Application_fee__c,Tuition__c,Cost_of_Living__c,Starting_Dates__c,Submission_deadlines__c,Status__c,Delivery_Method__c,Required_Level__c,Fast_Offer__c,Most_Chosen__c,Recommended__c,Top_Programs__c+FROM+Programme__c ORDER BY Name `;
+    // const data = await getDataFromSF(url);
     // await Program.deleteMany();
     // const replacableUrl =
     //   "https://uniexperts.my.salesforce-sites.com/AccessImage/";
@@ -103,6 +103,11 @@ class ScriptController {
 
     // await Program.insertMany(data?.records);
     // const datarec = await Program.find();
+    const schoolIds=await School.find({Country__c:'United Kingdom'},{'Id':1});
+    const filteredId=schoolIds.map((item)=>item.Id);
+    const data = await Program.find().limit;
+    const count=await Program.countDocuments({$and:{ School__c: { $in: filteredId },Program_level__c:'Grade 4'}});
+    console.log(data,count);
     return res.status(200).json(data);
   }
 }
