@@ -13,10 +13,14 @@ class SchoolController {
   }
 
   async getAllSchool(req, res) {
-    const { page, limit,filter } = req.query;
+    try {
+    const { page, limit,filter, searchType, searchTerm } = req.query;
     return res
       .status(200)
-      .json(await this.schoolService.getAllSchool(page, limit,filter));
+      .json(await this.schoolService.getAllSchool(page, limit,filter, searchType, searchTerm));
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
 
   async getSchool(req, res) {
