@@ -9,8 +9,7 @@ class SchoolService {
   async createSchool(id, body) {
     const externalId = uuid.v4();
     body.entryRequirements.push(
-      `This program does${
-        body.offerConditionalAdmission ? "" : " not"
+      `This program does${body.offerConditionalAdmission ? "" : " not"
       } offer conditional admission`
     );
 
@@ -56,105 +55,69 @@ class SchoolService {
     });
   }
 
-  // async getAllSchool() {
-  //   const schools = await School.find({});
-  //   return this.parseSchoolList(schools);
-  // }
-
-  // async getAllSchool(page, limit) {
-  //   try {
-  //     const skip = (page - 1) * limit;
-  //     const schoolPromise = await School.find({}).skip(skip).limit(limit);
-  //     const countPromise = await School.countDocuments({});
-
-  //     const [schools, count] = await Promise.all([schoolPromise, countPromise]);
-
-  //     return {
-  //       schools,
-  //       totalCount: count,
-  //       currentPage: page,
-  //       totalPages: Math.ceil(count / limit)
-  //     };
-  //   } catch (error) {
-  //     console.error("Error fetching school list:", error);
-  //     throw error;
-  //   }
-  // }
-
-  // async getAllSchool(page, pageSize) {
-  //   const skip = (page - 1) * pageSize;
-  //   console.log(page, pageSize, skip);
-  //   try {
-  //     const [schools, totalCount] = await Promise.all([
-  //       School.aggregate([
-  //         {
-  //           $lookup: {
-  //             from: "programs",
-  //             localField: "Id", // Assuming Id is the field referencing School__c
-  //             foreignField: "School__c", // Assuming School__c is the field referenced by Id
-  //             as: "programs",
-  //           },
-  //         },
-  //         {
-  //           $match: {
-  //             programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
-  //           },
-  //         },
-  //         {
-  //           $skip: skip,
-  //         },
-  //         {
-  //           $limit: parseInt(pageSize), // Convert pageSize to a number
-  //         },
-  //       ]),
-  //       School.aggregate([
-  //         {
-  //           $lookup: {
-  //             from: "programs",
-  //             localField: "Id", // Assuming Id is the field referencing School__c
-  //             foreignField: "School__c", // Assuming School__c is the field referenced by Id
-  //             as: "programs",
-  //           },
-  //         },
-  //         {
-  //           $match: {
-  //             programs: { $exists: true, $ne: [] }, // Filter out schools with no programs
-  //           },
-  //         },
-  //         {
-  //           $count: "totalCount",
-  //         },
-  //       ]),
-  //     ]);
-
-  //     // Extracting totalCount from the result of the second aggregation
-  //     const totalSchoolsWithPrograms =
-  //       totalCount.length > 0 ? totalCount[0].totalCount : 0;
-
-  //     return { schools, totalSchoolsWithPrograms };
-  //   } catch (error) {
-  //     // Handle error
-  //     console.error("Error:", error);
-  //     throw error;
-  //   }
-  // }
-
-  async getAllSchool(page, pageSize, schoolFilter) {
-    const skip = (page - 1) * pageSize;
+  async getAllSchool(page, limit, schoolFilter, searchType, searchTerm) {
     try {
-      // console.log(JSON.parse(schoolFilter));
+      const skip = (page - 1) * limit;
       let filter = {};
-      if (schoolFilter) {
-        filter = {
-          ...JSON.parse(schoolFilter),
-        };
+      let sortQuery = {};
+      switch (schoolFilter) {
+        case "Top 100 Schools":
+          filter = { Top_Hundred_School__c: { $ne: null } };
+          sortQuery = { Top_Hundred_School__c: 1 };
+          break;
+        case "Recommended":
+          filter = { Recommended__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "First Choice of Students":
+          filter = { First_Choice_of_Students__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Fast Offers":
+          filter = { Fast_Offers__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Highest Acceptance Rate":
+          filter = { Highest_Acceptance_Rate__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Offers in 48 Hours":
+          filter = { Offers_in_48_Hrs__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "All School":
+          sortQuery = { Name: 1 };
+          break;
+        default:
+          break;
       }
-      const schools = await School.find(filter).limit(pageSize).skip(skip);
 
-      const totalSchoolsWithPrograms = await School.countDocuments(filter);
-      return { schools, totalSchoolsWithPrograms };
+      let countryQuery = {};
+      let schoolIds = [];
+
+      if (searchType === 'Country__c') {
+        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+      } else if (searchType === 'Program_level__c&&Country__c') {
+        const programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+        const programs = await Program.find(programLevelQuery);
+        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
+        schoolIds = [...new Set(programs.map(program => program.School__c))];
+      }
+
+      const query = {
+        ...countryQuery,
+        ...filter,
+        ...(schoolIds.length > 0 ? { Id: { $in: schoolIds } } : {}),
+      };
+
+      const schools = await School.find({ ...query })
+        .sort(sortQuery)
+        .limit(limit)
+        .skip(skip);
+
+      const totalSchools = await School.countDocuments(query);
+      return { schools, totalSchools };
     } catch (error) {
-      // Handle error
       console.error("Error:", error);
       throw error;
     }
@@ -221,7 +184,7 @@ class SchoolService {
   }
 
   async findBySfId(id) {
-    const school = await School.findOne({Id: id});
+    const school = await School.findOne({ Id: id });
 
     if (!school) {
       throw new Error(`No school found for id - ${id}`);

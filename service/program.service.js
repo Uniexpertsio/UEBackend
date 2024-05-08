@@ -64,13 +64,22 @@ class ProgramService {
       let schoolIds = [];
 
       if (searchType === 'Country__c') {
+        console.log('searchType',searchType)
         countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
         const schools = await School.find(countryQuery);
+        if (schools.length === 0) {
+          return { programs: [], totalPrograms: 0 };
+        }
         schoolIds = schools.map(school => school.Id);
       } else if (searchType === 'Program_level__c&&Country__c') {
+        console.log('searchType',searchType)
         countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
         programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
         const schools = await School.find(countryQuery);
+        console.log('schooll',schools)
+        if (schools.length === 0) {
+          return { programs: [], totalPrograms: 0 };
+        }
         schoolIds = schools.map(school => school.Id);
       }
 
