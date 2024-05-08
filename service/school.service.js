@@ -92,25 +92,22 @@ class SchoolService {
           break;
       }
 
-      // let countryQuery = {};
-      // let programLevelQuery = {};
-      // let schoolIds = [];
+      let countryQuery = {};
+      let schoolIds = [];
 
-      // if (searchType === 'Country__c') {
-      //   countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
-      //   const schools = await School.find(countryQuery);
-      //   schoolIds = schools.map(school => school.Id);
-      // } else if (searchType === 'Program_level__c&&Country__c') {
-      //   countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
-      //   programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
-      //   const schools = await School.find(countryQuery);
-      //   schoolIds = schools.map(school => school.Id);
-      // }
+      if (searchType === 'Country__c') {
+        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+      } else if (searchType === 'Program_level__c&&Country__c') {
+        const programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+        const programs = await Program.find(programLevelQuery);
+        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
+        schoolIds = [...new Set(programs.map(program => program.School__c))];
+      }
 
       const query = {
+        ...countryQuery,
         ...filter,
-        // ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
-        // ...programLevelQuery,
+        ...(schoolIds.length > 0 ? { Id: { $in: schoolIds } } : {}),
       };
 
       const schools = await School.find({ ...query })
