@@ -30,22 +30,90 @@ class ProgramService {
     return data;
   }
 
-  async getAllProgram(page, limit, programFilter, searchType, searchTerm, topProgram) {
+  // async getAllProgram(page, limit, programFilter, searchType, searchTerm, topProgram) {
+  //   try {
+  //     const skip = (page - 1) * limit;
+  //     let filter = {};
+  //     if (programFilter) {
+  //       filter = { ...JSON.parse(programFilter) };
+  //     }
+
+  //     let countryQuery = {};
+  //     let programLevelQuery = {};
+  //     let schoolIds = [];
+  //     let topProgramQuery = {};
+  //     if(topProgram) {
+  //       topProgramQuery = {Top_Programs__c: { $ne: null }}
+  //       console.log('topProgram....',topProgram,topProgramQuery)
+  //     }
+
+  //     if (searchType === 'Country__c') {
+  //       countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+  //       const schools = await School.find(countryQuery);
+  //       schoolIds = schools.map(school => school.Id);
+  //     } else if (searchType === 'Program_level__c&&Country__c') {
+  //       countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
+  //       programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+  //       const schools = await School.find(countryQuery);
+  //       schoolIds = schools.map(school => school.Id);
+  //     }
+
+  //     const query = {
+  //       ...filter,
+  //       ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
+  //       ...programLevelQuery,
+  //       ...topProgramQuery,
+  //     };
+
+  //     const programs = await this.programModel.find({
+  //       ...query,
+  //     })
+  //       .sort({ Top_Programs__c: 1, })
+  //       .limit(limit)
+  //       .skip(skip);
+  //     const totalPrograms = await this.programModel.countDocuments(query);
+
+  //     return { programs, totalPrograms };
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     throw error;
+  //   }
+  // }
+
+  async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
       const skip = (page - 1) * limit;
       let filter = {};
-      if (programFilter) {
-        filter = { ...JSON.parse(programFilter) };
+      let sortQuery = {};
+      switch (programFilter) {
+        // case "Top Programs":
+        //   filter = { Top_Programs__c: { $ne: null } };
+        //   sortQuery = { Top_Programs__c: 1 };
+        //   break;
+        case "Recommended":
+          filter = { Recommended__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Most Chosen":
+          filter = { Most_Chosen__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "Fast Offers":
+          filter = { Fast_Offer__c: true };
+          sortQuery = { Name: 1 };
+          break;
+        case "All Programs":
+          sortQuery = { Name: 1 };
+          break;
+        default:
+          filter = { Top_Programs__c: { $ne: null } };
+          sortQuery = { Top_Programs__c: 1 };
+          break;
       }
 
       let countryQuery = {};
       let programLevelQuery = {};
       let schoolIds = [];
-      let topProgramQuery = {};
-      if(topProgram) {
-        topProgramQuery = {Top_Programs__c: { $ne: null }}
-        console.log('topProgram....',topProgram,topProgramQuery)
-      }
 
       if (searchType === 'Country__c') {
         countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
@@ -62,13 +130,14 @@ class ProgramService {
         ...filter,
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
-        ...topProgramQuery,
+        // ...topProgramQuery,
       };
 
       const programs = await this.programModel.find({
         ...query,
       })
-        .sort({ Top_Programs__c: 1, })
+        // .sort({ Top_Programs__c: 1, })
+        .sort(sortQuery)
         .limit(limit)
         .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
