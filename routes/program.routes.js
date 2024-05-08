@@ -24,4 +24,6 @@ router.get("/:programId/eligibility", Middleware.checkAuth, programController.ch
 
 router.get("/by/country-and-discipline", Middleware.checkAuth, programController.getProgramByCountryAndDiscipline);
 
+router.get("/", Middleware.checkAuth, programController.getAllProgram);
+
 module.exports = router;

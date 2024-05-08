@@ -70,6 +70,17 @@ class ProgramController {
     }
   };
 
+  getAllProgram = async (req, res) => {
+    try {
+      const { page, limit,filter, searchType, searchTerm, topProgram } = req.query;
+      const program = await this.programService.getAllProgram(page, limit,filter, searchType, searchTerm, topProgram);
+      
+      res.status(200).json({ success: true, data: program });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+
   getSimilarProgram = async (req, res) => {
     try {
       const { programId } = req.params;

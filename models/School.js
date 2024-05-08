@@ -68,6 +68,7 @@ const SchoolSchema = new mongoose.Schema(
     Entry_Requirements__c: { type: String },
     Offer_Conditional_Admission__c: { type: Boolean },
     CurrencyIsoCode: { type: String },
+    Recommended__c: { type: Boolean },
     Is_Recommended__c: { type: Boolean },
     School_Rank__c: { type: Number },
     Academic_Percentage__c: { type: String },
