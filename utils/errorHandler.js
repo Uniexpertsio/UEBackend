@@ -3,7 +3,7 @@ const sendResponse = async (error) => {
         let statusCode;
         let errorMessage;
         if(error.sfTrue){
-            return resolve({statusCode: 200, errorMessage: "Salesforce error"})
+            return resolve({statusCode: 200, errorMessage: "Please try later or check Internet Connectivity"})
         }
     
         switch (error.name) {

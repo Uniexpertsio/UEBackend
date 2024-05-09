@@ -159,8 +159,9 @@ class ApplicationController {
       const requestData = req.body;
       const result = await this.applicationService.updateApplication(applicationSfId, requestData);
       res.status(200).json(result);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (err) {
+      const { statusCode, errorMessage } = await sendResponse(err);
+      res.status(statusCode).json({ error: errorMessage });
     }
   }
 

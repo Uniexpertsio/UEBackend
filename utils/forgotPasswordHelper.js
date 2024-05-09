@@ -12,7 +12,7 @@ const forgotPasswordRateLimit = async (email) => {
             const hoursDifference = Math.ceil(timeDifference / (1000 * 60 * 60));
 
             if (hoursDifference < 24 && staff.forgotPasswordAttempts >= 3) {
-                throw new Error('Too many requests. Please try again later.');
+                throw new Error('Please try after 24 hrs to reset password as you have failed to verify first 3 free attempts');
             }
 
             if (hoursDifference >= 24) {
