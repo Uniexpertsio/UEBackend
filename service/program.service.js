@@ -8,6 +8,7 @@ const TestScore = require("../models/TestScore");
 const SchoolService = require("../service/school.service");
 // const SalesforceService = require("src/salesforce/salesforce.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
+const { getDataFromSF } = require("./salesforce.service");
 
 class ProgramService {
   constructor() {
@@ -543,7 +544,9 @@ class ProgramService {
     const program = await this.programModel.findById(programId);
     const examTypeRequired = program.requirementExamType;
     const scoreRequired = program.requirementScoreInformation || [];
-
+    const url=`${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Citizenship_Country__c,Duo_12th_Gre_Percentile__c,Duo_Comprehension__c,Duo_Conversation__c,Duo_Literacy__c,Duo_Overall__c,Duo_Production__c,Education_Country__c,Exam_Type__c,GMAT_Exam_Date__c,GRE_Exam_Date__c,Gmat_Integrated_Listening_Percentile__c,Gmat_Integrated_Listening_Score__c,Gmat_Quantitative_Percent__c,Gmat_Quantitative_Score__c,Gmat_Total_Percentile__c,Gmat_Verbal_Percentile__c,Gmat_Verbal_Score__c,Gre_Analytical_reasoning_Percentile__c,Gre_Analytical_reasoning_Score__c,Gre_Quantitative_reasoning_Score__c,Gre_Verbal_Reasoning_Percentile__c,Gre_Verbal_Reasoning_Score__c,Have_GMAT_Exam_Score__c,Have_GRE_Exam_Score__c,Programme__c,Pte_Gmat_12th_Total_Marks_of_English__c,Pte_Listening__c,Pte_Reading__c,Pte_Speaking__c,Pte_Writing__c,School__c,Total_Rank__c,Verbal_Percent__c,Writing_Percent__c,Writing_Score__c+FROM+Eligibility__c+WHERE+Programme__c+=+'${programId}'`
+    const data=await getDataFromSF(url);
+    console.log(data,"========================");
     const testScores = await this.testScoreModel.findOne({
       studentId,
       examType: examTypeRequired,
