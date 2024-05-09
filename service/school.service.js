@@ -96,17 +96,16 @@ class SchoolService {
       let countryQuery = {};
       let schoolIds = [];
 
-      if (searchType === "Country__c") {
-        countryQuery = { Country__c: new RegExp(searchTerm, "i") };
-      } else if (searchType === "Program_level__c&&Country__c") {
-        const programLevelQuery = {
-          Program_level__c: new RegExp(searchTerm[0], "i"),
-        };
-        const programs = await Program.find(programLevelQuery, {
-          School__c: 1,
-        });
-        countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
-        schoolIds = [...new Set(programs.map((program) => program.School__c))];
+      if (searchType === 'Country__c') {
+        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+      } else if (searchType === 'Program_level__c&&Country__c') {
+        const programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+        const programs = await Program.find(programLevelQuery, { School__c: 1 });
+        if(programs.length === 0) {
+          return { schools: [], totalSchools: 0 };
+        }
+        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
+        schoolIds = [...new Set(programs.map(program => program.School__c))];
       }
 
       const query = {
