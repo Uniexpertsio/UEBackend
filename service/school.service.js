@@ -9,7 +9,8 @@ class SchoolService {
   async createSchool(id, body) {
     const externalId = uuid.v4();
     body.entryRequirements.push(
-      `This program does${body.offerConditionalAdmission ? "" : " not"
+      `This program does${
+        body.offerConditionalAdmission ? "" : " not"
       } offer conditional admission`
     );
 
@@ -95,13 +96,17 @@ class SchoolService {
       let countryQuery = {};
       let schoolIds = [];
 
-      if (searchType === 'Country__c') {
-        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
-      } else if (searchType === 'Program_level__c&&Country__c') {
-        const programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
-        const programs = await Program.find(programLevelQuery);
-        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
-        schoolIds = [...new Set(programs.map(program => program.School__c))];
+      if (searchType === "Country__c") {
+        countryQuery = { Country__c: new RegExp(searchTerm, "i") };
+      } else if (searchType === "Program_level__c&&Country__c") {
+        const programLevelQuery = {
+          Program_level__c: new RegExp(searchTerm[0], "i"),
+        };
+        const programs = await Program.find(programLevelQuery, {
+          School__c: 1,
+        });
+        countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
+        schoolIds = [...new Set(programs.map((program) => program.School__c))];
       }
 
       const query = {
@@ -109,7 +114,7 @@ class SchoolService {
         ...filter,
         ...(schoolIds.length > 0 ? { Id: { $in: schoolIds } } : {}),
       };
-
+   
       const schools = await School.find({ ...query })
         .sort(sortQuery)
         .limit(limit)
