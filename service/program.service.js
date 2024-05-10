@@ -539,72 +539,15 @@ class ProgramService {
     return this.createProgramSchoolResponse(schools, programsIds);
   }
 
-  // to confirm with nilesh
-  //   async isEligibleForProgram(programId, schoolId, studentId, intakeId) {
-  //     const program = await this.programModel.findById(programId);
-  //     // const examTypeRequired = program.requirementExamType;
-  //     // const scoreRequired = program.requirementScoreInformation || [];
-  //     const url=`${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Citizenship_Country__c,Duo_12th_Gre_Percentile__c,Duo_Comprehension__c,Duo_Conversation__c,Duo_Literacy__c,Duo_Overall__c,Duo_Production__c,Education_Country__c,Exam_Type__c,GMAT_Exam_Date__c,GRE_Exam_Date__c,Gmat_Integrated_Listening_Percentile__c,Gmat_Integrated_Listening_Score__c,Gmat_Quantitative_Percent__c,Gmat_Quantitative_Score__c,Gmat_Total_Percentile__c,Gmat_Verbal_Percentile__c,Gmat_Verbal_Score__c,Gre_Analytical_reasoning_Percentile__c,Gre_Analytical_reasoning_Score__c,Gre_Quantitative_reasoning_Score__c,Gre_Verbal_Reasoning_Percentile__c,Gre_Verbal_Reasoning_Score__c,Have_GMAT_Exam_Score__c,Have_GRE_Exam_Score__c,Programme__c,Pte_Gmat_12th_Total_Marks_of_English__c,Pte_Listening__c,Pte_Reading__c,Pte_Speaking__c,Pte_Writing__c,School__c,Total_Rank__c,Verbal_Percent__c,Writing_Percent__c,Writing_Score__c+FROM+Eligibility__c+WHERE+Programme__c+=+'${program.Id}'`
-  //     const data=await getDataFromSF(url);
-  //     console.log(data,"========================");
-  //     const sfData = data.records.map(program => ({
-  //       examType: program.Exam_Type__c,
-  //       totalScore: program.Duo_Overall__c
-  //     }));
-
-  //     data.records.map((async item => {
-  //       if(["PTE", "TOEFL", "IELTS"].includes(item.Exam_Type__c)){
-  //     const testScores = await this.testScoreModel.find({ studentId ,selectedType: item.Exam_Type__c});
-  //     console.log('testScores',testScores)
-  //       }    
-  //     }))
-  //     console.log('sfdara', sfData)
-
-  //     const testScores = await this.testScoreModel.find({ studentId });
-  //   console.log('testScores.....',testScores);
-
-  //   const isEligible = sfData.every(sfDataEntry => {
-  //     const { examType, totalScore: requiredTotalScore } = sfDataEntry;
-  //     const testScore = testScores.find(score => score.examType === examType);
-
-  //     if (!testScore) {
-  //       console.log(`Test score not found for exam type ${examType}`);
-  //       return false;
-  //     }
-
-  //     return testScore.totalScore >= requiredTotalScore;
-  //   });
-
-  //   return isEligible;
-  // // }
-
-  //     // const testScores = await this.testScoreModel.find({
-  //     //   studentId,
-  //     //   examType: sfData?.examType,
-  //     // });
-  //     // console.log('testScores.....',testScores)
-  //     // return true;
-  //     // if (!testScores) return false;
-  //     // const studentScores = testScores.scoreInformation || [];
-
-  //     // return scoreRequired.every((requiredScore) => {
-  //     //   return studentScores.some((studentScore) => {
-  //     //     if (requiredScore.key == studentScore.key) {
-  //     //       return +studentScore.value >= +requiredScore.value;
-  //     //     }
-  //     //     return false;
-  //     //   });
-  //     // });
-  //   }
-
-
-
-
   async isEligibleForProgram(programId, studentId) {
     try {
       const program = await this.programModel.findById(programId);
       const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Citizenship_Country__c,Duo_12th_Gre_Percentile__c,Duo_Comprehension__c,Duo_Conversation__c,Duo_Literacy__c,Duo_Overall__c,Duo_Production__c,Education_Country__c,Exam_Type__c,GMAT_Exam_Date__c,GRE_Exam_Date__c,Gmat_Integrated_Listening_Percentile__c,Gmat_Integrated_Listening_Score__c,Gmat_Quantitative_Percent__c,Gmat_Quantitative_Score__c,Gmat_Total_Percentile__c,Gmat_Verbal_Percentile__c,Gmat_Verbal_Score__c,Gre_Analytical_reasoning_Percentile__c,Gre_Analytical_reasoning_Score__c,Gre_Quantitative_reasoning_Score__c,Gre_Verbal_Reasoning_Percentile__c,Gre_Verbal_Reasoning_Score__c,Have_GMAT_Exam_Score__c,Have_GRE_Exam_Score__c,Programme__c,Pte_Gmat_12th_Total_Marks_of_English__c,Pte_Listening__c,Pte_Reading__c,Pte_Speaking__c,Pte_Writing__c,School__c,Total_Rank__c,Verbal_Percent__c,Writing_Percent__c,Writing_Score__c+FROM+Eligibility__c+WHERE+Programme__c+=+'${program.Id}'`;
       const data = await getDataFromSF(url);
+      if(!data.records.length) {
+        return { message: "Please try again later" };
+      }
+      console.log('sf data>>>',data)
       const sfData = data.records.map(program => ({
         examType: program.Exam_Type__c,
         totalScore: program.Duo_Overall__c
@@ -630,16 +573,10 @@ class ProgramService {
           isEligible = false;
           break;
         }
-        // else {
-        //   const isEligible = testScore.totalMarks >= requiredTotalScore;
-        //   console.log('is eleeeeegibile',isEligible,testScore.totalMarks,requiredTotalScore )
-        //   eligibilityResults.push({ examType, isEligible });
-        // }
       }
 
       return isEligible;
     } catch (error) {
-      console.log('error>>>>', error)
       return false;
     }
   }
