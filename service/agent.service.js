@@ -1,7 +1,7 @@
 const Agent = require("../models/Agent");
 const Staff = require("../models/Staff");
 const { MappingFiles } = require("./../constants/Agent.constants");
-const { sendDataToSF } = require("../service/salesforce.service");
+const { sendDataToSF, updateDataToSF } = require("../service/salesforce.service");
 const Document = require("../models/Document");
 const DocumentService = require("../service/document.service");
 const DocumentTypeService = require("../service/documentType.service");
@@ -52,7 +52,7 @@ class AgentService {
 
             if (doc.sfId) {
               const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${doc.sfId}`;
-              const sfRes = await sendDataToSF(data, url);
+              const sfRes = await updateDataToSF(data, url);
               sfIdFound = true; // Set the flag to true if sfId is found
             }
 

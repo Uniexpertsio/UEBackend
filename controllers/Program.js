@@ -1,5 +1,6 @@
 
 const ProgramService = require("../service/program.service");
+const { getDataFromSF } = require("../service/salesforce.service");
 
 class ProgramController {
   constructor() {
@@ -95,8 +96,10 @@ class ProgramController {
   checkEligibility = async (req, res) => {
     try {
       const { programId } = req.params;
-      const { schoolId, studentId, intakeId } = req.query;
-      const eligibility = await this.programService.isEligibleForProgram(programId, schoolId, studentId, intakeId);
+      const { studentId } = req.query;
+
+   
+      const eligibility = await this.programService.isEligibleForProgram(programId, studentId);
       
       res.status(200).json({ success: true, data: eligibility });
     } catch (error) {

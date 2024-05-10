@@ -9,7 +9,8 @@ class SchoolService {
   async createSchool(id, body) {
     const externalId = uuid.v4();
     body.entryRequirements.push(
-      `This program does${body.offerConditionalAdmission ? "" : " not"
+      `This program does${
+        body.offerConditionalAdmission ? "" : " not"
       } offer conditional admission`
     );
 
@@ -112,7 +113,7 @@ class SchoolService {
         ...filter,
         ...(schoolIds.length > 0 ? { Id: { $in: schoolIds } } : {}),
       };
-
+   
       const schools = await School.find({ ...query })
         .sort(sortQuery)
         .limit(limit)
