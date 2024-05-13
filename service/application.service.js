@@ -81,6 +81,14 @@ class ApplicationService {
       await this.intakeService.findById(body.intakeId);
 
       const externalId = uuid.v4();
+      const checkApplicationExist = await Application.findOne({
+        intakeId: body.intakeId,
+        programId: body.programId,
+        studentId: body.studentId
+      })
+      if(checkApplicationExist) {
+        return { status: 409, message: `Application already exist for this student Id: ${body.studentId}` };
+      }
       const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
       const applicationSfData = this.convertApplicationData(body);
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
@@ -88,11 +96,11 @@ class ApplicationService {
       const sfId = applicationSfResponse?.id;
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${applicationSfResponse?.id}`;
       const sfData = await getDataFromSF(url);
-      
+
       if (sfId) {
         await Application.updateOne(
           { _id: application._id },
-          { $set: { salesforceId: sfId,applicationId: sfData.Name,country: sfData.RecordTypeId} },
+          { $set: { salesforceId: sfId, applicationId: sfData.Name, country: sfData.RecordTypeId } },
           { new: true }
         );
       }
@@ -225,19 +233,19 @@ class ApplicationService {
     );
     const application = await Application.findById(applicationId);
     const data = {
-       "Enter_Note__c": null,
-       "Application__c": application?.salesforceId,
-       "Partner_User__c": null,
-       "Lead__c": null,
-       "PartnerNote__c": null,
-       "University_Notes__c": null,
-       "Subject__c": "Offer Related",
-       "Student__c": null,
-       "Message_Body__c": body?.message,
-       "Type__c": "Inbound",
-       "External__c": true,
-       "CourseEnquiry__c": null,
-       "Cases__c": null,
+      "Enter_Note__c": null,
+      "Application__c": application?.salesforceId,
+      "Partner_User__c": null,
+      "Lead__c": null,
+      "PartnerNote__c": null,
+      "University_Notes__c": null,
+      "Subject__c": "Offer Related",
+      "Student__c": null,
+      "Message_Body__c": body?.message,
+      "Type__c": "Inbound",
+      "External__c": true,
+      "CourseEnquiry__c": null,
+      "Cases__c": null,
     };
     // Send comment data to Salesforce endpoint
     const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
@@ -306,7 +314,7 @@ class ApplicationService {
     // return this.parsePaymentsResponse(payments);
     const application = await Application.findById(applicationId);
     if (application) {
-      const url=`${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,School__c,Programme__c,Student__c,Amount__c,Application__c,Payment_Date__c,Status__c,CurrencyIsoCode+FROM+Payment__c+WHERE+Application__c+=+'${application?.salesforceId}'`
+      const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,School__c,Programme__c,Student__c,Amount__c,Application__c,Payment_Date__c,Status__c,CurrencyIsoCode+FROM+Payment__c+WHERE+Application__c+=+'${application?.salesforceId}'`
       console.log(url);
       const result = await getDataFromSF(url);
       return result?.records;
@@ -387,7 +395,7 @@ class ApplicationService {
 
       const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/picklist-values/${application?.country}/Current_Stage__c`
       const countryListFromSf = await getDataFromSF(url);
-     
+
       const sfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c/${application?.salesforceId}`;
       const sfData = await getDataFromSF(sfUrl);
 
@@ -475,9 +483,9 @@ class ApplicationService {
   async createApplicationStages() {
     return new Promise(async (resolve, reject) => {
       try {
-        const url =`${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/`;
+        const url = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/`;
         const sfData = await getDataFromSF(url);
-        
+
         const picklisturl = `${process.env.SF_API_URL}services/data/v50.0/ui-api/object-info/Application__c/picklist-values/${sfData}/Current_Stage__c`;
         const sfResponse = await getDataFromSF(picklisturl);
 
