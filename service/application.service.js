@@ -87,7 +87,7 @@ class ApplicationService {
         studentId: body.studentId
       })
       if(checkApplicationExist) {
-        return { status: 409, message: `Application already exist for this student Id: ${body.studentId}` };
+        throw { status: 409, message: `Application already exists` };
       }
       const application = await Application.create({ ...body, agentId, modifiedBy: id, createdBy: id, externalId });
       const applicationSfData = this.convertApplicationData(body);
