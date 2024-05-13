@@ -88,6 +88,7 @@ const ProgramSchema = new mongoose.Schema(
     Admission_Requirements__c: { type: String },
     Country__c: { type: String },
     Department__c: { type: String },
+    Intake__c:{type:String},
     Master_Commission__c: { type: String },
     Program_level__c: { type: String },
     Scholarship__c: { type: String },
@@ -105,6 +106,7 @@ const ProgramSchema = new mongoose.Schema(
     Starting_Dates__c: { type: String },
     Submission_deadlines__c: { type: String },
     Status__c: { type: String },
+    Delivery_Method__c:{type:String},
     Salesforce_Id__c: { type: String },
     Discipline__c: { type: String },
     ExternalId__c: { type: String },
@@ -174,6 +176,11 @@ const ProgramSchema = new mongoose.Schema(
     Verbal_Score__c: { type: String },
     Writing__c: { type: String },
     Required_Level__c: { type: String },
+    Fast_Offer__c:{type:Boolean},
+    Most_Chosen__c:{type:Boolean},
+    Recommended__c:{type:Boolean},
+    Top_Programs__c:{type:Number}
+
   },
   { timestamps: true }
 );
