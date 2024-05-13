@@ -28,7 +28,21 @@ const logger = winston.createLogger({
             winston.format.timestamp(),
             winston.format.json()
           ),
-    })
+    }),
+    new MongoDB({
+      level: 'verbose',
+      options: { useUnifiedTopology: true },
+      db: process.env.MONGO_URI,
+      collection: 'logger',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      ),
+    }),
+    // new winston.transports.Stream({
+    //   stream: httpLogStream,
+    //   level: 'http',
+    // }),
   ],
 });
 
@@ -42,6 +56,8 @@ logger.middleware = function(req, res, next) {
 logger.setEndpoint = function(endpoint) {
     this.endpoint = endpoint;
 };
+
+logger.verbose('This is a verbose message', { context: 'myModule' });
 
 // Route to receive logs and send them to Salesforce
 router.post('/api/logs', (req, res) => {
