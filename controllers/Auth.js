@@ -89,6 +89,7 @@ function convertToAgentData(inputData, id) {
     FirstName: inputData.personalDetails.firstName,
     LastName: inputData.personalDetails.lastName,
     MobilePhone: inputData.personalDetails.phone,
+    Whatsapp_No__c: inputData.personalDetails.phone,
     Title: inputData?.personalDetails?.jobTitle,
     Email: inputData.personalDetails.email,
     Password__c: inputData?.password,
@@ -99,6 +100,7 @@ function convertToAgentData(inputData, id) {
     MailingCountry: inputData.address.country,
     MailingStreet: inputData.address.address,
     MailingPostalCode: inputData.address.zipCode,
+    Country_Code__c: inputData.personalDetails.countryCode
   };
   return outputData;
 }
