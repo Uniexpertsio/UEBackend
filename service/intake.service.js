@@ -1,9 +1,6 @@
-const { v4: uuidv4 } = require("uuid");
 const Intake = require("../models/Intake");
 const SchoolService = require("./school.service");
 const ProgramService = require("./program.service");
-const SalesforceService = require("./salesforce.service");
-const { MappingFiles } = require('./../constants/Agent.constants');
 
 const IntakeStatus = {
   Closed: "Closed",
@@ -17,18 +14,6 @@ class IntakeService {
     this.schoolService = new SchoolService();
     this.programService = new ProgramService();
   }
-
-  // async addIntake(id, intakeCreateDto) {
-  //   const externalId = uuidv4();
-  //   const intake = new this.intakeModel({ ...intakeCreateDto, createdBy: id, updatedBy: id, externalId });
-  //   // sendToSF(MappingFiles.SCHOOL_intake, {
-  //   //   ...intake,
-  //   //   schoolId: (await this.schoolService.findById(intake.schoolId)).externalId,
-  //   //   programId: (await this.programService.findById(intake.programId)).externalId,
-  //   //   _user: { id }
-  //   // });
-  //   return intake.save();
-  // }
 
   async addOrUpdateIntake(intakeCreateDto) {
     return new Promise(async (resolve, reject) => {
