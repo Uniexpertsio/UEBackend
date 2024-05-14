@@ -97,7 +97,7 @@ class IntakeService {
       const skip = (page - 1) * limit;
       const intakePromise = await this.intakeModel.find({ Programme__c: programId }).skip(skip).limit(limit);
 
-      const countPromise = await this.intakeModel.countDocuments({});
+      const countPromise = await this.intakeModel.countDocuments({ Programme__c: programId });
 
       const [intakes, count] = await Promise.all([intakePromise, countPromise]);
 
