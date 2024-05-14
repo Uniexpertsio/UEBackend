@@ -1187,10 +1187,6 @@ class StudentService {
       }
     }
     
-    const checkExamTypeExist = await TestScore.findOne({ studentId: studentId, examType: body.examType })
-    if (checkExamTypeExist) {
-      return { status: 409, message: `Test score already exist for ${body.examType},do you want to replace it?` };
-    }
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
@@ -1253,7 +1249,8 @@ class StudentService {
               return;
             }
             // Update test score
-            this.testScoreService.update(modifiedBy, testScore?._id, body)
+            const studentId = student._id;
+            this.testScoreService.update(modifiedBy, testScore?._id, body, studentId)
               .then(updatedTestScore => {
                 if (!updatedTestScore) {
                   reject({ status: 500, error: new Error("Test score not updated") });
