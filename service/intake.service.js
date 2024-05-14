@@ -6,10 +6,10 @@ const SalesforceService = require("./salesforce.service");
 const { MappingFiles } = require('./../constants/Agent.constants');
 
 const IntakeStatus = {
-    Closed : "Closed",
-    Open : "Open",
-    ClosingSoon : "Closing soon"
-  }
+  Closed: "Closed",
+  Open: "Open",
+  ClosingSoon: "Closing soon"
+}
 
 class IntakeService {
   constructor() {
@@ -65,36 +65,34 @@ class IntakeService {
     return intake;
   }
 
-  // getIntakeList() {
-  //   return this.intakeModel.find({});
-  // }
-
   async getIntakeList(page, limit) {
     try {
-        const skip = (page - 1) * limit;
-        const intakePromise = this.intakeModel.find({Status__c: 'Open'}).skip(skip).limit(limit);
-        const countPromise = this.intakeModel.countDocuments({});
-        
-        const [intakes, count] = await Promise.all([intakePromise, countPromise]);
-        
-        return {
-            intakes,
-            totalCount: count,
-            currentPage: page,
-            totalPages: Math.ceil(count / limit)
-        };
+      const skip = (page - 1) * limit;
+      const intakePromise = await this.intakeModel.find({ Status__c: 'Open' }).skip(skip).limit(limit);
+      const countPromise = await this.intakeModel.countDocuments({});
+
+      const [intakes, count] = await Promise.all([intakePromise, countPromise]);
+
+      return {
+        intakes,
+        totalCount: count,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit)
+      };
     } catch (error) {
-        console.error("Error fetching intake list:", error);
-        throw error;
+      console.error("Error fetching intake list:", error);
+      throw error;
     }
-}
+  }
 
 
   async getOngoingIntakes() {
-    const intakes = await this.intakeModel.find({ endDate: { $gte: new Date() }, $or: [
-      { status: IntakeStatus.Open },
-      { status: IntakeStatus.ClosingSoon }
-    ] });
+    const intakes = await this.intakeModel.find({
+      endDate: { $gte: new Date() }, $or: [
+        { status: IntakeStatus.Open },
+        { status: IntakeStatus.ClosingSoon }
+      ]
+    });
     return Promise.all(intakes.map(async (intake) => {
       let data = { ...intake };
       data = data["_doc"];
@@ -109,12 +107,26 @@ class IntakeService {
     }));
   }
 
-  getIntake(programId) {
-    return this.intakeModel
-      .find({ programId, endDate: { $gte: new Date() } })
-      .sort({ endDate: 1 })
-      .limit(5);
+  async getIntake(programId, page, limit) {
+    try {
+      const skip = (page - 1) * limit;
+      const intakePromise = await this.intakeModel.find({ Programme__c: programId }).skip(skip).limit(limit);
+
+      const countPromise = await this.intakeModel.countDocuments({});
+
+      const [intakes, count] = await Promise.all([intakePromise, countPromise]);
+
+      return {
+        intakes,
+        totalCount: count,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit)
+      };
+    } catch (error) {
+      throw error;
+    }
   }
+
 }
 
 module.exports = IntakeService;

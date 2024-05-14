@@ -12,6 +12,6 @@ router.put("/", Middleware.checkAuth, IntakeController.addOrUpdateIntake);
 router.get("/", Middleware.checkAuth, IntakeController.getIntakeList);
 
 // GET /api/intake/program/:programId
-router.get("/program/:programId", Middleware.checkAuth, IntakeController.getIntake);
+router.get("/intake/:programId", Middleware.checkAuth, IntakeController.getIntake);
 
 module.exports = router;
