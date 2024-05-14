@@ -1187,10 +1187,6 @@ class StudentService {
       }
     }
     
-    const checkExamTypeExist = await TestScore.findOne({ studentId: studentId, examType: body.examType })
-    if (checkExamTypeExist) {
-      return { status: 409, message: `Test score already exist for ${body.examType},do you want to replace it?` };
-    }
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
