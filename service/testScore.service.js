@@ -76,7 +76,8 @@ class TestScoreService {
     );
   }
 
-  update(modifiedBy, testScoreId, body) {
+  update(modifiedBy, testScoreId, body, studentId) {
+    try {
     let totalMarks;
     switch (body.examType) {
       case "12th Standard English Mark":
@@ -99,8 +100,11 @@ class TestScoreService {
     }
     return this.testScoreModel.updateOne(
       { _id: testScoreId },
-      { $set: { ...body,totalMarks, modifiedBy } }
+      { $set: { ...body,totalMarks, modifiedBy,studentId: studentId } }
     );
+    } catch(error) {
+      console.log('error>>',error)
+    }
   }
 
   delete(testScoreId) {

@@ -1253,7 +1253,8 @@ class StudentService {
               return;
             }
             // Update test score
-            this.testScoreService.update(modifiedBy, testScore?._id, body)
+            const studentId = student._id;
+            this.testScoreService.update(modifiedBy, testScore?._id, body, studentId)
               .then(updatedTestScore => {
                 if (!updatedTestScore) {
                   reject({ status: 500, error: new Error("Test score not updated") });
