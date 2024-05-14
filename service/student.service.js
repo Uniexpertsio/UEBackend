@@ -423,7 +423,6 @@ class StudentService {
   }
 
   async getStudent(agentId, query, role, createdBy, searchData) {
-    const { page, limit } = query;
     let filter = role === "consultant" ? { createdBy } : { agentId };
     const sortByType = query.sortByType === "Ascending" ? 1 : -1;
     const sortBy = {};

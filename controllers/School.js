@@ -1,3 +1,4 @@
+const School = require("../models/School");
 const { getDataFromSF } = require("../service/salesforce.service");
 const SchoolService = require("../service/school.service");
 
@@ -51,6 +52,19 @@ class SchoolController {
     // const data = await getDataFromSF(url);
     // console.log(data, url);
     return res.status(200).json({ name: "nitin" });
+  }
+
+  async getSchoolId(req, res) {
+    try {
+      const { schoolSfId } = req.params;
+      const schoolData = await School.findOne({Id: schoolSfId },{ _id: 1});
+      if(!schoolData) {
+        res.status(404).json({message: "School not found"});
+      }
+      res.status(200).json({data: schoolData});
+    }catch(error) {
+      throw error;
+    }
   }
 }
 
