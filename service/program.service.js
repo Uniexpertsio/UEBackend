@@ -26,8 +26,8 @@ class ProgramService {
   //   let data = { ...(await this.programModel.find({School__c:programId})) };
   //   return this.parseProgram(data);
   // }
-  async getProgram(schoolId) {
-    let data = await this.programModel.find({ School__c: schoolId });
+  async getProgram(programId) {
+    let data = await this.programModel.findById(programId);
     return data;
   }
 
