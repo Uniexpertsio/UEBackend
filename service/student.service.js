@@ -713,11 +713,26 @@ class StudentService {
         throw new Error("Education does not belong to the student.");
       }
 
+      const data = {
+        institutionName: body?.Name_of_Institution__c,
+        level: body?.Level_of_Education__c,
+        isDegreeAwarded: body?.Degree_Awarded__c,
+        country: body?.Country_of_Institution__c,
+        affiliatedUniversity: body?.Affiliated_University__c,
+        attendedFrom: body?.Attended_Institution_From__c,
+        attendedTo: body?.Attended_Institution_To__c,
+        degreeAwardedOn: body?.Degree_Awarded_On__c,
+        class: body?.Class__c,
+        // educationSfId: body?.Id,
+        studentId: student._id,
+        showInProfile: body?.ShowInProfile__c,
+        institutionName: body?.Name
+      }
       // Update education
       const updatedEducation = await this.educationService.update(
         modifiedBy,
         education._id,
-        body
+        data
       );
       return updatedEducation;
     } catch (error) {
@@ -1186,7 +1201,7 @@ class StudentService {
         }
       }
     }
-    
+
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
