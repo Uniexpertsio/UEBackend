@@ -584,6 +584,11 @@ class StudentService {
     if (!student) throw new Error("Student not found");
     return student[0];
   }
+  async getStudentGeneralInformationWithSfId(studentId) {
+    const student = await StudentModel.findOne({ salesforceId: studentId });
+    if (!student) throw new Error("Student not found");
+    return student;
+  }
 
   async updateStudentGeneralInformation(
     studentId,
