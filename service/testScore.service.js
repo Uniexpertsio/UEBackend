@@ -62,48 +62,52 @@ class TestScoreService {
     return testScore;
   }
 
-
-  async updateTestScoreSfId(testScoreId,id){
+  async updateTestScoreSfId(testScoreId, id) {
     return this.testScoreModel.updateOne(
       { _id: testScoreId },
-      { $set: { testScoreSfId:id } }
+      { $set: { testScoreSfId: id } }
     );
   }
 
-  async getTestScoreFromSfId(sfId){
-    return this.testScoreModel.findOne(
-      { testScoreSfId: sfId },
-    );
+  async getTestScoreFromSfId(sfId) {
+    return this.testScoreModel.findOne({ testScoreSfId: sfId });
   }
 
   update(modifiedBy, testScoreId, body, studentId) {
     try {
-    let totalMarks;
-    switch (body.examType) {
-      case "12th Standard English Mark":
-        totalMarks = body?.englishMarks; // Placeholder
-        break;
-      case "GRE":
-        totalMarks = body?.percentile;
-        break;
-      case "GMAT":
-        totalMarks = body?.totalPercentile;
-        break;
-      case "Duolingo":
-        totalMarks = body?.overall; // Placeholder
-
-        break;
-      case "TOEFL / IELTS / PTE":
-        totalMarks = body?.overall; // Placeholder
-      default:
-        break;
-    }
-    return this.testScoreModel.updateOne(
-      { _id: testScoreId },
-      { $set: { ...body,totalMarks, modifiedBy,studentId: studentId } }
-    );
-    } catch(error) {
-      console.log('error>>',error)
+      let testScoreData = {
+        status: body?.Verification_Status__c,
+        showInProfile: body?.ShowInProfile__c,
+        doe: body?.Date_of_Exam__c,
+        certificateNo: body?.ID_Certificate_No__c,
+      };
+      switch (body.English_Exam_Type__c) {
+        case "12th STD. English mark":
+          testScoreData.totalMarks = body?.Total_Score__c;
+          break;
+        case "GRE":
+          testScoreData.totalMarks = body?.Quantitative_reasoning_Percentile__c;
+          break;
+        case "GMAT":
+          testScoreData.totalMarks = body?.Total_Percentile__c;
+          break;
+        default:
+          testScoreData.totalMarks = body?.Overall__c;
+          break;
+      }
+      return this.testScoreModel.updateOne(
+        { _id: testScoreId },
+        {
+          $set: {
+            ...testScoreData,
+            // totalMarks,
+            // modifiedBy,
+            // studentId: studentId,
+          },
+        }
+      );
+    } catch (error) {
+      console.log("error>>", error);
     }
   }
 
