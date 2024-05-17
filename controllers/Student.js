@@ -1,4 +1,4 @@
-const StudentService = require("../service/student.service")
+const StudentService = require("../service/student.service");
 const StudentModel = require("../models/Student");
 const DocumentModel = require("../models/Document");
 const { getContactId } = require("../service/salesforce.service");
@@ -15,10 +15,14 @@ class StudentController {
       const { id, agentId } = req.user;
       const body = req.body;
       const result = await this.studentService.createStudent(id, agentId, body);
-      logger.info(`CounsellorId: ${result?.counsellorId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      logger.info(
+        `CounsellorId: ${result?.counsellorId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
@@ -30,9 +34,15 @@ class StudentController {
       const query = req.query;
       const searchData = {
         searchType: req.query.searchType,
-        searchTerm: req.query.searchTerm
+        searchTerm: req.query.searchTerm,
       };
-      const result = await this.studentService.getStudent(agentId, query, role, _id, searchData);
+      const result = await this.studentService.getStudent(
+        agentId,
+        query,
+        role,
+        _id,
+        searchData
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
@@ -64,7 +74,23 @@ class StudentController {
   async getStudentGeneralInformation(req, res) {
     try {
       const studentId = req.params.studentId;
-      const result = await this.studentService.getStudentGeneralInformation(studentId);
+      const result = await this.studentService.getStudentGeneralInformation(
+        studentId
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      // res.status(500).json({ error: error.message });
+      sendResponse(error);
+    }
+  }
+
+  async generalInformationWithSfId(req, res) {
+    try {
+      const studentId = req.params.studentId;
+      const result =
+        await this.studentService.getStudentGeneralInformationWithSfId(
+          studentId
+        );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
@@ -77,11 +103,20 @@ class StudentController {
       const studentId = req.params.studentId;
       const { id } = req.user;
       const body = req.body;
-      const data = await this.studentService.updateStudentGeneralInformation(studentId, id, body, req.query?.frontend);
-      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const data = await this.studentService.updateStudentGeneralInformation(
+        studentId,
+        id,
+        body,
+        req.query?.frontend
+      );
+      logger.info(
+        `studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(data);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
@@ -103,11 +138,19 @@ class StudentController {
       const studentId = req.params.studentId;
       const { _id, agentId } = req.user;
       const body = req.body;
-      const student = await this.studentService.addStudentEducation(studentId, _id, body);
-      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const student = await this.studentService.addStudentEducation(
+        studentId,
+        _id,
+        body
+      );
+      logger.info(
+        `studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(student);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
@@ -119,7 +162,12 @@ class StudentController {
       const educationId = req.params.educationId;
       const { id } = req.user;
       const body = req.body;
-      const education = await this.studentService.updateStudentEducation(studentId, id, educationId, body);
+      const education = await this.studentService.updateStudentEducation(
+        studentId,
+        id,
+        educationId,
+        body
+      );
       res.status(200).json(education);
     } catch (error) {
       // res.status(500).json({ error: error.message });
@@ -132,7 +180,11 @@ class StudentController {
       const studentId = req.params.studentId;
       const educationId = req.params.educationId;
       const { id } = req.user;
-      const education = await this.studentService.deleteEducation(studentId, id, educationId);
+      const education = await this.studentService.deleteEducation(
+        studentId,
+        id,
+        educationId
+      );
       res.status(200).json(education);
     } catch (error) {
       // res.status(500).json({ error: error.message });
@@ -156,12 +208,19 @@ class StudentController {
       const studentId = req.params.studentId;
       const { id, agentId } = req.user;
       const body = req.body;
-      const {addStudentPage} = req.query;
-      const workHistory = await this.studentService.addStudentWorkHistory(studentId, id, body, agentId, addStudentPage);
-      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const { addStudentPage } = req.query;
+      const workHistory = await this.studentService.addStudentWorkHistory(
+        studentId,
+        id,
+        body,
+        agentId,
+        addStudentPage
+      );
       res.status(200).json(workHistory);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
@@ -173,7 +232,12 @@ class StudentController {
       const workHistoryId = req.params.workHistoryId;
       const body = req.body;
       const { id } = req.user;
-      const workHistory = await this.studentService.updateStudentWorkHistory(studentId, id, workHistoryId, body);
+      const workHistory = await this.studentService.updateStudentWorkHistory(
+        studentId,
+        id,
+        workHistoryId,
+        body
+      );
       res.status(200).json(workHistory);
     } catch (error) {
       // res.status(500).json({ error: error.message });
@@ -185,13 +249,17 @@ class StudentController {
     try {
       const { studentId, workHistoryId } = req.params;
       const { id } = req.user;
-      const result = await this.studentService.deleteStudentWorkHistory(studentId, id, workHistoryId);
+      const result = await this.studentService.deleteStudentWorkHistory(
+        studentId,
+        id,
+        workHistoryId
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentTestScore = async (req, res) => {
     try {
@@ -202,101 +270,124 @@ class StudentController {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   addStudentTestScore = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { body } = req;
       const { id, agentId } = req.user;
-      const result = await this.studentService.addStudentTestScore(studentId, id, body, agentId);
-      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const result = await this.studentService.addStudentTestScore(
+        studentId,
+        id,
+        body,
+        agentId
+      );
+      logger.info(
+        `studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentTestScore = async (req, res) => {
     try {
       const { studentId, testScoreId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.updateStudentTestScore(studentId, id, testScoreId, body);
+      const result = await this.studentService.updateStudentTestScore(
+        studentId,
+        id,
+        testScoreId,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   deleteStudentTestScore = async (req, res) => {
     try {
       const { studentId, testScoreId } = req.params;
       const { id } = req.user;
-      const result = await this.studentService.deleteStudentTestScore(studentId, id, testScoreId);
+      const result = await this.studentService.deleteStudentTestScore(
+        studentId,
+        id,
+        testScoreId
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
-        const { searchType, searchTerm, applicationId } = req.query;
-        const studentData = await StudentModel.findOne({ _id: studentId });
-        if(!studentData) {
-          throw new Error(`Student not with id: ${studentId}`);
-        }
-        let query;
-        switch (searchType) {
-          case 'name':
-          query = { name: new RegExp(searchTerm, 'i') };
+      const { searchType, searchTerm, applicationId } = req.query;
+      const studentData = await StudentModel.findOne({ _id: studentId });
+      if (!studentData) {
+        throw new Error(`Student not with id: ${studentId}`);
+      }
+      let query;
+      switch (searchType) {
+        case "name":
+          query = { name: new RegExp(searchTerm, "i") };
           break;
-          case 'category':
-            query = { category: new RegExp(searchTerm, 'i') };
-            break;
-          case 'used for':
-            query = { 'used for': new RegExp(searchTerm, 'i') };
-            break;
-          case 'status':
-            query = { status: new RegExp(searchTerm, 'i') };
-            break;
-          default:
-            query = {};
-            break;
-        }
-        if(studentId) {
-          query = {$and: [{studentId, applicationId: {$exists: false}}]}
-        }
-        if(studentId && applicationId){
-          query = {$or: [{studentId}, {$and: [{studentId, applicationId}]}]}
-        }
-        const documentData = await DocumentModel.find(query);
-        res.status(200).json(documentData); 
+        case "category":
+          query = { category: new RegExp(searchTerm, "i") };
+          break;
+        case "used for":
+          query = { "used for": new RegExp(searchTerm, "i") };
+          break;
+        case "status":
+          query = { status: new RegExp(searchTerm, "i") };
+          break;
+        default:
+          query = {};
+          break;
+      }
+      if (studentId) {
+        query = { $and: [{ studentId, applicationId: { $exists: false } }] };
+      }
+      if (studentId && applicationId) {
+        query = {
+          $or: [{ studentId }, { $and: [{ studentId, applicationId }] }],
+        };
+      }
+      const documentData = await DocumentModel.find(query);
+      res.status(200).json(documentData);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
-
+  };
 
   addStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.addStudentDocuments(studentId, id, body);
+      const result = await this.studentService.addStudentDocuments(
+        studentId,
+        id,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentDocument = async (req, res) => {
     try {
@@ -304,64 +395,94 @@ class StudentController {
       const { body } = req;
       const { id } = req.user;
       const { applicationId } = req.query;
-      const result = await this.studentService.updateStudentDocument(studentId, id, body, req.query?.frontend,applicationId);
-      logger.info(`studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const result = await this.studentService.updateStudentDocument(
+        studentId,
+        id,
+        body,
+        req.query?.frontend,
+        applicationId
+      );
+      logger.info(
+        `studentId: ${studentId} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentCurrentStage = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { noWorkHistory, addStudentPage } = req.query;
-      const result = await this.studentService.updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage);
+      const result = await this.studentService.updateStudentCurrentStage(
+        studentId,
+        noWorkHistory,
+        addStudentPage
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentCurrentStage = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { noWorkHistory, addStudentPage } = req.query;
-      const result = await this.studentService.updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage);
+      const result = await this.studentService.updateStudentCurrentStage(
+        studentId,
+        noWorkHistory,
+        addStudentPage
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentCurrentStage = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { noWorkHistory, addStudentPage } = req.query;
-      const result = await this.studentService.updateStudentCurrentStage(studentId, noWorkHistory, addStudentPage);
+      const result = await this.studentService.updateStudentCurrentStage(
+        studentId,
+        noWorkHistory,
+        addStudentPage
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  }
+  };
 
   deleteStudentDocument = async (req, res) => {
     try {
       const { studentId, documentId } = req.params;
       const { id } = req.user;
-      const result = await this.studentService.deleteStudentDocument(studentId, id, documentId);
+      const result = await this.studentService.deleteStudentDocument(
+        studentId,
+        id,
+        documentId
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentPayments = async (req, res) => {
     try {
@@ -372,111 +493,153 @@ class StudentController {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   addStudentPayment = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.addStudentPayment(studentId, id, body);
+      const result = await this.studentService.addStudentPayment(
+        studentId,
+        id,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentPayment = async (req, res) => {
     try {
       const { studentId, paymentId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.updateStudentPayment(studentId, id, paymentId, body);
-      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const result = await this.studentService.updateStudentPayment(
+        studentId,
+        id,
+        paymentId,
+        body
+      );
+      logger.info(
+        `studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   deleteStudentPayment = async (req, res) => {
     try {
       const { studentId, paymentId } = req.params;
       const { id } = req.user;
-      const result = await this.studentService.deleteStudentPayment(studentId, id, paymentId);
+      const result = await this.studentService.deleteStudentPayment(
+        studentId,
+        id,
+        paymentId
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentTasks = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { status } = req.query;
-      const result = await this.studentService.getStudentTasks(studentId, status);
+      const result = await this.studentService.getStudentTasks(
+        studentId,
+        status
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   addStudentTask = async (req, res) => {
     try {
       const { studentId } = req.params;
       const { body } = req;
       const { id, agentId } = req.user;
-      const result = await this.studentService.addStudentTask(studentId, agentId, id, body);
-      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const result = await this.studentService.addStudentTask(
+        studentId,
+        agentId,
+        id,
+        body
+      );
+      logger.info(
+        `studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(result);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   updateStudentTask = async (req, res) => {
     try {
       const { studentId, taskId } = req.params;
       const { data } = req.query;
       const { id } = req.user;
-      const result = await this.studentService.updateStudentTask(studentId, id, taskId, data);
+      const result = await this.studentService.updateStudentTask(
+        studentId,
+        id,
+        taskId,
+        data
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentTaskComments = async (req, res) => {
     try {
       const { studentId, taskId } = req.params;
-      const result = await this.studentService.getStudentTaskComments(studentId, taskId);
+      const result = await this.studentService.getStudentTaskComments(
+        studentId,
+        taskId
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   addStudentTaskComment = async (req, res) => {
     try {
       const { studentId, taskId } = req.params;
       const { body } = req;
       const { id } = req.user;
-      const result = await this.studentService.addStudentTaskComment(studentId, id, taskId, body);
+      const result = await this.studentService.addStudentTaskComment(
+        studentId,
+        id,
+        taskId,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
-  }
+  };
 
   getStudentComments = async (req, res) => {
     try {
@@ -494,11 +657,19 @@ class StudentController {
       const { studentId } = req.params;
       const { id } = req.user;
       const body = req.body;
-      const response = await this.studentService.addStudentComment(studentId, id, body);
-      logger.info(`studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`);
+      const response = await this.studentService.addStudentComment(
+        studentId,
+        id,
+        body
+      );
+      logger.info(
+        `studentId: ${studentId} AccountId: ${id} Endpoint: ${req.originalUrl} - Status: 200 - Message: Success`
+      );
       res.status(200).json(response);
     } catch (error) {
-      logger.error(`Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`);
+      logger.error(
+        `Endpoint: ${req.originalUrl} - Status: 400 - Message: ${error?.response?.data[0]?.message}`
+      );
       // res.status(500).json({ error: error.message });
       sendResponse(error);
     }
@@ -530,7 +701,7 @@ class StudentController {
       const student = await StudentModel.findById(studentId);
       let contact;
       if (student?.salesforceId) {
-        contact = await getContactId(student?.salesforceId)
+        contact = await getContactId(student?.salesforceId);
       }
       res.status(200).json({ partnerId: contact?.Student_ID__c });
     } catch (error) {
@@ -538,7 +709,6 @@ class StudentController {
       sendResponse(error);
     }
   }
-
 }
 
 module.exports = StudentController;

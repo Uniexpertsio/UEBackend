@@ -409,7 +409,7 @@ class StudentService {
         id: student._id,
         sf: sfStudentResponse,
         partnerId: contactDetails?.Student_ID__c,
-        counsellorId: studentData?.Counsellor__c
+        counsellorId: studentData?.Counsellor__c,
       };
     } catch (error) {
       // Handle any errors that occur during the process
@@ -584,6 +584,11 @@ class StudentService {
     if (!student) throw new Error("Student not found");
     return student[0];
   }
+  async getStudentGeneralInformationWithSfId(studentId) {
+    const student = await StudentModel.findOne({ salesforceId: studentId });
+    if (!student) throw new Error("Student not found");
+    return student;
+  }
 
   async updateStudentGeneralInformation(
     studentId,
@@ -713,11 +718,26 @@ class StudentService {
         throw new Error("Education does not belong to the student.");
       }
 
+      const data = {
+        institutionName: body?.Name_of_Institution__c,
+        level: body?.Level_of_Education__c,
+        isDegreeAwarded: body?.Degree_Awarded__c,
+        country: body?.Country_of_Institution__c,
+        affiliatedUniversity: body?.Affiliated_University__c,
+        attendedFrom: body?.Attended_Institution_From__c,
+        attendedTo: body?.Attended_Institution_To__c,
+        degreeAwardedOn: body?.Degree_Awarded_On__c,
+        class: body?.Class__c,
+        // educationSfId: body?.Id,
+        studentId: student._id,
+        showInProfile: body?.ShowInProfile__c,
+        institutionName: body?.Name,
+      };
       // Update education
       const updatedEducation = await this.educationService.update(
         modifiedBy,
         education._id,
-        body
+        data
       );
       return updatedEducation;
     } catch (error) {
@@ -813,7 +833,6 @@ class StudentService {
       if (!workHistory || !student) {
         throw new Error("Work history or student not found.");
       }
-
       // Check if the work history belongs to the student
       const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
         student?._id,
@@ -823,11 +842,24 @@ class StudentService {
         throw new Error("Work history does not belong to the student.");
       }
 
+      const data = {
+        employerName: body?.Name,
+        studentId: student._id,
+        contactInfo: body?.Contact_info__c,
+        doj: body?.Date_of_Joining__c,
+        dor: body?.Date_of_relieving__c,
+        designation: body?.Designation__c,
+        email: body?.Email_Id__c,
+        "signingAuthority.email": body?.Signing_Contact_Email__c,
+        "signingAuthority.phone": body?.Signing_Contact_Phone__c,
+        "signingAuthority.name": body?.Signing_Contact_Name__c,
+        signedPersonPhone: body?.Phone_Number_of_the_Signed_Person__c,
+      };
       // Update work history
       const updatedWorkHistory = await this.workHistoryService.update(
         modifiedBy,
         workHistory?._id,
-        body
+        data
       );
 
       // Perform additional operations if needed
@@ -850,13 +882,20 @@ class StudentService {
   }
 
   async checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId) {
-    const student = await StudentModel.findById(studentId);
-    if (!student) {
-      throw new Error("Student not found");
-    }
+    try {
+      const student = await StudentModel.findById(studentId);
+      if (!student) {
+        throw new Error("Student not found");
+      }
 
-    if (student.workHistory.indexOf(workHistoryId) == -1) {
-      throw new Error("Work history does not belong to student");
+      const workHistoryIdString = workHistoryId.toString(); // Convert ObjectId to string
+      if (!student.workHistory.includes(workHistoryIdString)) {
+        throw new Error("Work history does not belong to student");
+      } else {
+        return true;
+      }
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -1186,7 +1225,7 @@ class StudentService {
         }
       }
     }
-    
+
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
@@ -1234,35 +1273,52 @@ class StudentService {
       // Fetch test score and student asynchronously
       Promise.all([
         this.testScoreService.getTestScoreFromSfId(testScoreId),
-        StudentModel.findOne({ salesforceId: studentId })
-      ]).then(([testScore, student]) => {
-        // Check if test score and student exist
-        if (!testScore || !student) {
-          reject({ status: 404, error: new Error("Test score or student not found.") });
-          return;
-        }
-        // Check if the test score belongs to the student
-        this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id)
-          .then(isStudent => {
-            if (!isStudent) {
-              reject({ status: 403, error: new Error("Test score does not belong to the student.") });
-              return;
-            }
-            // Update test score
-            const studentId = student._id;
-            this.testScoreService.update(modifiedBy, testScore?._id, body, studentId)
-              .then(updatedTestScore => {
-                if (!updatedTestScore) {
-                  reject({ status: 500, error: new Error("Test score not updated") });
-                  return;
-                }
-                resolve({ status: 200, success: true, message: "Test score updated successfully" });
-              })
-              .catch(error => reject({ status: 500, error }));
-          })
-          .catch(error => reject({ status: 500, error }));
-      })
-        .catch(error => reject({ status: 500, error }));
+        StudentModel.findOne({ salesforceId: studentId }),
+      ])
+        .then(([testScore, student]) => {
+          // Check if test score and student exist
+          if (!testScore || !student) {
+            reject({
+              status: 404,
+              error: new Error("Test score or student not found."),
+            });
+            return;
+          }
+          // Check if the test score belongs to the student
+          this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id)
+            .then((isStudent) => {
+              if (!isStudent) {
+                reject({
+                  status: 403,
+                  error: new Error(
+                    "Test score does not belong to the student."
+                  ),
+                });
+                return;
+              }
+              // Update test score
+              const studentId = student._id;
+              this.testScoreService
+                .update(modifiedBy, testScore?._id, body, studentId)
+                .then((updatedTestScore) => {
+                  if (!updatedTestScore) {
+                    reject({
+                      status: 500,
+                      error: new Error("Test score not updated"),
+                    });
+                    return;
+                  }
+                  resolve({
+                    status: 200,
+                    success: true,
+                    message: "Test score updated successfully",
+                  });
+                })
+                .catch((error) => reject({ status: 500, error }));
+            })
+            .catch((error) => reject({ status: 500, error }));
+        })
+        .catch((error) => reject({ status: 500, error }));
     });
   }
 
@@ -1739,28 +1795,28 @@ class StudentService {
       }
 
       const data = {
-        "Enter_Note__c": null,
-        "Application__c": null,
-        "Partner_User__c": null,
-        "Lead__c": null,
-        "PartnerNote__c": null,
-        "University_Notes__c": null,
-        "Subject__c": "Offer Related",
-        "Student__c": studentData?.salesforceId,
-        "Message_Body__c": body.message,
-        "Type__c": "Inbound",
-        "External__c": true,
-        "CourseEnquiry__c": null,
-        "Cases__c": null,
+        Enter_Note__c: null,
+        Application__c: null,
+        Partner_User__c: null,
+        Lead__c: null,
+        PartnerNote__c: null,
+        University_Notes__c: null,
+        Subject__c: "Offer Related",
+        Student__c: studentData?.salesforceId,
+        Message_Body__c: body.message,
+        Type__c: "Inbound",
+        External__c: true,
+        CourseEnquiry__c: null,
+        Cases__c: null,
       };
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
-      console.log('sendingComment', sendingComment)
+      console.log("sendingComment", sendingComment);
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          studentData?.salesforceId,
+          studentData?.salesforceId
         );
       }
       return comment;
@@ -1798,7 +1854,7 @@ class StudentService {
   async getStudentComments(studentId) {
     try {
       const student = await StudentModel.findById(studentId);
-      console.log('sfId----', student)
+      console.log("sfId----", student);
       const sfId = student?.salesforceId;
       if (!student) throw new Error("Student not found");
 
@@ -1808,7 +1864,7 @@ class StudentService {
         })
       );
     } catch (error) {
-      console.error('Error fetching student:', error);
+      console.error("Error fetching student:", error);
     }
   }
 
@@ -1833,7 +1889,6 @@ class StudentService {
     }
     if (student?.currentStage === 5) {
       progress++;
-
     }
     return (progress / total) * 100;
   }
