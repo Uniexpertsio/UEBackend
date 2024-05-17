@@ -25,6 +25,7 @@ const {
 const Staff = require("../models/Staff");
 const { parseInMongoObjectId } = require("../utils/sfErrorHandeling");
 const Application = require("../models/Application");
+const TestScore = require("../models/TestScore");
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -1172,7 +1173,6 @@ class StudentService {
   // }
 
   async addStudentTestScore(studentId, modifiedBy, body, agentId) {
-    const externalId = uuid();
     if (body.scoreInformation.length) {
       for (let i = 0; i < body.scoreInformation.length; i++) {
         let key = body.scoreInformation[i].key;
@@ -1186,6 +1186,7 @@ class StudentService {
         }
       }
     }
+    
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
@@ -1228,38 +1229,41 @@ class StudentService {
     return { id: testScore.id, sfId: testScoreSfResponse?.id };
   }
 
-  async updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
-    try {
+  updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
+    return new Promise((resolve, reject) => {
       // Fetch test score and student asynchronously
-      const [testScore, student] = await Promise.all([
+      Promise.all([
         this.testScoreService.getTestScoreFromSfId(testScoreId),
-        StudentModel.findOne({ salesforceId: studentId }),
-      ]);
-      // Check if test score and student exist
-      if (!testScore || !student) {
-        throw new Error("Test score or student not found.");
-      }
-      // Check if the test score belongs to the student
-      const isStudent = await this.checkIfTestScoreBelongsToStudent(
-        student?._id,
-        testScore?._id
-      );
-      if (!isStudent) {
-        throw new Error("Test score does not belong to the student.");
-      }
-
-      // Update test score
-      const updatedTestScore = await this.testScoreService.update(
-        modifiedBy,
-        testScore?._id,
-        body
-      );
-      return updatedTestScore;
-    } catch (error) {
-      // Handle errors
-      console.error("Error in updateStudentTestScore:", error);
-      throw error; // Rethrow the error for the caller to handle
-    }
+        StudentModel.findOne({ salesforceId: studentId })
+      ]).then(([testScore, student]) => {
+        // Check if test score and student exist
+        if (!testScore || !student) {
+          reject({ status: 404, error: new Error("Test score or student not found.") });
+          return;
+        }
+        // Check if the test score belongs to the student
+        this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id)
+          .then(isStudent => {
+            if (!isStudent) {
+              reject({ status: 403, error: new Error("Test score does not belong to the student.") });
+              return;
+            }
+            // Update test score
+            const studentId = student._id;
+            this.testScoreService.update(modifiedBy, testScore?._id, body, studentId)
+              .then(updatedTestScore => {
+                if (!updatedTestScore) {
+                  reject({ status: 500, error: new Error("Test score not updated") });
+                  return;
+                }
+                resolve({ status: 200, success: true, message: "Test score updated successfully" });
+              })
+              .catch(error => reject({ status: 500, error }));
+          })
+          .catch(error => reject({ status: 500, error }));
+      })
+        .catch(error => reject({ status: 500, error }));
+    });
   }
 
   async deleteStudentTestScore(studentId, modifiedBy, testScoreId) {
@@ -1550,14 +1554,14 @@ class StudentService {
     return new Promise(async (resolve, reject) => {
       try {
         let currentStage;
-        if(noWorkHistory && addStudentPage) {
+        if (noWorkHistory && addStudentPage) {
           currentStage = 4;
         } else {
           currentStage = 5;
         }
         const student = await StudentModel.findOneAndUpdate(
           { _id: studentId },
-          { $set: { currentStage, noWorkHistory: true} },
+          { $set: { currentStage, noWorkHistory: true } },
           { new: true }
         );
         resolve(student);
@@ -1752,7 +1756,7 @@ class StudentService {
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
-      console.log('sendingComment',sendingComment)
+      console.log('sendingComment', sendingComment)
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
@@ -1793,19 +1797,19 @@ class StudentService {
 
   async getStudentComments(studentId) {
     try {
-    const student = await StudentModel.findById(studentId);
-    console.log('sfId----',student)
-    const sfId = student?.salesforceId;
-    if (!student) throw new Error("Student not found");
+      const student = await StudentModel.findById(studentId);
+      console.log('sfId----', student)
+      const sfId = student?.salesforceId;
+      if (!student) throw new Error("Student not found");
 
-    return Promise.all(
-      student.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment, sfId);
-      })
-    );
-  } catch (error) {
-    console.error('Error fetching student:', error);
-}
+      return Promise.all(
+        student.comments.map(async (comment) => {
+          return await this.commentService.getComment(comment, sfId);
+        })
+      );
+    } catch (error) {
+      console.error('Error fetching student:', error);
+    }
   }
 
   async getStudentProgress(studentId) {

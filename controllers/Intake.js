@@ -26,8 +26,9 @@ async function getIntakeList(req, res) {
 
 async function getIntake(req, res) {
   try {
+    const { page, limit } = req.query;
     const programId = req.params.programId;
-    const intakeList = await intakeService.getIntake(programId);
+    const intakeList = await intakeService.getIntake(programId, page,limit);
     res.status(200).json(intakeList);
   } catch (error) {
     res.status(500).json({ error: error.message });
