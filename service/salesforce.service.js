@@ -188,6 +188,7 @@ const getContactId = async (sfId) => {
 const getDataFromSF = async (url) => {
   try {
     const token = await generateToken();
+    console.log(token);
     const headers = generateHeaders(token);
     const { data } = await axios.get(url, { headers });
     return data;
@@ -216,7 +217,8 @@ const getReportHeaders = async () => {
     const headers = generateHeaders(token);
     return {
       ...headers,
-      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      Accept:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     };
   } catch (err) {
     console.error("Error: " + err);
@@ -262,5 +264,5 @@ module.exports = {
   getDataFromSF,
   getPartnerId,
   getContactId,
-  getExternalIdFuncs
+  getExternalIdFuncs,
 };

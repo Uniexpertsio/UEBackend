@@ -409,7 +409,7 @@ class StudentService {
         id: student._id,
         sf: sfStudentResponse,
         partnerId: contactDetails?.Student_ID__c,
-        counsellorId: studentData?.Counsellor__c
+        counsellorId: studentData?.Counsellor__c,
       };
     } catch (error) {
       // Handle any errors that occur during the process
@@ -1186,7 +1186,7 @@ class StudentService {
         }
       }
     }
-    
+
     const testScore = await this.testScoreService.add(
       studentId,
       modifiedBy,
@@ -1234,35 +1234,52 @@ class StudentService {
       // Fetch test score and student asynchronously
       Promise.all([
         this.testScoreService.getTestScoreFromSfId(testScoreId),
-        StudentModel.findOne({ salesforceId: studentId })
-      ]).then(([testScore, student]) => {
-        // Check if test score and student exist
-        if (!testScore || !student) {
-          reject({ status: 404, error: new Error("Test score or student not found.") });
-          return;
-        }
-        // Check if the test score belongs to the student
-        this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id)
-          .then(isStudent => {
-            if (!isStudent) {
-              reject({ status: 403, error: new Error("Test score does not belong to the student.") });
-              return;
-            }
-            // Update test score
-            const studentId = student._id;
-            this.testScoreService.update(modifiedBy, testScore?._id, body, studentId)
-              .then(updatedTestScore => {
-                if (!updatedTestScore) {
-                  reject({ status: 500, error: new Error("Test score not updated") });
-                  return;
-                }
-                resolve({ status: 200, success: true, message: "Test score updated successfully" });
-              })
-              .catch(error => reject({ status: 500, error }));
-          })
-          .catch(error => reject({ status: 500, error }));
-      })
-        .catch(error => reject({ status: 500, error }));
+        StudentModel.findOne({ salesforceId: studentId }),
+      ])
+        .then(([testScore, student]) => {
+          // Check if test score and student exist
+          if (!testScore || !student) {
+            reject({
+              status: 404,
+              error: new Error("Test score or student not found."),
+            });
+            return;
+          }
+          // Check if the test score belongs to the student
+          this.checkIfTestScoreBelongsToStudent(student?._id, testScore?._id)
+            .then((isStudent) => {
+              if (!isStudent) {
+                reject({
+                  status: 403,
+                  error: new Error(
+                    "Test score does not belong to the student."
+                  ),
+                });
+                return;
+              }
+              // Update test score
+              const studentId = student._id;
+              this.testScoreService
+                .update(modifiedBy, testScore?._id, body, studentId)
+                .then((updatedTestScore) => {
+                  if (!updatedTestScore) {
+                    reject({
+                      status: 500,
+                      error: new Error("Test score not updated"),
+                    });
+                    return;
+                  }
+                  resolve({
+                    status: 200,
+                    success: true,
+                    message: "Test score updated successfully",
+                  });
+                })
+                .catch((error) => reject({ status: 500, error }));
+            })
+            .catch((error) => reject({ status: 500, error }));
+        })
+        .catch((error) => reject({ status: 500, error }));
     });
   }
 
@@ -1739,28 +1756,28 @@ class StudentService {
       }
 
       const data = {
-        "Enter_Note__c": null,
-        "Application__c": null,
-        "Partner_User__c": null,
-        "Lead__c": null,
-        "PartnerNote__c": null,
-        "University_Notes__c": null,
-        "Subject__c": "Offer Related",
-        "Student__c": studentData?.salesforceId,
-        "Message_Body__c": body.message,
-        "Type__c": "Inbound",
-        "External__c": true,
-        "CourseEnquiry__c": null,
-        "Cases__c": null,
+        Enter_Note__c: null,
+        Application__c: null,
+        Partner_User__c: null,
+        Lead__c: null,
+        PartnerNote__c: null,
+        University_Notes__c: null,
+        Subject__c: "Offer Related",
+        Student__c: studentData?.salesforceId,
+        Message_Body__c: body.message,
+        Type__c: "Inbound",
+        External__c: true,
+        CourseEnquiry__c: null,
+        Cases__c: null,
       };
       // Send comment data to Salesforce endpoint
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
-      console.log('sendingComment', sendingComment)
+      console.log("sendingComment", sendingComment);
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
-          studentData?.salesforceId,
+          studentData?.salesforceId
         );
       }
       return comment;
@@ -1798,7 +1815,7 @@ class StudentService {
   async getStudentComments(studentId) {
     try {
       const student = await StudentModel.findById(studentId);
-      console.log('sfId----', student)
+      console.log("sfId----", student);
       const sfId = student?.salesforceId;
       if (!student) throw new Error("Student not found");
 
@@ -1808,7 +1825,7 @@ class StudentService {
         })
       );
     } catch (error) {
-      console.error('Error fetching student:', error);
+      console.error("Error fetching student:", error);
     }
   }
 
@@ -1833,7 +1850,6 @@ class StudentService {
     }
     if (student?.currentStage === 5) {
       progress++;
-
     }
     return (progress / total) * 100;
   }

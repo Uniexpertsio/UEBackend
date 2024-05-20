@@ -64,24 +64,26 @@ class ProgramService {
       let programLevelQuery = {};
       let schoolIds = [];
 
-      if (searchType === 'Country__c') {
-        console.log('searchType', searchType)
-        countryQuery = { Country__c: new RegExp(searchTerm, 'i') };
+      if (searchType === "Country__c") {
+        console.log("searchType", searchType);
+        countryQuery = { Country__c: new RegExp(searchTerm, "i") };
         const schools = await School.find(countryQuery);
         if (schools.length === 0) {
           return { programs: [], totalPrograms: 0 };
         }
-        schoolIds = schools.map(school => school.Id);
-      } else if (searchType === 'Program_level__c&&Country__c') {
-        console.log('searchType', searchType)
-        countryQuery = { Country__c: new RegExp(searchTerm[1], 'i') };
-        programLevelQuery = { Program_level__c: new RegExp(searchTerm[0], 'i') };
+        schoolIds = schools.map((school) => school.Id);
+      } else if (searchType === "Program_level__c&&Country__c") {
+        console.log("searchType", searchType);
+        countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
+        programLevelQuery = {
+          Program_level__c: new RegExp(searchTerm[0], "i"),
+        };
         const schools = await School.find(countryQuery);
-        console.log('schooll', schools)
+        console.log("schooll", schools);
         if (schools.length === 0) {
           return { programs: [], totalPrograms: 0 };
         }
-        schoolIds = schools.map(school => school.Id);
+        schoolIds = schools.map((school) => school.Id);
       }
 
       const query = {
@@ -90,7 +92,8 @@ class ProgramService {
         ...programLevelQuery,
       };
 
-      const programs = await this.programModel.find({ ...query })
+      const programs = await this.programModel
+        .find({ ...query })
         .sort(sortQuery)
         .limit(limit)
         .skip(skip);
@@ -527,31 +530,42 @@ class ProgramService {
   async getSimilarProgram(programId) {
     const program = await this.programModel.findById(programId);
     if (!program) throw new Error();
+    const { Discipline__c, Sub_Discipline__c } = program;
+    // Check if discipline or subDiscipline is null
+    if (Discipline__c == null || Sub_Discipline__c == null) {
+      // Handle the case where discipline or subDiscipline is null
+      // For example, return an empty array or throw an error
+      return []; // or throw new Error('Discipline or subDiscipline is null');
+    }
+
+    console.log(program);
     const filter = {
-      discipline: { $in: program.discipline },
-      subDiscipline: { $in: program.subDiscipline },
+      Discipline__c: program.Discipline__c,
+      Sub_Discipline__c: program.Sub_Discipline__c,
     };
 
-    const schools = await this.schoolModel.find({});
     const programs = await this.programModel.find(filter);
-    const programsIds = programs.map((p) => p.id);
-
-    return this.createProgramSchoolResponse(schools, programsIds);
+    return programs;
   }
 
   async isEligibleForProgram(programId, studentId) {
     try {
       const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Citizenship_Country__c,Duo_12th_Gre_Percentile__c,Duo_Comprehension__c,Duo_Conversation__c,Duo_Literacy__c,Duo_Overall__c,Duo_Production__c,Education_Country__c,Exam_Type__c,GMAT_Exam_Date__c,GRE_Exam_Date__c,Gmat_Integrated_Listening_Percentile__c,Gmat_Integrated_Listening_Score__c,Gmat_Quantitative_Percent__c,Gmat_Quantitative_Score__c,Gmat_Total_Percentile__c,Gmat_Verbal_Percentile__c,Gmat_Verbal_Score__c,Gre_Analytical_reasoning_Percentile__c,Gre_Analytical_reasoning_Score__c,Gre_Quantitative_reasoning_Score__c,Gre_Verbal_Reasoning_Percentile__c,Gre_Verbal_Reasoning_Score__c,Have_GMAT_Exam_Score__c,Have_GRE_Exam_Score__c,Programme__c,Pte_Gmat_12th_Total_Marks_of_English__c,Pte_Listening__c,Pte_Reading__c,Pte_Speaking__c,Pte_Writing__c,School__c,Total_Rank__c,Verbal_Percent__c,Writing_Percent__c,Writing_Score__c+FROM+Eligibility__c+WHERE+Programme__c+=+'${programId}'`;
       const data = await getDataFromSF(url);
-      if(!data.records.length) {
+      if (!data.records.length) {
         return { message: "Please try again later" };
       }
-      const sfData = data.records.map(program => ({
+      const sfData = data.records.map((program) => ({
         examType: program.Exam_Type__c,
-        totalScore: program.Duo_Overall__c
+        totalScore: program.Duo_Overall__c,
       }));
-      const studentData = await Student.findOne({salesforceId: studentId}, { _id: 1 }); 
-      const testScores = await this.testScoreModel.find({ studentId : studentData._id });
+      const studentData = await Student.findOne(
+        { salesforceId: studentId },
+        { _id: 1 }
+      );
+      const testScores = await this.testScoreModel.find({
+        studentId: studentData._id,
+      });
 
       const validExamTypes = ["PTE", "TOEFL", "IELTS"];
       let isEligible = true;
@@ -559,7 +573,7 @@ class ProgramService {
       for (const sfDataEntry of sfData) {
         const { examType, totalScore: requiredTotalScore } = sfDataEntry;
 
-        const testScore = testScores.find(score => {
+        const testScore = testScores.find((score) => {
           if (validExamTypes.includes(examType)) {
             return score.selectedType === examType;
           } else {
@@ -578,7 +592,6 @@ class ProgramService {
       return false;
     }
   }
-
 }
 
 module.exports = ProgramService;
