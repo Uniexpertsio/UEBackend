@@ -188,7 +188,6 @@ const getContactId = async (sfId) => {
 const getDataFromSF = async (url) => {
   try {
     const token = await generateToken();
-    console.log(token);
     const headers = generateHeaders(token);
     const { data } = await axios.get(url, { headers });
     return data;
