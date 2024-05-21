@@ -216,7 +216,8 @@ const getReportHeaders = async () => {
     const headers = generateHeaders(token);
     return {
       ...headers,
-      Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      Accept:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     };
   } catch (err) {
     console.error("Error: " + err);
@@ -262,5 +263,5 @@ module.exports = {
   getDataFromSF,
   getPartnerId,
   getContactId,
-  getExternalIdFuncs
+  getExternalIdFuncs,
 };
