@@ -584,6 +584,11 @@ class StudentService {
     if (!student) throw new Error("Student not found");
     return student[0];
   }
+  async getStudentGeneralInformationWithSfId(studentId) {
+    const student = await StudentModel.findOne({ salesforceId: studentId });
+    if (!student) throw new Error("Student not found");
+    return student;
+  }
 
   async updateStudentGeneralInformation(
     studentId,
@@ -713,11 +718,26 @@ class StudentService {
         throw new Error("Education does not belong to the student.");
       }
 
+      const data = {
+        institutionName: body?.Name_of_Institution__c,
+        level: body?.Level_of_Education__c,
+        isDegreeAwarded: body?.Degree_Awarded__c,
+        country: body?.Country_of_Institution__c,
+        affiliatedUniversity: body?.Affiliated_University__c,
+        attendedFrom: body?.Attended_Institution_From__c,
+        attendedTo: body?.Attended_Institution_To__c,
+        degreeAwardedOn: body?.Degree_Awarded_On__c,
+        class: body?.Class__c,
+        // educationSfId: body?.Id,
+        studentId: student._id,
+        showInProfile: body?.ShowInProfile__c,
+        institutionName: body?.Name,
+      };
       // Update education
       const updatedEducation = await this.educationService.update(
         modifiedBy,
         education._id,
-        body
+        data
       );
       return updatedEducation;
     } catch (error) {
@@ -813,7 +833,6 @@ class StudentService {
       if (!workHistory || !student) {
         throw new Error("Work history or student not found.");
       }
-
       // Check if the work history belongs to the student
       const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
         student?._id,
@@ -823,11 +842,24 @@ class StudentService {
         throw new Error("Work history does not belong to the student.");
       }
 
+      const data = {
+        employerName: body?.Name,
+        studentId: student._id,
+        contactInfo: body?.Contact_info__c,
+        doj: body?.Date_of_Joining__c,
+        dor: body?.Date_of_relieving__c,
+        designation: body?.Designation__c,
+        email: body?.Email_Id__c,
+        "signingAuthority.email": body?.Signing_Contact_Email__c,
+        "signingAuthority.phone": body?.Signing_Contact_Phone__c,
+        "signingAuthority.name": body?.Signing_Contact_Name__c,
+        signedPersonPhone: body?.Phone_Number_of_the_Signed_Person__c,
+      };
       // Update work history
       const updatedWorkHistory = await this.workHistoryService.update(
         modifiedBy,
         workHistory?._id,
-        body
+        data
       );
 
       // Perform additional operations if needed
@@ -850,13 +882,20 @@ class StudentService {
   }
 
   async checkIfWorkHistoryBelongsToStudent(studentId, workHistoryId) {
-    const student = await StudentModel.findById(studentId);
-    if (!student) {
-      throw new Error("Student not found");
-    }
+    try {
+      const student = await StudentModel.findById(studentId);
+      if (!student) {
+        throw new Error("Student not found");
+      }
 
-    if (student.workHistory.indexOf(workHistoryId) == -1) {
-      throw new Error("Work history does not belong to student");
+      const workHistoryIdString = workHistoryId.toString(); // Convert ObjectId to string
+      if (!student.workHistory.includes(workHistoryIdString)) {
+        throw new Error("Work history does not belong to student");
+      } else {
+        return true;
+      }
+    } catch (error) {
+      throw error;
     }
   }
 
