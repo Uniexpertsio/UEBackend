@@ -1,4 +1,4 @@
-const TestScoreService = require("../service/testScore.service"); 
+const TestScoreService = require("../service/testScore.service");
 
 const testScoreService = new TestScoreService();
 
@@ -22,7 +22,20 @@ async function getTestScoreFields(req, res) {
   }
 }
 
+async function getTestScoresByStudentId(req, res) {
+  try {
+    const studentId = req.params.studentId;
+    const testScores = await testScoreService.getTestScoresByStudentId(
+      studentId
+    );
+    res.status(200).json(testScores);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getExamType,
   getTestScoreFields,
+  getTestScoresByStudentId,
 };

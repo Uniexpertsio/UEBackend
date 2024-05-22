@@ -20,6 +20,10 @@ class TestScoreService {
     return config.value[examType];
   }
 
+  async getTestScoresByStudentId(studentId) {
+    return TestScore.find({ studentId });
+  }
+
   async add(studentId, modifiedBy, body, agentId) {
     const externalId = uuid.v4();
     let totalMarks;
