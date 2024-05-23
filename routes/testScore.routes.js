@@ -13,10 +13,4 @@ router.get(
   TestScoreController.getTestScoreFields
 );
 
-router.get(
-  "/:studentId/test-scores",
-  Middleware.checkAuth,
-  TestScoreController.getTestScoresByStudentId
-);
-
 module.exports = router;
