@@ -1,4 +1,4 @@
-const IntakeService = require("../service/intake.service"); 
+const IntakeService = require("../service/intake.service");
 
 const intakeService = new IntakeService();
 
@@ -17,7 +17,7 @@ async function addOrUpdateIntake(req, res) {
 async function getIntakeList(req, res) {
   try {
     const { page, limit } = req.query;
-    const intakeList = await intakeService.getIntakeList(page,limit);
+    const intakeList = await intakeService.getIntakeList(page, limit);
     res.status(200).json(intakeList);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -28,7 +28,16 @@ async function getIntake(req, res) {
   try {
     const { page, limit } = req.query;
     const programId = req.params.programId;
-    const intakeList = await intakeService.getIntake(programId, page,limit);
+    const intakeList = await intakeService.getIntake(programId, page, limit);
+    res.status(200).json(intakeList);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function getUniqueIntakeList(req, res) {
+  try {
+    const intakeList = await intakeService.getUniqueIntakeList();
     res.status(200).json(intakeList);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -39,4 +48,5 @@ module.exports = {
   addOrUpdateIntake,
   getIntakeList,
   getIntake,
+  getUniqueIntakeList,
 };
