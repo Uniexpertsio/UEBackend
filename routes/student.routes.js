@@ -196,4 +196,10 @@ router.get(
   studentController.getPartnerId.bind(studentController)
 );
 
+router.get(
+  "/:studentId/studentData",
+  Middleware.checkAuth,
+  studentController.getStudentsByStudentId.bind(studentController)
+);
+
 module.exports = router;

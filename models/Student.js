@@ -85,11 +85,18 @@ const StudentSchema = new mongoose.Schema(
       required: false,
       _id: false,
     },
-    educations: {
-      type: [String],
-      required: false,
-      default: [],
-    },
+    // educations: {
+    //   type: [String],
+    //   required: false,
+    //   default: [],
+    // },
+    educations: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Education",
+      },
+    ],
+
     documents: {
       type: [String],
       required: false,
@@ -100,11 +107,17 @@ const StudentSchema = new mongoose.Schema(
       required: false,
       default: [],
     },
-    testScore: {
-      type: [String],
-      required: false,
-      default: [],
-    },
+    // testScore: {
+    //   type: [String],
+    //   required: false,
+    //   default: [],
+    // },
+    testScore: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TestScore",
+      },
+    ],
     payment: {
       type: [String],
       required: false,

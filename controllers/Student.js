@@ -581,6 +581,18 @@ class StudentController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async getStudentsByStudentId(req, res) {
+    try {
+      const studentId = req.params.studentId;
+      const testScores = await this.studentService.getStudentsByStudentId(
+        studentId
+      );
+      res.status(200).json(testScores);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = StudentController;

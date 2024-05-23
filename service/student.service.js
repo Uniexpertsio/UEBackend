@@ -2053,6 +2053,12 @@ class StudentService {
 
     return student;
   }
+
+  async getStudentsByStudentId(studentId) {
+    return StudentModel.findOne({ _id: studentId }).populate(
+      "testScore educations"
+    );
+  }
 }
 
 module.exports = StudentService;
