@@ -558,6 +558,7 @@ class StudentService {
           as: "agent",
         },
       },
+
       {
         $unwind: "$staff",
       },
@@ -581,6 +582,77 @@ class StudentService {
         $replaceRoot: { newRoot: "$studentData" },
       },
     ]);
+
+    // const objId = parseInMongoObjectId(studentId);
+
+    // const student = await StudentModel.aggregate([
+    //   {
+    //     $match: { _id: objId },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "staffs",
+    //       localField: "studentInformation.counsellorId",
+    //       foreignField: "_id",
+    //       as: "staff",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$staff",
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "agents",
+    //       localField: "studentInformation.staffId",
+    //       foreignField: "_id",
+    //       as: "agent",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$agent",
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "educations",
+    //       localField: "_id",
+    //       foreignField: "studentId",
+    //       as: "education",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$education",
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "testscores",
+    //       localField: "_id",
+    //       foreignField: "studentId",
+    //       as: "testscores",
+    //     },
+    //   },
+    //   {
+    //     $unwind: "$testscores",
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 0, // Exclude _id from final output if not needed
+    //       studentData: "$$ROOT",
+    //       councellorName: "$staff.fullName",
+    //       agentName: "$agent.company.companyName",
+    //       education: "$education",
+    //       testscore: "$testscores", // Changed from testscores to testscore
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       "studentData.studentInformation.counsellorName": "$councellorName",
+    //       "studentData.studentInformation.staffName": "$agentName",
+    //     },
+    //   },
+    //   {
+    //     $replaceRoot: { newRoot: "$studentData" },
+    //   },
+    // ]);
     if (!student) throw new Error("Student not found");
     return student[0];
   }
