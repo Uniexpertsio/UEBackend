@@ -14,8 +14,8 @@ const {
   getTnc,
   getPartnerId,
 } = require("../service/salesforce.service");
-const emailValidator = require('../utils/emailValidator');
-const { forgotPasswordRateLimit } = require('../utils/forgotPasswordHelper');
+const emailValidator = require("../utils/emailValidator");
+const { forgotPasswordRateLimit } = require("../utils/forgotPasswordHelper");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -100,7 +100,7 @@ function convertToAgentData(inputData, id) {
     MailingCountry: inputData.address.country,
     MailingStreet: inputData.address.address,
     MailingPostalCode: inputData.address.zipCode,
-    Country_Code__c: inputData.personalDetails.countryCode
+    Country_Code__c: inputData.personalDetails.countryCode,
   };
   return outputData;
 }
@@ -113,7 +113,6 @@ Auth.get.background = async (req, res, next) => {
     next(err);
   }
 };
-
 
 Auth.get.config = async (req, res, next) => {
   try {
@@ -128,7 +127,6 @@ Auth.get.config = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // Function to handle user login
 Auth.post.login = async (req, res) => {
@@ -150,28 +148,31 @@ Auth.post.login = async (req, res) => {
       // Return error if user does not exist
       const error = new Error("User does not exist");
       error.statusCode = 404;
-      error.error = "User does not exist"
+      error.error = "User does not exist";
       throw error;
     } else if (!staff.isActive) {
       // Return error if user account is blocked
       const error = new Error("Your account is blocked. Please contact admin.");
       error.statusCode = 400;
-      error.error = "Your account is blocked. Please contact admin."
+      error.error = "Your account is blocked. Please contact admin.";
       throw error;
     } else {
       // Check if last login date is older than 15 days
       const lastLoginDate = new Date(staff.lastLoginDate);
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-      if (lastLoginDate < fifteenDaysAgo && staff?.role !== 'admin') {
+      if (lastLoginDate < fifteenDaysAgo && staff?.role !== "admin") {
         // Block account if inactive for more than 15 days
         await Staff.updateOne(
           { _id: staff._id },
           { $set: { isActive: false } }
         );
-        const error = new Error("Your account is blocked due to inactivity. Please contact admin.");
+        const error = new Error(
+          "Your account is blocked due to inactivity. Please contact admin."
+        );
         error.statusCode = 400;
-        error.error = "Your account is blocked due to inactivity. Please contact admin."
+        error.error =
+          "Your account is blocked due to inactivity. Please contact admin.";
         throw error;
       }
 
@@ -224,8 +225,6 @@ Auth.post.login = async (req, res) => {
   }
 };
 
-
-
 // Function used for signup
 Auth.post.signup = async (req, res, next) => {
   try {
@@ -237,7 +236,7 @@ Auth.post.signup = async (req, res, next) => {
     if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
-    console.log('emailValidation', emailValidation)
+    console.log("emailValidation", emailValidation);
     let agent = await Agent.findOne({ "personalDetails.email": email });
     if (agent) {
       return res.status(400).json({ message: "Email already exists" });
@@ -287,7 +286,7 @@ Auth.post.signup = async (req, res, next) => {
         document: true,
       },
     });
-    
+
     const token = jwt.sign(
       {
         id: staff._id,
@@ -344,9 +343,6 @@ Auth.post.signup = async (req, res, next) => {
     });
   }
 };
-
-
-
 
 Auth.patch.signup = async (req, res, next) => {
   try {
@@ -453,20 +449,25 @@ Auth.post.forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email format is wrong" });
     }
     const sendMailResponse = await sendEmailWithOTP(email, otp);
-    if (sendMailResponse.statusCode === 200) {
-      console.log('send ----',sendMailResponse.statusCode)
+    if (sendMailResponse.MessageId) {
       await forgotPasswordRateLimit(email);
-  
-      return res.status(200).json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
+
+      return res
+        .status(200)
+        .json({ statusCode: 200, message: "OTP Mail Sent Successfully" });
     } else {
-      return res.status(sendMailResponse.statusCode).json({ message: "Failed to send email" });
+      return res
+        .status(sendMailResponse.statusCode)
+        .json({ message: "Failed to send email" });
     }
   } catch (error) {
-    if (error.message === 'Too many requests. Please try again later.') {
+    if (error.message === "Too many requests. Please try again later.") {
       return res.status(429).json({ statusCode: 429, message: error.message });
     } else {
       console.error("Error sending email:", error);
-      return res.status(500).json({ statusCode: 500, message: "Failed To Send OTP Mail" });
+      return res
+        .status(500)
+        .json({ statusCode: 500, message: "Failed To Send OTP Mail" });
     }
   }
 };
