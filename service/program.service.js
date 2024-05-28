@@ -9,6 +9,9 @@ const SchoolService = require("../service/school.service");
 // const SalesforceService = require("src/salesforce/salesforce.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const { getDataFromSF } = require("./salesforce.service");
+const NodeCache = require("node-cache");
+const Eligibility = require("../models/eligibility");
+const cache = new NodeCache();
 
 class ProgramService {
   constructor() {
@@ -31,8 +34,95 @@ class ProgramService {
     return data;
   }
 
+  // async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
+  //   try {
+  //     const skip = (page - 1) * limit;
+  //     let filter = {};
+  //     let sortQuery = {};
+  //     switch (programFilter) {
+  //       case "Top Programs":
+  //         filter = { Top_Programs__c: { $ne: null } };
+  //         sortQuery = { Top_Programs__c: 1 };
+  //         break;
+  //       case "Recommended":
+  //         filter = { Recommended__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "Most Chosen":
+  //         filter = { Most_Chosen__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "Fast Offers":
+  //         filter = { Fast_Offer__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "All Programs":
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       default:
+  //         break;
+  //     }
+
+  //     let countryQuery = {};
+  //     let programLevelQuery = {};
+  //     let schoolIds = [];
+
+  //     if (searchType === "Country__c") {
+  //       console.log("searchType", searchType);
+  //       countryQuery = { Country__c: new RegExp(searchTerm, "i") };
+  //       const schools = await School.find(countryQuery);
+  //       if (schools.length === 0) {
+  //         return { programs: [], totalPrograms: 0 };
+  //       }
+  //       schoolIds = schools.map((school) => school.Id);
+  //     } else if (searchType === "Program_level__c&&Country__c") {
+  //       console.log("searchType", searchType);
+  //       countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
+  //       programLevelQuery = {
+  //         Program_level__c: new RegExp(searchTerm[0], "i"),
+  //       };
+  //       const schools = await School.find(countryQuery);
+  //       console.log("schooll", schools);
+  //       if (schools.length === 0) {
+  //         return { programs: [], totalPrograms: 0 };
+  //       }
+  //       schoolIds = schools.map((school) => school.Id);
+  //     }
+
+  //     const query = {
+  //       ...filter,
+  //       ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
+  //       ...programLevelQuery,
+  //     };
+
+  //     const programs = await this.programModel
+  //       .find({ ...query })
+  //       .sort(sortQuery)
+  //       .limit(limit)
+  //       .skip(skip);
+  //     const totalPrograms = await this.programModel.countDocuments(query);
+
+  //     return { programs, totalPrograms };
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     throw error;
+  //   }
+  // }
+
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
+      const cacheKey =
+        page && limit && programFilter && searchType && searchTerm
+          ? `${page}-${limit}-${programFilter}-${searchType}-${searchTerm}`
+          : "allPrograms";
+      const cachedData = cache.get(cacheKey);
+      console.log("cachedData____", cache.has(cacheKey), cachedData);
+
+      if (cachedData) {
+        console.log(`Serving from cache for key: ${cacheKey}`);
+        return cachedData;
+      }
+
       const skip = (page - 1) * limit;
       let filter = {};
       let sortQuery = {};
@@ -98,8 +188,13 @@ class ProgramService {
         .limit(limit)
         .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
+      const result = { programs, totalPrograms };
 
-      return { programs, totalPrograms };
+      // Cache the result for future requests
+      const cacheResult = await cache.set(cacheKey, result, 3600); // Cache for 1 hour (3600 seconds)
+      console.log("cacheResult::::", cacheResult);
+
+      return result;
     } catch (error) {
       console.error("Error:", error);
       throw error;
@@ -590,6 +685,93 @@ class ProgramService {
       return isEligible;
     } catch (error) {
       return false;
+    }
+  }
+
+  // async programFilter(filter) {
+  //   try {
+  //     const { examType, totalMark } = filter;
+  //     console.log("examType, totalMark", examType, typeof totalMark);
+
+  //     // Create an array to store the eligibilityData
+  //     const eligibilityData = [];
+  //     if (Array.isArray(examType) && Array.isArray(totalMark)) {
+  //       for (let i = 0; i < examType.length; i++) {
+  //         const data = await Eligibility.find({
+  //           Exam_Type__c: examType[i],
+  //           Duo_Overall__c: totalMark[i],
+  //         });
+  //         eligibilityData.push(...data);
+  //       }
+  //     } else {
+  //       const totalMarkNumber = parseFloat(totalMark);
+  //       console.log("totalMarkString", totalMarkNumber);
+  //       const data = await Eligibility.aggregate([
+  //         {
+  //           $match: {
+  //             $and: [
+  //               { Duo_Overall__c: { $gte: totalMarkNumber } },
+  //               { Exam_Type__c: examType },
+  //             ],
+  //           },
+  //         },
+  //       ]);
+  //       console.log("data???", data);
+  //       eligibilityData.push(...data);
+  //     }
+
+  //     const programIds = eligibilityData.map((data) => data.programId);
+  //     const programData = await this.programModel.find({
+  //       _id: { $in: programIds },
+  //     });
+  //     console.log("programData...", programData);
+  //     return programData;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw error;
+  //   }
+  // }
+
+  async programFilter(filter) {
+    try {
+      const { examType, totalMark } = filter;
+      const eligibilityData = [];
+
+      const isExamTypeArray = Array.isArray(examType);
+      const isTotalMarkArray = Array.isArray(totalMark);
+
+      const examTypes = isExamTypeArray ? examType : [examType];
+      const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+
+      for (let i = 0; i < examTypes.length; i++) {
+        for (let j = 0; j < totalMarks.length; j++) {
+          // const totalMarkString = totalMarks[j].toString();
+          const data = await Eligibility.find({
+            Exam_Type__c: examTypes[i],
+            Duo_Overall__c: { $lte: totalMarks[j] },
+          });
+          eligibilityData.push(...data);
+        }
+      }
+
+      const programIds = eligibilityData.map((data) => data.programId);
+      const programData = await this.programModel.find({
+        _id: { $in: programIds },
+      });
+      return programData;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createEligibility(eligibilityCreateDto) {
+    try {
+      console.log("eligibilityCreateDto", eligibilityCreateDto);
+      const eligibility = await Eligibility.create(eligibilityCreateDto);
+      console.log("eligibility", eligibility);
+      return eligibility;
+    } catch (error) {
+      throw error;
     }
   }
 }
