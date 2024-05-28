@@ -10,6 +10,7 @@ const SchoolService = require("../service/school.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const { getDataFromSF } = require("./salesforce.service");
 const NodeCache = require("node-cache");
+const Eligibility = require("../models/eligibility");
 const cache = new NodeCache();
 
 class ProgramService {
@@ -684,6 +685,93 @@ class ProgramService {
       return isEligible;
     } catch (error) {
       return false;
+    }
+  }
+
+  // async programFilter(filter) {
+  //   try {
+  //     const { examType, totalMark } = filter;
+  //     console.log("examType, totalMark", examType, typeof totalMark);
+
+  //     // Create an array to store the eligibilityData
+  //     const eligibilityData = [];
+  //     if (Array.isArray(examType) && Array.isArray(totalMark)) {
+  //       for (let i = 0; i < examType.length; i++) {
+  //         const data = await Eligibility.find({
+  //           Exam_Type__c: examType[i],
+  //           Duo_Overall__c: totalMark[i],
+  //         });
+  //         eligibilityData.push(...data);
+  //       }
+  //     } else {
+  //       const totalMarkNumber = parseFloat(totalMark);
+  //       console.log("totalMarkString", totalMarkNumber);
+  //       const data = await Eligibility.aggregate([
+  //         {
+  //           $match: {
+  //             $and: [
+  //               { Duo_Overall__c: { $gte: totalMarkNumber } },
+  //               { Exam_Type__c: examType },
+  //             ],
+  //           },
+  //         },
+  //       ]);
+  //       console.log("data???", data);
+  //       eligibilityData.push(...data);
+  //     }
+
+  //     const programIds = eligibilityData.map((data) => data.programId);
+  //     const programData = await this.programModel.find({
+  //       _id: { $in: programIds },
+  //     });
+  //     console.log("programData...", programData);
+  //     return programData;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw error;
+  //   }
+  // }
+
+  async programFilter(filter) {
+    try {
+      const { examType, totalMark } = filter;
+      const eligibilityData = [];
+
+      const isExamTypeArray = Array.isArray(examType);
+      const isTotalMarkArray = Array.isArray(totalMark);
+
+      const examTypes = isExamTypeArray ? examType : [examType];
+      const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+
+      for (let i = 0; i < examTypes.length; i++) {
+        for (let j = 0; j < totalMarks.length; j++) {
+          // const totalMarkString = totalMarks[j].toString();
+          const data = await Eligibility.find({
+            Exam_Type__c: examTypes[i],
+            Duo_Overall__c: { $lte: totalMarks[j] },
+          });
+          eligibilityData.push(...data);
+        }
+      }
+
+      const programIds = eligibilityData.map((data) => data.programId);
+      const programData = await this.programModel.find({
+        _id: { $in: programIds },
+      });
+      return programData;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createEligibility(eligibilityCreateDto) {
+    try {
+      console.log("eligibilityCreateDto", eligibilityCreateDto);
+      const eligibility = await Eligibility.create(eligibilityCreateDto);
+      console.log("eligibility", eligibility);
+      return eligibility;
+    } catch (error) {
+      throw error;
     }
   }
 }
