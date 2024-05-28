@@ -11,6 +11,7 @@ const { MappingFiles } = require("./../constants/Agent.constants");
 const { getDataFromSF } = require("./salesforce.service");
 const NodeCache = require("node-cache");
 const Eligibility = require("../models/eligibility");
+const { returnField } = require("../utils/emailValidator");
 const cache = new NodeCache();
 
 class ProgramService {
@@ -732,6 +733,42 @@ class ProgramService {
   //   }
   // }
 
+  // async programFilter(filter) {
+  //   try {
+  //     const { examType, totalMark } = filter;
+  //     const eligibilityData = [];
+
+  //     const isExamTypeArray = Array.isArray(examType);
+  //     const isTotalMarkArray = Array.isArray(totalMark);
+
+  //     // const examTypes = isExamTypeArray ? examType : [examType];
+  //     // const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+  //     const examTypes = ["IELTS", "PTE"];
+  //     const totalMarks = [7, 8];
+
+  //     for (let i = 0; i < examTypes.length; i++) {
+  //       // for (let j = 0; j < totalMarks.length; j++) {
+  //       // const totalMarkString = totalMarks[j].toString();
+  //       console.log(examTypes[i], "=====", totalMarks[i]);
+  //       const data = await Eligibility.find({
+  //         Exam_Type__c: examTypes[i],
+  //         Duo_Overall__c: { $gte: totalMarks[i] },
+  //       });
+  //       console.log(data);
+  //       eligibilityData.push(...data);
+  //       // }
+  //     }
+
+  //     const programIds = eligibilityData.map((data) => data.programId);
+  //     const programData = await this.programModel.find({
+  //       _id: { $in: programIds },
+  //     });
+  //     return programData;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
+
   async programFilter(filter) {
     try {
       const { examType, totalMark } = filter;
@@ -743,23 +780,33 @@ class ProgramService {
       const examTypes = isExamTypeArray ? examType : [examType];
       const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
 
-      for (let i = 0; i < examTypes.length; i++) {
-        for (let j = 0; j < totalMarks.length; j++) {
-          // const totalMarkString = totalMarks[j].toString();
-          const data = await Eligibility.find({
-            Exam_Type__c: examTypes[i],
-            Duo_Overall__c: { $lte: totalMarks[j] },
-          });
-          eligibilityData.push(...data);
-        }
+      // Construct the $or query array for bulk query
+      const orQuery = examTypes.map((examType, index) => ({
+        Exam_Type__c: examType,
+        [returnField(examType)]: { $lte: totalMarks[index] },
+      }));
+
+      console.log(orQuery);
+      // Execute the bulk query for eligibility data
+      const data = await Eligibility.find(
+        { $or: orQuery },
+        { Programme__c: 1, _id: 0 }
+      );
+      console.log(data);
+      if (data.length === 0) {
+        return []; // No eligible data found
       }
 
-      const programIds = eligibilityData.map((data) => data.programId);
+      const programIds = data.map((item) => item.Programme__c);
+
+      // Execute the bulk query for program data
       const programData = await this.programModel.find({
-        _id: { $in: programIds },
+        Id: { $in: programIds },
       });
+
       return programData;
     } catch (error) {
+      console.error("Error in programFilter:", error);
       throw error;
     }
   }
