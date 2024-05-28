@@ -140,10 +140,7 @@ class ProgramController {
 
   programFilter = async (req, res) => {
     try {
-      const programFilterDto = req.body;
-      const programs = await this.programService.programFilter(
-        programFilterDto
-      );
+      const programs = await this.programService.programFilter(req, res);
 
       res.status(200).json({ success: true, data: programs });
     } catch (error) {
