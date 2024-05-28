@@ -769,9 +769,24 @@ class ProgramService {
   //   }
   // }
 
-  async programFilter(filter) {
+  // returnField(examType) {
+  //   if (examType === "12th Standard English Mark") {
+  //     return "Pte_Gmat_12th_Total_Marks_of_English__c";
+  //   } else if (examType === "GRE") {
+  //     return "Gre_Analytical_reasoning_Percentile__c";
+  //   } else if (examType === "GMAT") {
+  //     return "Gmat_Total_Percentile__c";
+  //   } else {
+  //     return "Duo_Overall__c";
+  //   }
+  // }
+  async programFilter(req, res) {
     try {
-      const { examType, totalMark } = filter;
+      const filterData = req.body;
+      const { limit, page } = req.query;
+      const skip = (page - 1) * limit;
+      const { examType, totalMark } = filterData;
+
       const eligibilityData = [];
 
       const isExamTypeArray = Array.isArray(examType);
@@ -783,22 +798,22 @@ class ProgramService {
       // Construct the $or query array for bulk query
       const orQuery = examTypes.map((examType, index) => ({
         Exam_Type__c: examType,
-        [returnField(examType)]: { $lte: totalMarks[index] },
+        [returnField(examType)]: { $gte: totalMarks[index] },
       }));
 
-      console.log(orQuery);
       // Execute the bulk query for eligibility data
       const data = await Eligibility.find(
         { $or: orQuery },
         { Programme__c: 1, _id: 0 }
-      );
-      console.log(data);
+      )
+        .limit(limit)
+        .skip(skip);
       if (data.length === 0) {
         return []; // No eligible data found
       }
 
       const programIds = data.map((item) => item.Programme__c);
-
+      console.log(programIds);
       // Execute the bulk query for program data
       const programData = await this.programModel.find({
         Id: { $in: programIds },
