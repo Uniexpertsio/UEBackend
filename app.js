@@ -95,6 +95,10 @@ module.exports = (port) => {
       message: "No such api endpoint found.",
     });
   });
+  const compression = require("compression");
+
+  // Use the compression middleware
+  app.use(compression(9));
 
   /* error handler */
   app.use((err, req, res, next) => {

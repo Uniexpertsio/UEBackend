@@ -9,6 +9,11 @@ const SchoolService = require("../service/school.service");
 // const SalesforceService = require("src/salesforce/salesforce.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const { getDataFromSF } = require("./salesforce.service");
+const NodeCache = require("node-cache");
+const Eligibility = require("../models/eligibility");
+const { returnField } = require("../utils/emailValidator");
+const cache = new NodeCache();
+const { intersection } = require("lodash");
 
 class ProgramService {
   constructor() {
@@ -31,8 +36,95 @@ class ProgramService {
     return data;
   }
 
+  // async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
+  //   try {
+  //     const skip = (page - 1) * limit;
+  //     let filter = {};
+  //     let sortQuery = {};
+  //     switch (programFilter) {
+  //       case "Top Programs":
+  //         filter = { Top_Programs__c: { $ne: null } };
+  //         sortQuery = { Top_Programs__c: 1 };
+  //         break;
+  //       case "Recommended":
+  //         filter = { Recommended__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "Most Chosen":
+  //         filter = { Most_Chosen__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "Fast Offers":
+  //         filter = { Fast_Offer__c: true };
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       case "All Programs":
+  //         sortQuery = { Name: 1 };
+  //         break;
+  //       default:
+  //         break;
+  //     }
+
+  //     let countryQuery = {};
+  //     let programLevelQuery = {};
+  //     let schoolIds = [];
+
+  //     if (searchType === "Country__c") {
+  //       console.log("searchType", searchType);
+  //       countryQuery = { Country__c: new RegExp(searchTerm, "i") };
+  //       const schools = await School.find(countryQuery);
+  //       if (schools.length === 0) {
+  //         return { programs: [], totalPrograms: 0 };
+  //       }
+  //       schoolIds = schools.map((school) => school.Id);
+  //     } else if (searchType === "Program_level__c&&Country__c") {
+  //       console.log("searchType", searchType);
+  //       countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
+  //       programLevelQuery = {
+  //         Program_level__c: new RegExp(searchTerm[0], "i"),
+  //       };
+  //       const schools = await School.find(countryQuery);
+  //       console.log("schooll", schools);
+  //       if (schools.length === 0) {
+  //         return { programs: [], totalPrograms: 0 };
+  //       }
+  //       schoolIds = schools.map((school) => school.Id);
+  //     }
+
+  //     const query = {
+  //       ...filter,
+  //       ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
+  //       ...programLevelQuery,
+  //     };
+
+  //     const programs = await this.programModel
+  //       .find({ ...query })
+  //       .sort(sortQuery)
+  //       .limit(limit)
+  //       .skip(skip);
+  //     const totalPrograms = await this.programModel.countDocuments(query);
+
+  //     return { programs, totalPrograms };
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     throw error;
+  //   }
+  // }
+
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
+      const cacheKey =
+        page && limit && programFilter && searchType && searchTerm
+          ? `${page}-${limit}-${programFilter}-${searchType}-${searchTerm}`
+          : "allPrograms";
+      const cachedData = cache.get(cacheKey);
+      console.log("cachedData____", cache.has(cacheKey), cachedData);
+
+      if (cachedData) {
+        console.log(`Serving from cache for key: ${cacheKey}`);
+        return cachedData;
+      }
+
       const skip = (page - 1) * limit;
       let filter = {};
       let sortQuery = {};
@@ -98,8 +190,13 @@ class ProgramService {
         .limit(limit)
         .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
+      const result = { programs, totalPrograms };
 
-      return { programs, totalPrograms };
+      // Cache the result for future requests
+      const cacheResult = await cache.set(cacheKey, result, 3600); // Cache for 1 hour (3600 seconds)
+      console.log("cacheResult::::", cacheResult);
+
+      return result;
     } catch (error) {
       console.error("Error:", error);
       throw error;
@@ -590,6 +687,270 @@ class ProgramService {
       return isEligible;
     } catch (error) {
       return false;
+    }
+  }
+
+  // async programFilter(filter) {
+  //   try {
+  //     const { examType, totalMark } = filter;
+  //     console.log("examType, totalMark", examType, typeof totalMark);
+
+  //     // Create an array to store the eligibilityData
+  //     const eligibilityData = [];
+  //     if (Array.isArray(examType) && Array.isArray(totalMark)) {
+  //       for (let i = 0; i < examType.length; i++) {
+  //         const data = await Eligibility.find({
+  //           Exam_Type__c: examType[i],
+  //           Duo_Overall__c: totalMark[i],
+  //         });
+  //         eligibilityData.push(...data);
+  //       }
+  //     } else {
+  //       const totalMarkNumber = parseFloat(totalMark);
+  //       console.log("totalMarkString", totalMarkNumber);
+  //       const data = await Eligibility.aggregate([
+  //         {
+  //           $match: {
+  //             $and: [
+  //               { Duo_Overall__c: { $gte: totalMarkNumber } },
+  //               { Exam_Type__c: examType },
+  //             ],
+  //           },
+  //         },
+  //       ]);
+  //       console.log("data???", data);
+  //       eligibilityData.push(...data);
+  //     }
+
+  //     const programIds = eligibilityData.map((data) => data.programId);
+  //     const programData = await this.programModel.find({
+  //       _id: { $in: programIds },
+  //     });
+  //     console.log("programData...", programData);
+  //     return programData;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw error;
+  //   }
+  // }
+
+  // async programFilter(filter) {
+  //   try {
+  //     const { examType, totalMark } = filter;
+  //     const eligibilityData = [];
+
+  //     const isExamTypeArray = Array.isArray(examType);
+  //     const isTotalMarkArray = Array.isArray(totalMark);
+
+  //     // const examTypes = isExamTypeArray ? examType : [examType];
+  //     // const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+  //     const examTypes = ["IELTS", "PTE"];
+  //     const totalMarks = [7, 8];
+
+  //     for (let i = 0; i < examTypes.length; i++) {
+  //       // for (let j = 0; j < totalMarks.length; j++) {
+  //       // const totalMarkString = totalMarks[j].toString();
+  //       console.log(examTypes[i], "=====", totalMarks[i]);
+  //       const data = await Eligibility.find({
+  //         Exam_Type__c: examTypes[i],
+  //         Duo_Overall__c: { $gte: totalMarks[i] },
+  //       });
+  //       console.log(data);
+  //       eligibilityData.push(...data);
+  //       // }
+  //     }
+
+  //     const programIds = eligibilityData.map((data) => data.programId);
+  //     const programData = await this.programModel.find({
+  //       _id: { $in: programIds },
+  //     });
+  //     return programData;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
+
+  // returnField(examType) {
+  //   if (examType === "12th Standard English Mark") {
+  //     return "Pte_Gmat_12th_Total_Marks_of_English__c";
+  //   } else if (examType === "GRE") {
+  //     return "Gre_Analytical_reasoning_Percentile__c";
+  //   } else if (examType === "GMAT") {
+  //     return "Gmat_Total_Percentile__c";
+  //   } else {
+  //     return "Duo_Overall__c";
+  //   }
+  // }
+  async programFilter(req, res) {
+    try {
+      const filterData = req.body;
+      const { limit, page } = req.query;
+      const skip = (page - 1) * limit;
+
+      const eligibilityProgramIds = [];
+      const schoolProgramIds = [];
+      const programIds = [];
+      const programIdsFromIntake = [];
+      let filter = {};
+      let sortQuery = {};
+
+      if (filterData.eligibility) {
+        const { examType, totalMark } = filterData.eligibility;
+
+        const isExamTypeArray = Array.isArray(examType);
+        const isTotalMarkArray = Array.isArray(totalMark);
+
+        const examTypes = isExamTypeArray ? examType : [examType];
+        const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+
+        // Construct the $or query array for bulk query
+        const orQuery = examTypes.map((examType, index) => ({
+          Exam_Type__c: examType,
+          [returnField(examType)]: { $gte: totalMarks[index] },
+        }));
+
+        // Execute the bulk query for eligibility data
+        const data = await Eligibility.find(
+          { $or: orQuery },
+          { Programme__c: 1, _id: 0 }
+        );
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const eligibilityPrograms = data.map((item) => item.Programme__c);
+        eligibilityProgramIds.push(...eligibilityPrograms);
+      }
+      if (filterData.school) {
+        const {
+          preferredCountry,
+          schoolType,
+          schoolName,
+          moi,
+          interviewRequired,
+          waiverOnClass12English,
+        } = filterData.school;
+
+        const query = {
+          ...(preferredCountry && { Country__c: preferredCountry }),
+          ...(schoolType && { School_Type__c: schoolType }),
+          ...(schoolName && { Name: schoolName }),
+          ...(moi && { MOI__c: moi }),
+          ...(interviewRequired && {
+            Interview_Required__c: interviewRequired,
+          }),
+          ...(waiverOnClass12English && {
+            waiver_on_class_12_English__c: waiverOnClass12English,
+          }),
+        };
+
+        // Execute the bulk query for School data
+        const data = await School.find(query, { Id: 1, _id: 0 });
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const schoolPrograms = data.map((item) => item.Id);
+        const programIds = await Program.find(
+          {
+            School__c: { $in: schoolPrograms },
+          },
+          { Id: 1, _id: 0 }
+        );
+        const programIdsFromProgram = programIds.map((item) => item.Id);
+        schoolProgramIds.push(...programIdsFromProgram);
+      }
+      if (filterData.program) {
+        const { programLevel, intake, discipline, subDiscipline } =
+          filterData.program;
+        if (intake) {
+          const intakeProgramIds = await Intake.find(
+            { Name: intake },
+            { Programme__c: 1, _id: 0 }
+          );
+          const intakePrograms = intakeProgramIds.map(
+            (item) => item.Programme__c
+          );
+          programIdsFromIntake.push(...intakePrograms);
+        }
+
+        const query = {
+          ...(programLevel && { Program_level__c: { $in: programLevel } }),
+          ...(intake && { Id: { $in: programIdsFromIntake } }),
+          ...(discipline && { Discipline__c: discipline }),
+          ...(subDiscipline && { Sub_Discipline__c: subDiscipline }),
+        };
+
+        // Execute the bulk query for Program data
+        const data = await Program.find(query, { Id: 1, _id: 0 });
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const programIdsFromProgram = data.map((item) => item.Id);
+        programIds.push(...programIdsFromProgram);
+      }
+      if (filterData.filterBy) {
+        switch (filterData.filterBy) {
+          case "Top Programs":
+            filter = { Top_Programs__c: { $ne: null } };
+            sortQuery = { Top_Programs__c: 1 };
+            break;
+          case "Recommended":
+            filter = { Recommended__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "Most Chosen":
+            filter = { Most_Chosen__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "Fast Offers":
+            filter = { Fast_Offer__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "All Programs":
+            sortQuery = { Name: 1 };
+            break;
+          default:
+            break;
+        }
+      }
+      // Combine program IDs from all filters
+      const allProgramIds = [
+        ...new Set([
+          ...eligibilityProgramIds,
+          ...schoolProgramIds,
+          ...programIds,
+        ]),
+      ];
+      const commonQuery = {
+        ...(allProgramIds && { Id: { $in: allProgramIds } }),
+        ...filter,
+      };
+
+      // Execute the bulk query for program data
+      const programData = await Program.find(commonQuery)
+        .sort({
+          ...sortQuery,
+        })
+        .skip(skip)
+        .limit(limit);
+
+      return programData;
+    } catch (error) {
+      console.error("Error in programFilter:", error);
+      throw error;
+    }
+  }
+
+  async createEligibility(eligibilityCreateDto) {
+    try {
+      console.log("eligibilityCreateDto", eligibilityCreateDto);
+      const eligibility = await Eligibility.create(eligibilityCreateDto);
+      console.log("eligibility", eligibility);
+      return eligibility;
+    } catch (error) {
+      throw error;
     }
   }
 }
