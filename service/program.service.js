@@ -13,6 +13,7 @@ const NodeCache = require("node-cache");
 const Eligibility = require("../models/eligibility");
 const { returnField } = require("../utils/emailValidator");
 const cache = new NodeCache();
+const { intersection } = require("lodash");
 
 class ProgramService {
   constructor() {
@@ -785,39 +786,155 @@ class ProgramService {
       const filterData = req.body;
       const { limit, page } = req.query;
       const skip = (page - 1) * limit;
-      const { examType, totalMark } = filterData;
 
-      const eligibilityData = [];
+      const eligibilityProgramIds = [];
+      const schoolProgramIds = [];
+      const programIds = [];
+      const programIdsFromIntake = [];
+      let filter = {};
+      let sortQuery = {};
 
-      const isExamTypeArray = Array.isArray(examType);
-      const isTotalMarkArray = Array.isArray(totalMark);
+      if (filterData.eligibility) {
+        const { examType, totalMark } = filterData.eligibility;
 
-      const examTypes = isExamTypeArray ? examType : [examType];
-      const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
+        const isExamTypeArray = Array.isArray(examType);
+        const isTotalMarkArray = Array.isArray(totalMark);
 
-      // Construct the $or query array for bulk query
-      const orQuery = examTypes.map((examType, index) => ({
-        Exam_Type__c: examType,
-        [returnField(examType)]: { $gte: totalMarks[index] },
-      }));
+        const examTypes = isExamTypeArray ? examType : [examType];
+        const totalMarks = isTotalMarkArray ? totalMark : [totalMark];
 
-      // Execute the bulk query for eligibility data
-      const data = await Eligibility.find(
-        { $or: orQuery },
-        { Programme__c: 1, _id: 0 }
-      )
-        .limit(limit)
-        .skip(skip);
-      if (data.length === 0) {
-        return []; // No eligible data found
+        // Construct the $or query array for bulk query
+        const orQuery = examTypes.map((examType, index) => ({
+          Exam_Type__c: examType,
+          [returnField(examType)]: { $gte: totalMarks[index] },
+        }));
+
+        // Execute the bulk query for eligibility data
+        const data = await Eligibility.find(
+          { $or: orQuery },
+          { Programme__c: 1, _id: 0 }
+        );
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const eligibilityPrograms = data.map((item) => item.Programme__c);
+        eligibilityProgramIds.push(...eligibilityPrograms);
       }
+      if (filterData.school) {
+        const {
+          preferredCountry,
+          schoolType,
+          schoolName,
+          moi,
+          interviewRequired,
+          waiverOnClass12English,
+        } = filterData.school;
 
-      const programIds = data.map((item) => item.Programme__c);
-      console.log(programIds);
+        const query = {
+          ...(preferredCountry && { Country__c: preferredCountry }),
+          ...(schoolType && { School_Type__c: schoolType }),
+          ...(schoolName && { Name: schoolName }),
+          ...(moi && { MOI__c: moi }),
+          ...(interviewRequired && {
+            Interview_Required__c: interviewRequired,
+          }),
+          ...(waiverOnClass12English && {
+            waiver_on_class_12_English__c: waiverOnClass12English,
+          }),
+        };
+
+        // Execute the bulk query for School data
+        const data = await School.find(query, { Id: 1, _id: 0 });
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const schoolPrograms = data.map((item) => item.Id);
+        const programIds = await Program.find(
+          {
+            School__c: { $in: schoolPrograms },
+          },
+          { Id: 1, _id: 0 }
+        );
+        const programIdsFromProgram = programIds.map((item) => item.Id);
+        schoolProgramIds.push(...programIdsFromProgram);
+      }
+      if (filterData.program) {
+        const { programLevel, intake, discipline, subDiscipline } =
+          filterData.program;
+        if (intake) {
+          const intakeProgramIds = await Intake.find(
+            { Name: intake },
+            { Programme__c: 1, _id: 0 }
+          );
+          const intakePrograms = intakeProgramIds.map(
+            (item) => item.Programme__c
+          );
+          programIdsFromIntake.push(...intakePrograms);
+        }
+
+        const query = {
+          ...(programLevel && { Program_level__c: { $in: programLevel } }),
+          ...(intake && { Id: { $in: programIdsFromIntake } }),
+          ...(discipline && { Discipline__c: discipline }),
+          ...(subDiscipline && { Sub_Discipline__c: subDiscipline }),
+        };
+
+        // Execute the bulk query for Program data
+        const data = await Program.find(query, { Id: 1, _id: 0 });
+        if (data.length === 0) {
+          return []; // No eligible data found
+        }
+
+        const programIdsFromProgram = data.map((item) => item.Id);
+        programIds.push(...programIdsFromProgram);
+      }
+      if (filterData.filterBy) {
+        switch (filterData.filterBy) {
+          case "Top Programs":
+            filter = { Top_Programs__c: { $ne: null } };
+            sortQuery = { Top_Programs__c: 1 };
+            break;
+          case "Recommended":
+            filter = { Recommended__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "Most Chosen":
+            filter = { Most_Chosen__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "Fast Offers":
+            filter = { Fast_Offer__c: true };
+            sortQuery = { Name: 1 };
+            break;
+          case "All Programs":
+            sortQuery = { Name: 1 };
+            break;
+          default:
+            break;
+        }
+      }
+      // Combine program IDs from all filters
+      const allProgramIds = [
+        ...new Set([
+          ...eligibilityProgramIds,
+          ...schoolProgramIds,
+          ...programIds,
+        ]),
+      ];
+      const commonQuery = {
+        ...(allProgramIds && { Id: { $in: allProgramIds } }),
+        ...filter,
+      };
+
       // Execute the bulk query for program data
-      const programData = await this.programModel.find({
-        Id: { $in: programIds },
-      });
+      const programData = await Program.find(commonQuery)
+        .sort({
+          ...sortQuery,
+        })
+        .skip(skip)
+        .limit(limit);
 
       return programData;
     } catch (error) {
