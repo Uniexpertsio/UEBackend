@@ -1594,8 +1594,9 @@ class StudentService {
 
         let applicationSalesforceId = "";
 
+        let application = {};
         if (applicationId) {
-          const application = isFrontend
+          application = isFrontend
             ? await ApplicationModel.findById({ _id: applicationId })
             : await ApplicationModel.findOne({ salesforceId: applicationId });
           if (!application) throw "Application not found";
@@ -1606,7 +1607,7 @@ class StudentService {
           modifiedBy,
           student?._id,
           body,
-          applicationId
+          application._id
         );
         // const documentIds = document.map((document) => document.id);
 
