@@ -80,6 +80,7 @@ const SchoolSchema = new mongoose.Schema(
     PTE_Requirement__c: { type: String },
     University_English_Test__c: { type: String },
     Logo__c: { type: String },
+    School_Type__c: { type: String },
     waiver_on_class_12_English__c: { type: String },
     Avg_Cost_Of_Tuition_Year__c: { type: Number },
     Cost_Of_Living_Year__c: { type: Number },
