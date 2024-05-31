@@ -1340,7 +1340,7 @@ class StudentService {
     return { id: testScore.id, sfId: testScoreSfResponse?.id };
   }
 
-  updateStudentTestScore(studentId, modifiedBy, testScoreId, body) {
+  updateStudentTestScore(studentId, modifiedBy, testScoreId, isFrontend, body) {
     return new Promise((resolve, reject) => {
       // Fetch test score and student asynchronously
       Promise.all([
@@ -1371,7 +1371,7 @@ class StudentService {
               // Update test score
               const studentId = student._id;
               this.testScoreService
-                .update(modifiedBy, testScore?._id, body, studentId)
+                .update(modifiedBy, testScore?._id, isFrontend, body, studentId)
                 .then((updatedTestScore) => {
                   if (!updatedTestScore) {
                     reject({
