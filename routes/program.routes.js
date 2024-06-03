@@ -38,7 +38,7 @@ router.get(
 
 router.get("/", Middleware.checkAuth, programController.getAllProgram);
 
-router.get(
+router.post(
   "/program/filter",
   Middleware.checkAuth,
   programController.programFilter
