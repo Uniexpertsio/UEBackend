@@ -11,7 +11,7 @@ function returnField(examType) {
   } else if (examType === "GMAT") {
     return "Gmat_Total_Percentile__c";
   } else {
-    return "Duo_Overall__c";
+    return "Pte_Gmat_12th_Total_Marks_of_English__c";
   }
 }
 module.exports = { validateEmail, returnField };
