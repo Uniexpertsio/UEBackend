@@ -929,14 +929,15 @@ class ProgramService {
       };
 
       // Execute the bulk query for program data
-      const programData = await Program.find(commonQuery)
+      const programs = await Program.find(commonQuery)
         .sort({
           ...sortQuery,
         })
         .skip(skip)
         .limit(limit);
 
-      return { programs: programData };
+      const totalPrograms = await Program.countDocuments(commonQuery);
+      return { programs, totalPrograms };
     } catch (error) {
       console.error("Error in programFilter:", error);
       throw error;
