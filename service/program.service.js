@@ -936,7 +936,7 @@ class ProgramService {
         .skip(skip)
         .limit(limit);
 
-      return programData;
+      return { programs: programData };
     } catch (error) {
       console.error("Error in programFilter:", error);
       throw error;
