@@ -6,7 +6,7 @@ const StaffModel = require("../models/Staff");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const Agent = require("../models/Agent");
 const { sendEmailToStaff } = require("../utils/sendMail");
-const emailValidator = require('../utils/emailValidator');
+const emailValidator = require("../utils/emailValidator");
 
 class StaffService {
   constructor() {
@@ -14,7 +14,6 @@ class StaffService {
     this.branchService = new BranchService();
     this.salesforceService = SalesforceService;
   }
-
 
   convertToAgentData(inputData, agentInfo, id) {
     console.log(inputData);
@@ -37,23 +36,27 @@ class StaffService {
       MailingCountry: agentInfo?.address?.country,
       MailingStreet: agentInfo?.address?.address,
       MailingPostalCode: agentInfo?.address?.zipCode,
-      Country_Code__c: inputData?.countryCode
+      Country_Code__c: inputData?.countryCode,
     };
     return outputData;
   }
   async addStaff(agentData, staffDetails, commonId) {
     let branchName = "";
-    const existingEmail = await StaffModel.find({email:staffDetails?.email});
-    const existingContact = await StaffModel.find({phone:staffDetails?.phone});
-    if (existingEmail?.length>0) {
-        throw new Error("Email already exists");
+    const existingEmail = await StaffModel.find({ email: staffDetails?.email });
+    const existingContact = await StaffModel.find({
+      phone: staffDetails?.phone,
+    });
+    if (existingEmail?.length > 0) {
+      throw new Error("Email already exists");
     }
-    if (existingContact?.length>0) {
-        throw new Error("Contact already exists");
+    if (existingContact?.length > 0) {
+      throw new Error("Contact already exists");
     }
 
-    const emailValidation = await emailValidator(staffDetails?.email);
-    if(emailValidation == false) {
+    const emailValidation = await emailValidator.validateEmail(
+      staffDetails?.email
+    );
+    if (emailValidation == false) {
       throw new Error("Email format is wrong");
     }
     if (staffDetails?.branchId) {
@@ -84,18 +87,27 @@ class StaffService {
         notifications,
       })
       .then(async (staff) => {
-        
-        const agentInfo = await Agent.findById(agentData?.agentId)
-        const staffData = this.convertToAgentData(staff, agentInfo, agentInfo?.commonId);
+        const agentInfo = await Agent.findById(agentData?.agentId);
+        const staffData = this.convertToAgentData(
+          staff,
+          agentInfo,
+          agentInfo?.commonId
+        );
         const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-       const record= await SalesforceService.sendDataToSF(staffData, agentUrl);
-        const updated=await StaffModel.updateOne({_id:staff._id},{$set:{sfId:record?.id}})
+        const record = await SalesforceService.sendDataToSF(
+          staffData,
+          agentUrl
+        );
+        const updated = await StaffModel.updateOne(
+          { _id: staff._id },
+          { $set: { sfId: record?.id } }
+        );
         const mailBody = {
           companyName: agentInfo?.company?.companyName,
           mail: staffDetails?.email,
           branchName: branchName,
-          password: staffDetails?.password
-        }
+          password: staffDetails?.password,
+        };
         await sendEmailToStaff(mailBody);
         return staff;
       })
@@ -141,7 +153,9 @@ class StaffService {
     await this.checkIfStaffBelongsToAgent(agentId, staffId);
     await this.staffModel.updateOne(
       { _id: staffId },
-      { $set: { isActive: activeStatusDto.isActive,lastLoginDate: new Date() } }
+      {
+        $set: { isActive: activeStatusDto.isActive, lastLoginDate: new Date() },
+      }
     );
   }
 
@@ -154,9 +168,9 @@ class StaffService {
 
   getAllStaff(agentId) {
     return this.staffModel.find({ agentId }).populate({
-      path: 'branchId',
-      select: 'name'
-  });
+      path: "branchId",
+      select: "name",
+    });
   }
 
   findByEmail(email) {

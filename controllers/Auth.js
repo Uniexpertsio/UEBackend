@@ -232,7 +232,7 @@ Auth.post.signup = async (req, res, next) => {
     let idsCollection;
     const agentData = req.body;
     const email = req.body.personalDetails.email;
-    const emailValidation = await emailValidator(email);
+    const emailValidation = await emailValidator.validateEmail(email);
     if (emailValidation == false) {
       return res.status(400).json({ message: "Email format is wrong" });
     }
