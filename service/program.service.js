@@ -190,7 +190,7 @@ class ProgramService {
         .limit(limit)
         .skip(skip);
       const totalPrograms = await this.programModel.countDocuments(query);
-      const result = { programs, totalPrograms };
+      const result = { programs: programs, totalPrograms: totalPrograms || 0 };
 
       // Cache the result for future requests
       const cacheResult = await cache.set(cacheKey, result, 3600); // Cache for 1 hour (3600 seconds)
