@@ -878,7 +878,7 @@ class ProgramService {
           ...(programLevel && { Program_level__c: { $in: programLevel } }),
           ...(intake && { Id: { $in: programIdsFromIntake } }),
           ...(discipline && { Discipline__c: discipline }),
-          ...(subDiscipline && { Sub_Discipline__c: subDiscipline }),
+          ...(subDiscipline && { Sub_Discipline__c: { $in: subDiscipline } }),
         };
 
         // Execute the bulk query for Program data
