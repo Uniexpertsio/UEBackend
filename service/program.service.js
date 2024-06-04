@@ -787,12 +787,10 @@ class ProgramService {
       const { limit, page } = req.query;
       const skip = (page - 1) * limit;
 
-      const eligibilityProgramIds = [];
-      const schoolProgramIds = [];
-      const programIds = [];
       const programIdsFromIntake = [];
       let filter = {};
       let sortQuery = {};
+      const allPrograms = [];
 
       if (filterData.eligibility) {
         const { examType, totalMark } = filterData.eligibility;
@@ -819,7 +817,13 @@ class ProgramService {
         }
 
         const eligibilityPrograms = data.map((item) => item.Programme__c);
-        eligibilityProgramIds.push(...eligibilityPrograms);
+        if (!allPrograms.length) allPrograms.push(...eligibilityPrograms);
+        else
+          allPrograms.push(
+            ...allPrograms.filter((element) =>
+              eligibilityPrograms.includes(element)
+            )
+          );
       }
       if (filterData.school) {
         const {
@@ -858,7 +862,13 @@ class ProgramService {
           { Id: 1, _id: 0 }
         );
         const programIdsFromProgram = programIds.map((item) => item.Id);
-        schoolProgramIds.push(...programIdsFromProgram);
+        if (!allPrograms.length) allPrograms.push(...programIdsFromProgram);
+        else
+          allPrograms.push(
+            ...allPrograms.filter((element) =>
+              programIdsFromProgram.includes(element)
+            )
+          );
       }
       if (filterData.program) {
         const { programLevel, intake, discipline, subDiscipline } =
@@ -888,7 +898,13 @@ class ProgramService {
         }
 
         const programIdsFromProgram = data.map((item) => item.Id);
-        programIds.push(...programIdsFromProgram);
+        if (!allPrograms.length) allPrograms.push(...programIdsFromProgram);
+        else
+          allPrograms.push(
+            ...allPrograms.filter((element) =>
+              programIdsFromProgram.includes(element)
+            )
+          );
       }
       if (filterData.filterBy) {
         switch (filterData.filterBy) {
@@ -915,14 +931,8 @@ class ProgramService {
             break;
         }
       }
-      // Combine program IDs from all filters
-      const allProgramIds = [
-        ...new Set([
-          ...eligibilityProgramIds,
-          ...schoolProgramIds,
-          ...programIds,
-        ]),
-      ];
+
+      const allProgramIds = [...new Set(allPrograms)];
       const commonQuery = {
         ...(allProgramIds && { Id: { $in: allProgramIds } }),
         ...filter,
