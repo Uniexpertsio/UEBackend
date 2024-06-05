@@ -937,7 +937,7 @@ class ProgramService {
         .limit(limit);
 
       const totalPrograms = await Program.countDocuments(commonQuery);
-      return { programs, totalPrograms };
+      return { programs: programs, totalPrograms: totalPrograms };
     } catch (error) {
       console.error("Error in programFilter:", error);
       throw error;
