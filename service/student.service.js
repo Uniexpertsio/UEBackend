@@ -495,6 +495,15 @@ class StudentService {
       }
     }
 
+    if (query.eligibility) {
+      // Fetch the student IDs that have a test score
+      const studentsWithTestScore = await TestScore.distinct("studentId");
+
+      // Add the eligibility filter to the existing filter
+      filter._id = { $in: studentsWithTestScore };
+      console.log("filterrrr", filter);
+    }
+
     const student = await StudentModel.find(filter)
       .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
       .sort(sortBy)
