@@ -787,12 +787,12 @@ class ProgramService {
       const { limit, page } = req.query;
       const skip = (page - 1) * limit;
 
-      const eligibilityProgramIds = [];
-      const schoolProgramIds = [];
-      const programIds = [];
       const programIdsFromIntake = [];
       let filter = {};
       let sortQuery = {};
+      let eligibilityPrograms = [];
+      let programIdsFromProgram = [];
+      let programIds = [];
 
       if (filterData.eligibility) {
         const { examType, totalMark } = filterData.eligibility;
@@ -815,11 +815,10 @@ class ProgramService {
           { Programme__c: 1, _id: 0 }
         );
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
-        const eligibilityPrograms = data.map((item) => item.Programme__c);
-        eligibilityProgramIds.push(...eligibilityPrograms);
+        eligibilityPrograms = data.map((item) => item.Programme__c);
       }
       if (filterData.school) {
         const {
@@ -847,7 +846,7 @@ class ProgramService {
         // Execute the bulk query for School data
         const data = await School.find(query, { Id: 1, _id: 0 });
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
         const schoolPrograms = data.map((item) => item.Id);
@@ -857,8 +856,7 @@ class ProgramService {
           },
           { Id: 1, _id: 0 }
         );
-        const programIdsFromProgram = programIds.map((item) => item.Id);
-        schoolProgramIds.push(...programIdsFromProgram);
+        programIdsFromProgram = programIds.map((item) => item.Id);
       }
       if (filterData.program) {
         const { programLevel, intake, discipline, subDiscipline } =
@@ -884,11 +882,10 @@ class ProgramService {
         // Execute the bulk query for Program data
         const data = await Program.find(query, { Id: 1, _id: 0 });
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
-        const programIdsFromProgram = data.map((item) => item.Id);
-        programIds.push(...programIdsFromProgram);
+        programIds = data.map((item) => item.Id);
       }
       if (filterData.filterBy) {
         switch (filterData.filterBy) {
@@ -915,19 +912,22 @@ class ProgramService {
             break;
         }
       }
-      // Combine program IDs from all filters
-      const allProgramIds = [
-        ...new Set([
-          ...eligibilityProgramIds,
-          ...schoolProgramIds,
-          ...programIds,
-        ]),
-      ];
+
+      const arrays = [eligibilityPrograms, programIdsFromProgram, programIds];
+      // Filter out empty arrays
+      const nonEmptyArrays = arrays.filter((array) => array.length > 0);
+
+      // Find common elements
+      const commonElements = nonEmptyArrays.reduce(
+        (acc, curr) => acc.filter((element) => curr.includes(element)),
+        nonEmptyArrays[0]
+      );
+
+      console.log(commonElements);
       const commonQuery = {
-        ...(allProgramIds && { Id: { $in: allProgramIds } }),
+        ...(commonElements && { Id: { $in: commonElements } }),
         ...filter,
       };
-
       // Execute the bulk query for program data
       const programs = await Program.find(commonQuery)
         .sort({
