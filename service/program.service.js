@@ -790,7 +790,9 @@ class ProgramService {
       const programIdsFromIntake = [];
       let filter = {};
       let sortQuery = {};
-      const allPrograms = [];
+      let eligibilityPrograms = [];
+      let programIdsFromProgram = [];
+      let programIds = [];
 
       if (filterData.eligibility) {
         const { examType, totalMark } = filterData.eligibility;
@@ -813,17 +815,10 @@ class ProgramService {
           { Programme__c: 1, _id: 0 }
         );
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
-        const eligibilityPrograms = data.map((item) => item.Programme__c);
-        if (!allPrograms.length) allPrograms.push(...eligibilityPrograms);
-        else
-          allPrograms.push(
-            ...allPrograms.filter((element) =>
-              eligibilityPrograms.includes(element)
-            )
-          );
+        eligibilityPrograms = data.map((item) => item.Programme__c);
       }
       if (filterData.school) {
         const {
@@ -851,7 +846,7 @@ class ProgramService {
         // Execute the bulk query for School data
         const data = await School.find(query, { Id: 1, _id: 0 });
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
         const schoolPrograms = data.map((item) => item.Id);
@@ -861,14 +856,7 @@ class ProgramService {
           },
           { Id: 1, _id: 0 }
         );
-        const programIdsFromProgram = programIds.map((item) => item.Id);
-        if (!allPrograms.length) allPrograms.push(...programIdsFromProgram);
-        else
-          allPrograms.push(
-            ...allPrograms.filter((element) =>
-              programIdsFromProgram.includes(element)
-            )
-          );
+        programIdsFromProgram = programIds.map((item) => item.Id);
       }
       if (filterData.program) {
         const { programLevel, intake, discipline, subDiscipline } =
@@ -894,17 +882,10 @@ class ProgramService {
         // Execute the bulk query for Program data
         const data = await Program.find(query, { Id: 1, _id: 0 });
         if (data.length === 0) {
-          return []; // No eligible data found
+          return { programs: [], totalPrograms: 0 }; // No eligible data found
         }
 
-        const programIdsFromProgram = data.map((item) => item.Id);
-        if (!allPrograms.length) allPrograms.push(...programIdsFromProgram);
-        else
-          allPrograms.push(
-            ...allPrograms.filter((element) =>
-              programIdsFromProgram.includes(element)
-            )
-          );
+        programIds = data.map((item) => item.Id);
       }
       if (filterData.filterBy) {
         switch (filterData.filterBy) {
@@ -932,12 +913,21 @@ class ProgramService {
         }
       }
 
-      const allProgramIds = [...new Set(allPrograms)];
+      const arrays = [eligibilityPrograms, programIdsFromProgram, programIds];
+      // Filter out empty arrays
+      const nonEmptyArrays = arrays.filter((array) => array.length > 0);
+
+      // Find common elements
+      const commonElements = nonEmptyArrays.reduce(
+        (acc, curr) => acc.filter((element) => curr.includes(element)),
+        nonEmptyArrays[0]
+      );
+
+      console.log(commonElements);
       const commonQuery = {
-        ...(allProgramIds && { Id: { $in: allProgramIds } }),
+        ...(commonElements && { Id: { $in: commonElements } }),
         ...filter,
       };
-
       // Execute the bulk query for program data
       const programs = await Program.find(commonQuery)
         .sort({
