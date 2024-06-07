@@ -35,94 +35,19 @@ class ProgramService {
     return data;
   }
 
-  // async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
-  //   try {
-  //     const skip = (page - 1) * limit;
-  //     let filter = {};
-  //     let sortQuery = {};
-  //     switch (programFilter) {
-  //       case "Top Programs":
-  //         filter = { Top_Programs__c: { $ne: null } };
-  //         sortQuery = { Top_Programs__c: 1 };
-  //         break;
-  //       case "Recommended":
-  //         filter = { Recommended__c: true };
-  //         sortQuery = { Name: 1 };
-  //         break;
-  //       case "Most Chosen":
-  //         filter = { Most_Chosen__c: true };
-  //         sortQuery = { Name: 1 };
-  //         break;
-  //       case "Fast Offers":
-  //         filter = { Fast_Offer__c: true };
-  //         sortQuery = { Name: 1 };
-  //         break;
-  //       case "All Programs":
-  //         sortQuery = { Name: 1 };
-  //         break;
-  //       default:
-  //         break;
-  //     }
-
-  //     let countryQuery = {};
-  //     let programLevelQuery = {};
-  //     let schoolIds = [];
-
-  //     if (searchType === "Country__c") {
-  //       console.log("searchType", searchType);
-  //       countryQuery = { Country__c: new RegExp(searchTerm, "i") };
-  //       const schools = await School.find(countryQuery);
-  //       if (schools.length === 0) {
-  //         return { programs: [], totalPrograms: 0 };
-  //       }
-  //       schoolIds = schools.map((school) => school.Id);
-  //     } else if (searchType === "Program_level__c&&Country__c") {
-  //       console.log("searchType", searchType);
-  //       countryQuery = { Country__c: new RegExp(searchTerm[1], "i") };
-  //       programLevelQuery = {
-  //         Program_level__c: new RegExp(searchTerm[0], "i"),
-  //       };
-  //       const schools = await School.find(countryQuery);
-  //       console.log("schooll", schools);
-  //       if (schools.length === 0) {
-  //         return { programs: [], totalPrograms: 0 };
-  //       }
-  //       schoolIds = schools.map((school) => school.Id);
-  //     }
-
-  //     const query = {
-  //       ...filter,
-  //       ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
-  //       ...programLevelQuery,
-  //     };
-
-  //     const programs = await this.programModel
-  //       .find({ ...query })
-  //       .sort(sortQuery)
-  //       .limit(limit)
-  //       .skip(skip);
-  //     const totalPrograms = await this.programModel.countDocuments(query);
-
-  //     return { programs, totalPrograms };
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     throw error;
-  //   }
-  // }
-
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
     try {
-      const cacheKey =
-        page && limit && programFilter && searchType && searchTerm
-          ? `${page}-${limit}-${programFilter}-${searchType}-${searchTerm}`
-          : "allPrograms";
-      const cachedData = cache.get(cacheKey);
-      console.log("cachedData____", cache.has(cacheKey), cachedData);
+      // const cacheKey =
+      //   page && limit && programFilter && searchType && searchTerm
+      //     ? `${page}-${limit}-${programFilter}-${searchType}-${searchTerm}`
+      //     : "allPrograms";
+      // const cachedData = cache.get(cacheKey);
+      // console.log("cachedData____", cache.has(cacheKey), cachedData);
 
-      if (cachedData) {
-        console.log(`Serving from cache for key: ${cacheKey}`);
-        return cachedData;
-      }
+      // if (cachedData) {
+      //   console.log(`Serving from cache for key: ${cacheKey}`);
+      //   return cachedData;
+      // }
 
       const skip = (page - 1) * limit;
       let filter = {};
@@ -192,8 +117,8 @@ class ProgramService {
       const result = { programs, totalPrograms };
 
       // Cache the result for future requests
-      const cacheResult = await cache.set(cacheKey, result, 3600); // Cache for 1 hour (3600 seconds)
-      console.log("cacheResult::::", cacheResult);
+      // const cacheResult = await cache.set(cacheKey, result, 3600); // Cache for 1 hour (3600 seconds)
+      // console.log("cacheResult::::", cacheResult);
 
       return result;
     } catch (error) {
