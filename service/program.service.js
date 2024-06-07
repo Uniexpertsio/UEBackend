@@ -10,7 +10,7 @@ const SchoolService = require("../service/school.service");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const { getDataFromSF } = require("./salesforce.service");
 const NodeCache = require("node-cache");
-const Eligibility = require("../models/eligibility");
+const Eligibility = require("../models/Eligibilities");
 const { returnField } = require("../utils/emailValidator");
 const cache = new NodeCache();
 const { intersection } = require("lodash");
@@ -937,7 +937,7 @@ class ProgramService {
         .limit(limit);
 
       const totalPrograms = await Program.countDocuments(commonQuery);
-      return { programs, totalPrograms };
+      return { programs: programs, totalPrograms: totalPrograms };
     } catch (error) {
       console.error("Error in programFilter:", error);
       throw error;
