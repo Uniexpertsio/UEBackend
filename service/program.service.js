@@ -13,7 +13,6 @@ const NodeCache = require("node-cache");
 const Eligibility = require("../models/Eligibility");
 const { returnField } = require("../utils/emailValidator");
 const cache = new NodeCache();
-const { intersection } = require("lodash");
 
 class ProgramService {
   constructor() {
