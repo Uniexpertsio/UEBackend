@@ -15,10 +15,18 @@ class SchoolController {
 
   async getAllSchool(req, res) {
     try {
-    const { page, limit,filter, searchType, searchTerm } = req.query;
-    return res
-      .status(200)
-      .json(await this.schoolService.getAllSchool(page, limit,filter, searchType, searchTerm));
+      const { page, limit, filter, searchType, searchTerm } = req.query;
+      return res
+        .status(200)
+        .json(
+          await this.schoolService.getAllSchool(
+            page,
+            limit,
+            filter,
+            searchType,
+            searchTerm
+          )
+        );
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -57,13 +65,23 @@ class SchoolController {
   async getSchoolId(req, res) {
     try {
       const { schoolSfId } = req.params;
-      const schoolData = await School.findOne({Id: schoolSfId },{ _id: 1});
-      if(!schoolData) {
-        res.status(404).json({message: "School not found"});
+      const schoolData = await School.findOne({ Id: schoolSfId }, { _id: 1 });
+      if (!schoolData) {
+        res.status(404).json({ message: "School not found" });
       }
-      res.status(200).json({data: schoolData});
-    }catch(error) {
+      res.status(200).json({ data: schoolData });
+    } catch (error) {
       throw error;
+    }
+  }
+
+  async schoolFilter(req, res) {
+    try {
+      const schools = await this.schoolService.schoolFilter(req, res);
+
+      res.status(200).json({ success: true, data: schools });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 }
