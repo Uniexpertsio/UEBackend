@@ -495,6 +495,23 @@ class StudentService {
       }
     }
 
+    if (query.eligibility) {
+      const testScoreData = await TestScore.find(
+        {},
+        {
+          studentId: 1,
+          _id: 0,
+        }
+      );
+
+      const filterUnique = testScoreData
+        .map((obj) => obj.studentId)
+        .filter((value, index, self) => self.indexOf(value) === index);
+      filter = {
+        _id: { $in: filterUnique },
+      };
+    }
+
     const student = await StudentModel.find(filter)
       .skip(parseInt(query.perPage) * (parseInt(query.pageNo) - 1))
       .sort(sortBy)
@@ -517,7 +534,6 @@ class StudentService {
 
       studentList.push(student[i]);
     }
-    console.log(studentList, count);
     return { studentList, count };
   }
 
