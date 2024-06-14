@@ -16,17 +16,15 @@ class SchoolController {
   async getAllSchool(req, res) {
     try {
       const { page, limit, filter, searchType, searchTerm } = req.query;
-      return res
-        .status(200)
-        .json(
-          await this.schoolService.getAllSchool(
-            page,
-            limit,
-            filter,
-            searchType,
-            searchTerm
-          )
-        );
+      return res.status(200).json({
+        data: await this.schoolService.getAllSchool(
+          page,
+          limit,
+          filter,
+          searchType,
+          searchTerm
+        ),
+      });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
@@ -78,7 +76,6 @@ class SchoolController {
   async schoolFilter(req, res) {
     try {
       const schools = await this.schoolService.schoolFilter(req, res);
-
       res.status(200).json({ success: true, data: schools });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
