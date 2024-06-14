@@ -77,6 +77,8 @@ class StudentService {
       Passport_Number__c: data?.studentInformation?.passportNumber,
       MobilePhone: "+" + data?.studentInformation?.mobile,
       Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
+      WhatsApp_Country_Code__c: data?.studentInformation?.whatsappCountryCode,
+      mobileCountryCode: data?.studentInformation?.mobileCountryCode,
       Email: data?.studentInformation?.email,
       Preferred_Country__c:
         data?.studentInformation?.preferredCountry.join(";"),
@@ -96,9 +98,10 @@ class StudentService {
       MailingState: data.address.state,
       MailingCountry: data.address.country,
       MailingPostalCode: data.address.zipCode,
-      EmergencyContactName__c: data.emergencyContact.name,
+      EmergencyContactName__c: data?.emergencyContact?.name,
       Relationship__c: data.emergencyContact.relationship,
-      EmergencyContactEmail__c: data.emergencyContact.email,
+      EmergencyContactEmail__c: data?.emergencyContact?.email,
+      Emergency_Contact_Country_Code__c: data?.emergencyContact?.countryCode,
       Phone: data.emergencyContact.phoneNumber,
       Country__c: data.emergencyContact.country,
       Have_you_been_refused_a_visa__c: data.backgroundInformation.isRefusedVisa
@@ -523,6 +526,7 @@ class StudentService {
       const counsellor = await Staff.findOne({
         _id: student[i].studentInformation.counsellorId,
       });
+      console.log("staff", staff);
 
       if (staff) {
         student[i].createdBy = staff.fullName;
@@ -684,17 +688,30 @@ class StudentService {
     studentDetails,
     isFrontend
   ) {
-    if (studentDetails.studentInformation) {
-      await this.checkForValidUsers(
-        studentDetails.studentInformation.staffId,
-        studentDetails.studentInformation.counsellorId
-      );
+    console.log("isFrontend---", isFrontend);
+    if (isFrontend) {
+      if (studentDetails.studentInformation) {
+        await this.checkForValidUsers(
+          studentDetails.studentInformation.staffId,
+          studentDetails.studentInformation.counsellorId
+        );
+      }
     }
-
+    if (!isFrontend) {
+      console.log("------------", isFrontend);
+      const haveMedicalHistorystring =
+        studentDetails?.demographicInformation?.haveMedicalHistory;
+      studentDetails.demographicInformation.haveMedicalHistory =
+        haveMedicalHistorystring.toLowerCase() === "yes";
+      const isRefusedVisaString =
+        studentDetails?.backgroundInformation?.isRefusedVisa;
+      studentDetails.backgroundInformation.isRefusedVisa =
+        isRefusedVisaString.toLowerCase() === "yes";
+    }
+    console.log("medicalHistory---", studentDetails);
     const student = isFrontend
       ? await this.findById(studentId)
       : await this.findBySFId(studentId);
-    console.log(student);
     student.set({
       ...studentDetails,
       modifiedBy,
