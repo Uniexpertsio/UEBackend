@@ -191,7 +191,9 @@ class StudentService {
       Date_of_Joining__c: data?.doj.split("T")[0],
       Date_of_relieving__c: data?.dor.split("T")[0],
       Email_Id__c: data?.email,
+      Country_Code__c: data?.countryCode,
       Contact_info__c: data?.contactInfo,
+      Signed_Country_Code__c: data?.signedPersonCountryCode,
       Phone_Number_of_the_Signed_Person__c: data?.signedPersonPhone,
       Email_ID_of_the_Signed_Person__c: data?.signedPersonEmail,
       Name_of_the_Signed_Person__c: data?.signedPersonName,
@@ -929,6 +931,7 @@ class StudentService {
       body,
       student?.salesforceId
     );
+    console.log(workHistory);
     const workHistoryUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Work_history__c`;
     const sfWorkHistoryResponse = await sendDataToSF(
       workHistoryData,
