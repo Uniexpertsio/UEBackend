@@ -77,6 +77,8 @@ class StudentService {
       Passport_Number__c: data?.studentInformation?.passportNumber,
       MobilePhone: "+" + data?.studentInformation?.mobile,
       Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
+      WhatsApp_Country_Code__c: data?.studentInformation?.whatsappCountryCode,
+      Country_Code__c: data?.studentInformation?.mobileCountryCode,
       Email: data?.studentInformation?.email,
       Preferred_Country__c:
         data?.studentInformation?.preferredCountry.join(";"),
@@ -96,9 +98,10 @@ class StudentService {
       MailingState: data.address.state,
       MailingCountry: data.address.country,
       MailingPostalCode: data.address.zipCode,
-      EmergencyContactName__c: data.emergencyContact.name,
+      EmergencyContactName__c: data?.emergencyContact?.name,
       Relationship__c: data.emergencyContact.relationship,
-      EmergencyContactEmail__c: data.emergencyContact.email,
+      EmergencyContactEmail__c: data?.emergencyContact?.email,
+      Emergency_Contact_Country_Code__c: data?.emergencyContact?.countryCode,
       Phone: data.emergencyContact.phoneNumber,
       Country__c: data.emergencyContact.country,
       Have_you_been_refused_a_visa__c: data.backgroundInformation.isRefusedVisa
@@ -114,7 +117,6 @@ class StudentService {
 
     return convertedData;
   }
-
   setScore(data) {
     switch (data?.gradingScheme) {
       case "Percentage":
@@ -703,7 +705,7 @@ class StudentService {
     await student.save();
     if (isFrontend) {
       const studentData = this.converttoSfBody(studentDetails);
-      const studentUrl = `${process.env.SF_API_URL}Contact/${student?.salesforceId}`;
+      const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${student?.salesforceId}`;
       const sfCompanyData = await updateDataToSF(studentData, studentUrl);
       const contactDetails = await getContactId(student?.salesforceId);
       return { id: student.id, partnerId: contactDetails?.Student_ID__c };
