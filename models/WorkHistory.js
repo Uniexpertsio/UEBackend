@@ -12,10 +12,10 @@ const WorkHistorySchema = new mongoose.Schema(
     designation: { type: String, required: true },
     doj: { type: Date, required: true },
     dor: { type: Date, required: true },
-    countryCode:{ type: String, required: true },
+    countryCode: { type: String, required: true },
     contactInfo: { type: String, required: false },
-    signedPersonCountryCode:{ type: String, required: true },
-    signedPersonPhone:{ type: String, required: true },
+    signedPersonCountryCode: { type: String, required: true },
+    signedPersonPhone: { type: String, required: true },
     email: { type: String, required: false },
     studentId: { type: String, required: true },
     modifiedBy: { type: String, required: true },
@@ -23,8 +23,14 @@ const WorkHistorySchema = new mongoose.Schema(
     externalId: { type: String, required: true },
     createdBy: { type: String, required: true },
     isLocked: { type: Boolean, required: false, default: true },
-    signingAuthority: { type: SigningAuthoritySchema, required: false, _id: false },
-    WorkHistorySfId:{type:String,required:false}
+    signingAuthority: {
+      type: SigningAuthoritySchema,
+      required: false,
+      _id: false,
+    },
+    WorkHistorySfId: { type: String, required: false },
+    signedPersonName: { type: String, required: false },
+    signedPersonEmail: { type: String, required: false },
   },
   { timestamps: true }
 );
@@ -37,7 +43,10 @@ WorkHistorySchema.set("toJSON", {
   },
 });
 
-const SigningAuthority = mongoose.model("SigningAuthority", SigningAuthoritySchema);
+const SigningAuthority = mongoose.model(
+  "SigningAuthority",
+  SigningAuthoritySchema
+);
 const WorkHistory = mongoose.model("WorkHistory", WorkHistorySchema);
 
 module.exports = WorkHistory;

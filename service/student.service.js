@@ -77,6 +77,8 @@ class StudentService {
       Passport_Number__c: data?.studentInformation?.passportNumber,
       MobilePhone: "+" + data?.studentInformation?.mobile,
       Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
+      WhatsApp_Country_Code__c: data?.studentInformation?.whatsappCountryCode,
+      Country_Code__c: data?.studentInformation?.mobileCountryCode,
       Email: data?.studentInformation?.email,
       Preferred_Country__c:
         data?.studentInformation?.preferredCountry.join(";"),
@@ -96,9 +98,10 @@ class StudentService {
       MailingState: data.address.state,
       MailingCountry: data.address.country,
       MailingPostalCode: data.address.zipCode,
-      EmergencyContactName__c: data.emergencyContact.name,
+      EmergencyContactName__c: data?.emergencyContact?.name,
       Relationship__c: data.emergencyContact.relationship,
-      EmergencyContactEmail__c: data.emergencyContact.email,
+      EmergencyContactEmail__c: data?.emergencyContact?.email,
+      Emergency_Contact_Country_Code__c: data?.emergencyContact?.countryCode,
       Phone: data.emergencyContact.phoneNumber,
       Country__c: data.emergencyContact.country,
       Have_you_been_refused_a_visa__c: data.backgroundInformation.isRefusedVisa
@@ -523,6 +526,7 @@ class StudentService {
       const counsellor = await Staff.findOne({
         _id: student[i].studentInformation.counsellorId,
       });
+      console.log("staff", staff);
 
       if (staff) {
         student[i].createdBy = staff.fullName;
@@ -684,31 +688,62 @@ class StudentService {
     studentDetails,
     isFrontend
   ) {
-    if (studentDetails.studentInformation) {
-      await this.checkForValidUsers(
-        studentDetails.studentInformation.staffId,
-        studentDetails.studentInformation.counsellorId
+    try {
+      if (isFrontend) {
+        if (studentDetails.studentInformation) {
+          await this.checkForValidUsers(
+            studentDetails.studentInformation.staffId,
+            studentDetails.studentInformation.counsellorId
+          );
+        }
+      }
+      if (!isFrontend) {
+        const haveMedicalHistorystring =
+          studentDetails?.demographicInformation?.haveMedicalHistory;
+        studentDetails.demographicInformation.haveMedicalHistory =
+          haveMedicalHistorystring.toLowerCase() === "yes";
+        const isRefusedVisaString =
+          studentDetails?.backgroundInformation?.isRefusedVisa;
+        studentDetails.backgroundInformation.isRefusedVisa =
+          isRefusedVisaString.toLowerCase() === "yes";
+        const student = await StudentModel.findOne({ salesforceId: studentId });
+        studentDetails.studentInformation["staffId"] =
+          student?.studentInformation?.staffId;
+        studentDetails.studentInformation["counsellorId"] =
+          student?.studentInformation?.counsellorId;
+      }
+
+      const query = isFrontend
+        ? { _id: studentId }
+        : { salesforceId: studentId };
+      const update = {
+        $set: {
+          ...studentDetails,
+          modifiedBy,
+        },
+      };
+      const options = { new: true, runValidators: true };
+
+      const updatedStudent = await StudentModel.findOneAndUpdate(
+        query,
+        update,
+        options
       );
-    }
 
-    const student = isFrontend
-      ? await this.findById(studentId)
-      : await this.findBySFId(studentId);
-    console.log(student);
-    student.set({
-      ...studentDetails,
-      modifiedBy,
-    });
-
-    await student.save();
-    if (isFrontend) {
-      const studentData = this.converttoSfBody(studentDetails);
-      const studentUrl = `${process.env.SF_API_URL}Contact/${student?.salesforceId}`;
-      const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-      const contactDetails = await getContactId(student?.salesforceId);
-      return { id: student.id, partnerId: contactDetails?.Student_ID__c };
-    } else {
-      return { id: student.id };
+      if (isFrontend) {
+        const studentData = this.converttoSfBody(studentDetails);
+        const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${updatedStudent.salesforceId}`;
+        const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+        const contactDetails = await getContactId(updatedStudent.salesforceId);
+        return {
+          id: updatedStudent.id,
+          partnerId: contactDetails?.Student_ID__c,
+        };
+      } else {
+        return { id: updatedStudent.id };
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -809,7 +844,7 @@ class StudentService {
       const data = {
         institutionName: body?.Name_of_Institution__c,
         level: body?.Level_of_Education__c,
-        isDegreeAwarded: body?.Degree_Awarded__c,
+        isDegreeAwarded: body?.Degree_Awarded__c.toLowerCase() === "yes",
         country: body?.Country_of_Institution__c,
         affiliatedUniversity: body?.Affiliated_University__c,
         attendedFrom: body?.Attended_Institution_From__c,
@@ -819,7 +854,7 @@ class StudentService {
         // educationSfId: body?.Id,
         studentId: student._id,
         showInProfile: body?.ShowInProfile__c,
-        institutionName: body?.Name,
+        // institutionName: body?.Name,
       };
       // Update education
       const updatedEducation = await this.educationService.update(
@@ -827,7 +862,15 @@ class StudentService {
         education._id,
         data
       );
-      return updatedEducation;
+
+      // Return success response if education is updated
+      if (updatedEducation) {
+        return {
+          status: 200,
+          success: true,
+          message: "Education updated successfully",
+        };
+      }
     } catch (error) {
       // Handle errors
       console.error("Error in updateStudentEducation:", error);
@@ -942,6 +985,10 @@ class StudentService {
         "signingAuthority.phone": body?.Signing_Contact_Phone__c,
         "signingAuthority.name": body?.Signing_Contact_Name__c,
         signedPersonPhone: body?.Phone_Number_of_the_Signed_Person__c,
+        signedPersonEmail: body?.Email_ID_of_the_Signed_Person__c,
+        signedPersonName: body?.Name_of_the_Signed_Person__c,
+        countryCode: body?.Country_Code__c,
+        signedPersonCountryCode: body?.Signed_Country_Code__c,
       };
       // Update work history
       const updatedWorkHistory = await this.workHistoryService.update(
@@ -950,9 +997,13 @@ class StudentService {
         data
       );
 
-      // Perform additional operations if needed
-
-      return updatedWorkHistory;
+      if (updatedWorkHistory) {
+        return {
+          status: 200,
+          success: true,
+          message: "Work history updated successfully",
+        };
+      }
     } catch (error) {
       // Handle errors
       console.error("Error in updateStudentWorkHistory:", error);
