@@ -525,6 +525,7 @@ class StudentService {
       const counsellor = await Staff.findOne({
         _id: student[i].studentInformation.counsellorId,
       });
+      console.log("staff", staff);
 
       if (staff) {
         student[i].createdBy = staff.fullName;
@@ -686,31 +687,62 @@ class StudentService {
     studentDetails,
     isFrontend
   ) {
-    if (studentDetails.studentInformation) {
-      await this.checkForValidUsers(
-        studentDetails.studentInformation.staffId,
-        studentDetails.studentInformation.counsellorId
+    try {
+      if (isFrontend) {
+        if (studentDetails.studentInformation) {
+          await this.checkForValidUsers(
+            studentDetails.studentInformation.staffId,
+            studentDetails.studentInformation.counsellorId
+          );
+        }
+      }
+      if (!isFrontend) {
+        const haveMedicalHistorystring =
+          studentDetails?.demographicInformation?.haveMedicalHistory;
+        studentDetails.demographicInformation.haveMedicalHistory =
+          haveMedicalHistorystring.toLowerCase() === "yes";
+        const isRefusedVisaString =
+          studentDetails?.backgroundInformation?.isRefusedVisa;
+        studentDetails.backgroundInformation.isRefusedVisa =
+          isRefusedVisaString.toLowerCase() === "yes";
+        const student = await StudentModel.findOne({ salesforceId: studentId });
+        studentDetails.studentInformation["staffId"] =
+          student?.studentInformation?.staffId;
+        studentDetails.studentInformation["counsellorId"] =
+          student?.studentInformation?.counsellorId;
+      }
+
+      const query = isFrontend
+        ? { _id: studentId }
+        : { salesforceId: studentId };
+      const update = {
+        $set: {
+          ...studentDetails,
+          modifiedBy,
+        },
+      };
+      const options = { new: true, runValidators: true };
+
+      const updatedStudent = await StudentModel.findOneAndUpdate(
+        query,
+        update,
+        options
       );
-    }
 
-    const student = isFrontend
-      ? await this.findById(studentId)
-      : await this.findBySFId(studentId);
-    console.log(student);
-    student.set({
-      ...studentDetails,
-      modifiedBy,
-    });
-
-    await student.save();
-    if (isFrontend) {
-      const studentData = this.converttoSfBody(studentDetails);
-      const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${student?.salesforceId}`;
-      const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-      const contactDetails = await getContactId(student?.salesforceId);
-      return { id: student.id, partnerId: contactDetails?.Student_ID__c };
-    } else {
-      return { id: student.id };
+      if (isFrontend) {
+        const studentData = this.converttoSfBody(studentDetails);
+        const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${updatedStudent.salesforceId}`;
+        const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+        const contactDetails = await getContactId(updatedStudent.salesforceId);
+        return {
+          id: updatedStudent.id,
+          partnerId: contactDetails?.Student_ID__c,
+        };
+      } else {
+        return { id: updatedStudent.id };
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 

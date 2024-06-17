@@ -4,6 +4,7 @@ const {
   AccountPrivileges: { ADMIN, MAINTAINER, DEVELOPER, BASIC },
   AccountStatuses: { VERIFIED },
 } = require("./../config/constants");
+const allowedAdminRoutes = require("../config/adminRoutes");
 const Middleware = {};
 
 Middleware.addRequestTime = (req, res, next) => {
@@ -60,6 +61,14 @@ Middleware.checkAuth = (req, res, next, requireAdminAccess = false) => {
         });
         return;
       }
+      //   let BaseURL = req.url.split("/");
+      //   BaseURL = BaseURL[BaseURL.length - 1];
+      //   if (!user.isAdmin && allowedAdminRoutes.includes(BaseURL)) {
+      //     return res.status(400).send({
+      //       message: "User not authorized",
+      //       statusCode: 400,
+      //     });
+      //   }
       req.user = user;
       next();
     })
@@ -69,6 +78,12 @@ Middleware.checkAuth = (req, res, next, requireAdminAccess = false) => {
         stausCode: 401,
       });
     });
+};
+Middleware.adminAuth = (req, res, next) => {
+  if (req.user.role === "superAdmin") {
+    return next();
+  }
+  res.status(400).send({ message: "Not an Super Admin account" });
 };
 
 module.exports = Middleware;

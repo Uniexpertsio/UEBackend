@@ -38,6 +38,7 @@ router.get(
 router.put(
   "/:studentId/general-information",
   Middleware.checkAuth,
+  // Middleware.adminAuth,
   studentController.updateStudentGeneralInformation.bind(studentController)
 );
 router.get(
