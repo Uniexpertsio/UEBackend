@@ -977,6 +977,10 @@ class StudentService {
         "signingAuthority.phone": body?.Signing_Contact_Phone__c,
         "signingAuthority.name": body?.Signing_Contact_Name__c,
         signedPersonPhone: body?.Phone_Number_of_the_Signed_Person__c,
+        signedPersonEmail: body?.Email_ID_of_the_Signed_Person__c,
+        signedPersonName: body?.Name_of_the_Signed_Person__c,
+        countryCode: body?.Country_Code__c,
+        signedPersonCountryCode: body?.Signed_Country_Code__c,
       };
       // Update work history
       const updatedWorkHistory = await this.workHistoryService.update(
