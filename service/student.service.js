@@ -78,7 +78,7 @@ class StudentService {
       MobilePhone: "+" + data?.studentInformation?.mobile,
       Whatsapp_No__c: "+" + data?.studentInformation?.whatsappNumber,
       WhatsApp_Country_Code__c: data?.studentInformation?.whatsappCountryCode,
-      mobileCountryCode: data?.studentInformation?.mobileCountryCode,
+      Country_Code__c: data?.studentInformation?.mobileCountryCode,
       Email: data?.studentInformation?.email,
       Preferred_Country__c:
         data?.studentInformation?.preferredCountry.join(";"),
@@ -688,44 +688,62 @@ class StudentService {
     studentDetails,
     isFrontend
   ) {
-    console.log("isFrontend---", isFrontend);
-    if (isFrontend) {
-      if (studentDetails.studentInformation) {
-        await this.checkForValidUsers(
-          studentDetails.studentInformation.staffId,
-          studentDetails.studentInformation.counsellorId
-        );
+    try {
+      if (isFrontend) {
+        if (studentDetails.studentInformation) {
+          await this.checkForValidUsers(
+            studentDetails.studentInformation.staffId,
+            studentDetails.studentInformation.counsellorId
+          );
+        }
       }
-    }
-    if (!isFrontend) {
-      console.log("------------", isFrontend);
-      const haveMedicalHistorystring =
-        studentDetails?.demographicInformation?.haveMedicalHistory;
-      studentDetails.demographicInformation.haveMedicalHistory =
-        haveMedicalHistorystring.toLowerCase() === "yes";
-      const isRefusedVisaString =
-        studentDetails?.backgroundInformation?.isRefusedVisa;
-      studentDetails.backgroundInformation.isRefusedVisa =
-        isRefusedVisaString.toLowerCase() === "yes";
-    }
-    console.log("medicalHistory---", studentDetails);
-    const student = isFrontend
-      ? await this.findById(studentId)
-      : await this.findBySFId(studentId);
-    student.set({
-      ...studentDetails,
-      modifiedBy,
-    });
+      if (!isFrontend) {
+        const haveMedicalHistorystring =
+          studentDetails?.demographicInformation?.haveMedicalHistory;
+        studentDetails.demographicInformation.haveMedicalHistory =
+          haveMedicalHistorystring.toLowerCase() === "yes";
+        const isRefusedVisaString =
+          studentDetails?.backgroundInformation?.isRefusedVisa;
+        studentDetails.backgroundInformation.isRefusedVisa =
+          isRefusedVisaString.toLowerCase() === "yes";
+        const student = await StudentModel.findOne({ salesforceId: studentId });
+        studentDetails.studentInformation["staffId"] =
+          student?.studentInformation?.staffId;
+        studentDetails.studentInformation["counsellorId"] =
+          student?.studentInformation?.counsellorId;
+      }
 
-    await student.save();
-    if (isFrontend) {
-      const studentData = this.converttoSfBody(studentDetails);
-      const studentUrl = `${process.env.SF_API_URL}Contact/${student?.salesforceId}`;
-      const sfCompanyData = await updateDataToSF(studentData, studentUrl);
-      const contactDetails = await getContactId(student?.salesforceId);
-      return { id: student.id, partnerId: contactDetails?.Student_ID__c };
-    } else {
-      return { id: student.id };
+      const query = isFrontend
+        ? { _id: studentId }
+        : { salesforceId: studentId };
+      const update = {
+        $set: {
+          ...studentDetails,
+          modifiedBy,
+        },
+      };
+      const options = { new: true, runValidators: true };
+
+      const updatedStudent = await StudentModel.findOneAndUpdate(
+        query,
+        update,
+        options
+      );
+
+      if (isFrontend) {
+        const studentData = this.converttoSfBody(studentDetails);
+        const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${updatedStudent.salesforceId}`;
+        const sfCompanyData = await updateDataToSF(studentData, studentUrl);
+        const contactDetails = await getContactId(updatedStudent.salesforceId);
+        return {
+          id: updatedStudent.id,
+          partnerId: contactDetails?.Student_ID__c,
+        };
+      } else {
+        return { id: updatedStudent.id };
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
