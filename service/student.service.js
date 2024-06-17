@@ -844,7 +844,7 @@ class StudentService {
       const data = {
         institutionName: body?.Name_of_Institution__c,
         level: body?.Level_of_Education__c,
-        isDegreeAwarded: body?.Degree_Awarded__c,
+        isDegreeAwarded: body?.Degree_Awarded__c.toLowerCase() === "yes",
         country: body?.Country_of_Institution__c,
         affiliatedUniversity: body?.Affiliated_University__c,
         attendedFrom: body?.Attended_Institution_From__c,
@@ -854,7 +854,7 @@ class StudentService {
         // educationSfId: body?.Id,
         studentId: student._id,
         showInProfile: body?.ShowInProfile__c,
-        institutionName: body?.Name,
+        // institutionName: body?.Name,
       };
       // Update education
       const updatedEducation = await this.educationService.update(
@@ -862,7 +862,15 @@ class StudentService {
         education._id,
         data
       );
-      return updatedEducation;
+
+      // Return success response if education is updated
+      if (updatedEducation) {
+        return {
+          status: 200,
+          success: true,
+          message: "Education updated successfully",
+        };
+      }
     } catch (error) {
       // Handle errors
       console.error("Error in updateStudentEducation:", error);
@@ -989,9 +997,13 @@ class StudentService {
         data
       );
 
-      // Perform additional operations if needed
-
-      return updatedWorkHistory;
+      if (updatedWorkHistory) {
+        return {
+          status: 200,
+          success: true,
+          message: "Work history updated successfully",
+        };
+      }
     } catch (error) {
       // Handle errors
       console.error("Error in updateStudentWorkHistory:", error);
