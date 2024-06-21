@@ -12,6 +12,7 @@ const { getDataFromSF } = require("./salesforce.service");
 const NodeCache = require("node-cache");
 const Eligibility = require("../models/Eligibility");
 const { returnField } = require("../utils/emailValidator");
+const { ObjectId } = require("mongodb");
 const cache = new NodeCache();
 
 class ProgramService {
@@ -30,8 +31,14 @@ class ProgramService {
   //   let data = { ...(await this.programModel.find({School__c:programId})) };
   //   return this.parseProgram(data);
   // }
-  async getProgram(programId) {
-    let data = await this.programModel.findById(programId);
+  async getProgram(id) {
+    let data;
+    if (ObjectId.isValid(id)) {
+      data = await this.programModel.findById(id);
+    } else {
+      data = await this.programModel.find({ School__c: id });
+    }
+
     return data;
   }
 
