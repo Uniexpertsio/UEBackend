@@ -39,5 +39,8 @@ router.get("/tnc", Auth.get.tnc);
 // Route for getting user profile, requires authentication
 router.get("/profile", Middleware.checkAuth, Auth.get.profile);
 
+// Route for getting login page images
+router.get("/loginCarousel", Auth.get.carouselImage);
+
 // Export the router
 module.exports = router;
