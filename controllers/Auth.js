@@ -13,9 +13,11 @@ const {
   updateDataToSF,
   getTnc,
   getPartnerId,
+  getDataFromSF,
 } = require("../service/salesforce.service");
 const emailValidator = require("../utils/emailValidator");
 const { forgotPasswordRateLimit } = require("../utils/forgotPasswordHelper");
+const { urlReplacer } = require("../utils/fileExtention");
 
 const Auth = { get: {}, post: {}, put: {}, patch: {}, delete: {} };
 
@@ -548,6 +550,18 @@ Auth.get.profile = async (req, res) => {
   );
   return res.status(200).json({
     data: generateAuthResponse(staff, agent, token, ""),
+    statusCode: 200,
+  });
+};
+
+Auth.get.carouselImage = async (req, res) => {
+  let data = await getDataFromSF(
+    `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+ID,Name,Term_Condition__c+FROM+Website_Config__c+WHERE+Name +like+'Login%25'`
+  );
+  const convertedData = urlReplacer(data);
+
+  return res.status(200).json({
+    data: convertedData,
     statusCode: 200,
   });
 };
