@@ -113,6 +113,7 @@ class StudentService {
         data.backgroundInformation.studyPermitDetails,
       Lock_Record__c: true,
       RecordTypeId: "0125g00000020HRAAY",
+      OtherStreet: data?.emergencyContact?.address,
     };
 
     return convertedData;
