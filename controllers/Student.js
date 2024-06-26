@@ -325,6 +325,18 @@ class StudentController {
     }
   };
 
+  getStudentDocumentsBySfId = async (req, res) => {
+    try {
+      const documentId = req.params.documentId;
+      const documentData = await DocumentModel.findOne({
+        sfId: documentId,
+      });
+      return res.status(200).json(documentData);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   addStudentDocuments = async (req, res) => {
     try {
       const { studentId } = req.params;
