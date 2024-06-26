@@ -1969,9 +1969,9 @@ class StudentService {
     }
   }
 
-  getStudentEducation(studentId) {
-    return this.educationService.getByStudentId(studentId);
-  }
+  // getStudentEducation(studentId) {
+  //   return this.educationService.getByStudentId(studentId);
+  // }
 
   getStudentWorkHistory(studentId) {
     return this.workHistoryService.getByStudentId(studentId);
