@@ -3,6 +3,7 @@ const ConfigService = require("../service/config.service");
 const TestScore = require("../models/TestScore");
 const { MappingFiles } = require("./../constants/Agent.constants");
 const { sendToSF } = require("./salesforce.service");
+const Student = require("../models/Student");
 
 class TestScoreService {
   constructor() {
@@ -154,8 +155,20 @@ class TestScoreService {
     return this.testScoreModel.deleteOne({ _id: testScoreId });
   }
 
-  getByStudentId(studentId) {
-    return this.testScoreModel.find({ studentId });
+  async getByStudentId(studentId) {
+    try {
+      if (ObjectId.isValid(studentId)) {
+        return this.testScoreModel.find({ studentId });
+      } else {
+        const student = await Student.findOne(
+          { salesforceId: studentId },
+          { _id: 1 }
+        );
+        return await this.testScoreModel.find({ studentId: student._id });
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

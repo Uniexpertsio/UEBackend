@@ -111,7 +111,7 @@ class StudentService {
         data.backgroundInformation.haveStudyPermit,
       Study_Permit_Visa_Details__c:
         data.backgroundInformation.studyPermitDetails,
-      Lock_Record__c: true,
+      // Lock_Record__c: true,
       RecordTypeId: "0125g00000020HRAAY",
       OtherStreet: data?.emergencyContact?.address,
     };
@@ -1969,9 +1969,9 @@ class StudentService {
     }
   }
 
-  getStudentEducation(studentId) {
-    return this.educationService.getByStudentId(studentId);
-  }
+  // getStudentEducation(studentId) {
+  //   return this.educationService.getByStudentId(studentId);
+  // }
 
   getStudentWorkHistory(studentId) {
     return this.workHistoryService.getByStudentId(studentId);

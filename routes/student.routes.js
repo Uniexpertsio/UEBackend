@@ -106,6 +106,13 @@ router.get(
   Middleware.checkAuth,
   studentController.getStudentDocuments.bind(studentController)
 );
+
+router.get(
+  "/document/:documentId",
+  Middleware.checkAuth,
+  studentController.getStudentDocumentsBySfId.bind(studentController)
+);
+
 router.post(
   "/:studentId/document",
   Middleware.checkAuth,
