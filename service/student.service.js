@@ -856,7 +856,7 @@ class StudentService {
         // educationSfId: body?.Id,
         studentId: student._id,
         showInProfile: body?.ShowInProfile__c,
-        // institutionName: body?.Name,
+        degree: body?.Name,
       };
       // Update education
       const updatedEducation = await this.educationService.update(
