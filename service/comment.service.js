@@ -1,6 +1,8 @@
 const uuid = require("uuid");
 const StaffService = require("./staff.service");
 const Comment = require("../models/Comment");
+const Student = require("../models/Student");
+const { ObjectId } = require("mongodb");
 
 class CommentService {
   constructor() {
@@ -44,14 +46,19 @@ class CommentService {
     );
   }
 
-  async getComment(id, staffId) {
-    try{
-    const comment = await this.commentModel.find({salesforceId: id});
-    if (!comment) throw new Error("Comment not found");
-    const user = await this.staffService.findById(staffId);
-    return { comment, user };
-    }catch(error) {
-      console.log('error',error)
+  async getComment(studentId) {
+    try {
+      if (ObjectId.isValid(studentId)) {
+        return this.commentModel.find({ relationId: studentId });
+      } else {
+        const student = await Student.findOne(
+          { salesforceId: studentId },
+          { _id: 1 }
+        );
+        return await this.commentModel.find({ relationId: student._id });
+      }
+    } catch (error) {
+      throw error;
     }
   }
 }
