@@ -460,7 +460,7 @@ class ApplicationService {
     }
   }
 
-  async updateApplication(applicationSfId, requestData) {
+  async updateApplication(applicationSfId, body) {
     return new Promise(async (resolve, reject) => {
       try {
         const checkApplicationExist = await Application.findOne({
@@ -471,31 +471,24 @@ class ApplicationService {
             message: `Application does not exist with ${applicationSfId}`,
           });
         }
+        const payload = {
+          applicationId: body.Name,
+          salesforceId: body.Id,
+          schoolId: body.School__c,
+          programId: body.Programme__c,
+          status: body.Status__c,
+          stage: body.Current_Stage__c,
+          intakeId: body.Intake__c,
+          studentId: body.Student__c,
+          country: body.RecordTypeId,
+        };
         await Application.updateOne(
           {
-            $and: [
-              { salesforceId: applicationSfId },
-              { "stages.key": requestData.Current_Stage__c },
-            ],
+            salesforceId: applicationSfId,
           },
-          { $set: { "stages.value": new Date() } },
+          { $set: payload },
           { new: true }
         );
-
-        const currentStageIndex = checkApplicationExist.stages.findIndex(
-          (stage) => stage.key === requestData.Current_Stage__c
-        );
-        if (currentStageIndex === -1) {
-          return reject({
-            message: `Stage ${requestData.Current_Stage__c} not found`,
-          });
-        }
-
-        checkApplicationExist.stages[currentStageIndex].value = new Date();
-
-        checkApplicationExist.stages[0].value = checkApplicationExist.createdAt;
-
-        await checkApplicationExist.save();
         resolve({ message: "Success", status: 200, sf: applicationSfId });
       } catch (error) {
         console.log(error);
