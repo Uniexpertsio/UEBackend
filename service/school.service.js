@@ -200,7 +200,6 @@ class SchoolService {
 
   async findBySfId(id) {
     const school = await School.findOne({ Id: id });
-
     if (!school) {
       throw new Error(`No school found for id - ${id}`);
     }
