@@ -1,6 +1,6 @@
 // applicationController.js
 
-const ApplicationService = require('../service/application.service');
+const ApplicationService = require("../service/application.service");
 
 class ApplicationController {
   constructor() {
@@ -11,7 +11,11 @@ class ApplicationController {
     try {
       const { id, agentId } = req.user;
       const body = req.body;
-      const result = await this.applicationService.addApplication(id, agentId, body);
+      const result = await this.applicationService.addApplication(
+        id,
+        agentId,
+        body
+      );
       res.status(201).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -20,9 +24,14 @@ class ApplicationController {
 
   async getApplications(req, res) {
     try {
-      const { agentId,role,_id} = req.user;
+      const { agentId, role, _id } = req.user;
       const query = req.query;
-      const result = await this.applicationService.getApplications(agentId, query,role,_id);
+      const result = await this.applicationService.getApplications(
+        agentId,
+        query,
+        role,
+        _id
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -33,7 +42,10 @@ class ApplicationController {
     try {
       const { applicationId } = req.params;
       const { status } = req.query;
-      const result = await this.applicationService.getTasks(applicationId, status);
+      const result = await this.applicationService.getTasks(
+        applicationId,
+        status
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -45,7 +57,12 @@ class ApplicationController {
       const { applicationId, taskId } = req.params;
       const { data } = req.query;
       const { id } = req.user;
-      const result = await this.applicationService.updateTask(applicationId, id, taskId, data);
+      const result = await this.applicationService.updateTask(
+        applicationId,
+        id,
+        taskId,
+        data
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -55,7 +72,10 @@ class ApplicationController {
   async getTaskComments(req, res) {
     try {
       const { applicationId, taskId } = req.params;
-      const result = await this.applicationService.getTaskComments(applicationId, taskId);
+      const result = await this.applicationService.getTaskComments(
+        applicationId,
+        taskId
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -67,7 +87,12 @@ class ApplicationController {
       const { applicationId, taskId } = req.params;
       const { id } = req.user;
       const body = req.body;
-      const result = await this.applicationService.addTaskComment(applicationId, taskId, id, body);
+      const result = await this.applicationService.addTaskComment(
+        applicationId,
+        taskId,
+        id,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -89,7 +114,11 @@ class ApplicationController {
       const { applicationId } = req.params;
       const { id } = req.user;
       const body = req.body;
-      const result = await this.applicationService.addComment(applicationId, id, body);
+      const result = await this.applicationService.addComment(
+        applicationId,
+        id,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -111,7 +140,11 @@ class ApplicationController {
       const { applicationId } = req.params;
       const { id } = req.user;
       const body = req.body;
-      const result = await this.applicationService.addOrupdatePayment(applicationId, id, body);
+      const result = await this.applicationService.addOrupdatePayment(
+        applicationId,
+        id,
+        body
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -131,19 +164,24 @@ class ApplicationController {
   async getApplication(req, res) {
     try {
       const { applicationId } = req.params;
-      const result = await this.applicationService.getApplication(applicationId);
+      const result = await this.applicationService.getApplication(
+        applicationId
+      );
       res.status(200).json(result);
     } catch (error) {
-      console.log('errrorrr',error)
+      console.log("errrorrr", error);
       res.status(500).json({ error: error.message });
     }
   }
 
   async updateApplication(req, res) {
-    try { 
+    try {
       const { applicationSfId } = req.params;
       const requestData = req.body;
-      const result = await this.applicationService.updateApplication(applicationSfId, requestData);
+      const result = await this.applicationService.updateApplication(
+        applicationSfId,
+        requestData
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -151,10 +189,27 @@ class ApplicationController {
   }
 
   async createApplicationStages(req, res) {
-    try { 
+    try {
       const { countrySfId } = req.params;
-      const result = await this.applicationService.createApplicationStages(countrySfId);
+      const result = await this.applicationService.createApplicationStages(
+        countrySfId
+      );
       res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async createApplicationFromSf(req, res) {
+    try {
+      const { id, agentId } = req.user;
+      const body = req.body;
+      const result = await this.applicationService.createApplicationFromSf(
+        id,
+        agentId,
+        body
+      );
+      res.status(201).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
