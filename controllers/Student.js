@@ -315,8 +315,15 @@ class StudentController {
       }
       if (studentId && applicationId) {
         query = {
-          $or: [{ studentId }, { $and: [{ studentId, applicationId }] }],
+          $or: [
+            { studentId },
+            { applicationId },
+            { $and: [{ studentId, applicationId }] },
+          ],
         };
+        // query = {
+        //   applicationId,
+        // };
       }
       const documentData = await DocumentModel.find(query);
       res.status(200).json(documentData);
@@ -365,6 +372,22 @@ class StudentController {
         body,
         req.query?.frontend,
         applicationId
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  updateApplicationDocument = async (req, res) => {
+    try {
+      const { appId } = req.params;
+      const { body } = req;
+      const { id } = req.user;
+      const result = await this.studentService.updateApplicationDocumentService(
+        id,
+        body,
+        appId
       );
       res.status(200).json(result);
     } catch (error) {

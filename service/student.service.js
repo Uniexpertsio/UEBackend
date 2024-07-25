@@ -380,10 +380,10 @@ class StudentService {
 
         // Construct the URL for Salesforce API to create a Contact
         const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-
+        console.log("studentData====================>", studentData);
         // Send student data to Salesforce
         const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-
+        console.log("sfStudentResponse==========>", sfStudentResponse);
         // Get the Salesforce ID if the student was successfully created in Salesforce
         const sfId = sfStudentResponse?.id;
         let contactDetails;
@@ -1741,6 +1741,30 @@ class StudentService {
           );
         }
 
+        resolve(document);
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
+  }
+
+  async updateApplicationDocumentService(modifiedBy, body, applicationId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let application = {};
+        if (applicationId) {
+          application = await ApplicationModel.findOne({
+            salesforceId: applicationId,
+          });
+          if (!application) throw "Application not found";
+        }
+        const document = await this.documentService.addOrUpdateStudentDocument(
+          modifiedBy,
+          "",
+          body,
+          application._id
+        );
         resolve(document);
       } catch (error) {
         console.log(error);

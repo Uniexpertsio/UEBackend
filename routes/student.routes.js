@@ -123,6 +123,13 @@ router.put(
   Middleware.checkAuth,
   studentController.updateStudentDocument.bind(studentController)
 );
+
+router.put(
+  "/:appId/applicationDocument",
+  Middleware.checkAuth,
+  studentController.updateApplicationDocument.bind(studentController)
+);
+
 router.patch(
   "/:studentId/studentCurrentStage",
   Middleware.checkAuth,
