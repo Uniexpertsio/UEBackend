@@ -115,11 +115,42 @@ class ProgramService {
         ...programLevelQuery,
       };
 
-      const programs = await this.programModel
-        .find({ ...query })
-        .sort(sortQuery)
-        .limit(limit)
-        .skip(skip);
+      // const programs = await this.programModel
+      //   .find({ ...query })
+      //   .sort(sortQuery)
+      //   .limit(limit)
+      //   .skip(skip);
+      console.log(sortQuery, "XXXXXXXXX");
+      console.log(query, "qqqqqqqqqqqq");
+      const programs = await this.programModel.aggregate([
+        { $match: query },
+        ...(sortQuery && Object.keys(sortQuery).length > 0
+          ? [{ $sort: sortQuery }]
+          : []),
+        { $skip: parseInt(skip) },
+        { $limit: parseInt(limit) },
+        {
+          $lookup: {
+            from: "schools", // The name of the School collection
+            localField: "School__c", // The field in the programs collection
+            foreignField: "Id", // The field in the schools collection
+            as: "schoolDetails", // The name of the array field to be added
+          },
+        },
+        {
+          $unwind: "$schoolDetails", // Deconstructs the array field to output one document for each element
+        },
+        {
+          $addFields: {
+            SchoolName: "$schoolDetails.Name", // Add schoolDetails.name as SchoolName
+          },
+        },
+        {
+          $project: {
+            schoolDetails: 0, // Optionally remove the original schoolDetails field
+          },
+        },
+      ]);
       const totalPrograms = await this.programModel.countDocuments(query);
       const result = { programs, totalPrograms };
 
