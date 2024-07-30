@@ -120,8 +120,7 @@ class ProgramService {
       //   .sort(sortQuery)
       //   .limit(limit)
       //   .skip(skip);
-      console.log(sortQuery, "XXXXXXXXX");
-      console.log(query, "qqqqqqqqqqqq");
+
       const programs = await this.programModel.aggregate([
         { $match: query },
         ...(sortQuery && Object.keys(sortQuery).length > 0
@@ -143,6 +142,7 @@ class ProgramService {
         {
           $addFields: {
             SchoolName: "$schoolDetails.Name", // Add schoolDetails.name as SchoolName
+            SchoolId: "$schoolDetails._id",
           },
         },
         {
