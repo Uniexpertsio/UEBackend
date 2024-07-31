@@ -31,15 +31,47 @@ class ProgramService {
   //   let data = { ...(await this.programModel.find({School__c:programId})) };
   //   return this.parseProgram(data);
   // }
-  async getProgram(id) {
-    let data;
+  // async getProgram(id, page, limit) {
+  //   let data;
+  //   const skip = (page - 1) * limit;
+  //   if (ObjectId.isValid(id)) {
+  //     data = this.programModel.findById(id).limit(limit).skip(skip);
+  //   } else {
+  //     data = this.programModel.find({ School__c: id }).limit(limit).skip(skip);
+  //   }
+
+  //   return data;
+  // }
+  async getProgram(id, page, limit) {
+    let dataQuery;
+    let totalRecordsQuery;
+
+    const skip = (page - 1) * limit;
+
     if (ObjectId.isValid(id)) {
-      data = await this.programModel.findById(id);
+      dataQuery = this.programModel.findById(id);
+      totalRecordsQuery = this.programModel.countDocuments({ _id: id });
     } else {
-      data = await this.programModel.find({ School__c: id });
+      dataQuery = this.programModel.find({ School__c: id });
+      totalRecordsQuery = this.programModel.countDocuments({ School__c: id });
     }
 
-    return data;
+    // If page and limit are provided, apply limit and skip
+    if (page && limit) {
+      dataQuery = dataQuery.limit(limit).skip(skip);
+    }
+
+    const [data, totalRecords] = await Promise.all([
+      dataQuery,
+      totalRecordsQuery,
+    ]);
+
+    return page && limit
+      ? {
+          data,
+          totalRecords: totalRecords,
+        }
+      : data;
   }
 
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
@@ -575,14 +607,14 @@ class ProgramService {
     return this.programModel.find({}).sort({ createdAt: 1 });
   }
 
-  async getPrograms(schoolId) {
+  async getPrograms(schoolId, page, limit) {
     const school = await this.schoolModel.findById(schoolId);
     if (!school) {
       throw new Error("School width id: " + schoolId + " not found");
     }
 
     // return Promise.all(school.programmes.map(async (id) => await this.getProgram(id)));\
-    return await this.getProgram(school.Id);
+    return await this.getProgram(school.Id, page, limit);
   }
 
   async getSimilarProgram(programId) {

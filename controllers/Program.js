@@ -47,7 +47,12 @@ class ProgramController {
   getPrograms = async (req, res) => {
     try {
       const { schoolId } = req.params;
-      const programs = await this.programService.getPrograms(schoolId);
+      const { page, limit } = req.query;
+      const programs = await this.programService.getPrograms(
+        schoolId,
+        page,
+        limit
+      );
       res.status(200).json({ success: true, data: programs });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
