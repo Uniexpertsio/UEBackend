@@ -946,6 +946,7 @@ class StudentService {
       workHistoryData,
       workHistoryUrl
     );
+    console.log("sfWorkHistoryResponse===>", sfWorkHistoryResponse);
     if (sfWorkHistoryResponse?.id) {
       await this.workHistoryService.updateSFID(
         workHistory?.id,

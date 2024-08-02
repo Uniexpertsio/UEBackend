@@ -3,6 +3,7 @@ const StaffService = require("./staff.service");
 const Comment = require("../models/Comment");
 const Student = require("../models/Student");
 const { ObjectId } = require("mongodb");
+const Case = require("../models/Case");
 
 class CommentService {
   constructor() {
@@ -44,6 +45,21 @@ class CommentService {
       { _id: id },
       { $set: { salesforceId: sfId } }
     );
+  }
+
+  async getCaseComment(caseId, staffId) {
+    try {
+      console.log(caseId);
+      if (ObjectId.isValid(caseId)) {
+        return this.commentModel.find({ relationId: caseId });
+      } else {
+        const caseData = await Case.findOne({ caseId: caseId }, { _id: 1 });
+        console.log(caseData);
+        return await this.commentModel.find({ relationId: caseData._id });
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getComment(studentId) {

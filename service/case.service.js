@@ -47,22 +47,23 @@ class CaseService {
       const caseData = await Case.findById(caseId);
 
       const data = {
-       "Enter_Note__c": null,
-       "Application__c": null,
-       "Partner_User__c": null,
-       "Lead__c": null,
-       "PartnerNote__c": null,
-       "University_Notes__c": null,
-       "Subject__c": "Offer Related",
-       "Student__c": null,
-       "Message_Body__c": body.message,
-       "Type__c": "Inbound",
-       "External__c": true,
-       "CourseEnquiry__c": null,
-       "Cases__c": caseData?.caseId,
+        Enter_Note__c: null,
+        Application__c: null,
+        Partner_User__c: null,
+        Lead__c: null,
+        PartnerNote__c: null,
+        University_Notes__c: null,
+        Subject__c: "Offer Related",
+        Student__c: null,
+        Message_Body__c: body.message,
+        Type__c: "Inbound",
+        External__c: true,
+        CourseEnquiry__c: null,
+        Cases__c: caseData?.caseId,
       };
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
+      console.log(sendingComment, "sendingComment");
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
@@ -82,9 +83,9 @@ class CaseService {
     const id = caseData.caseId;
     if (!caseData) throw new Error("Case not found");
     // return Promise.all(
-      // caseData.comments.map(async (comment) => {
-        return await this.commentService.getComment(id, staffId);
-      // })
+    // caseData.comments.map(async (comment) => {
+    return await this.commentService.getCaseComment(id, staffId);
+    // })
     // );
   }
 
@@ -219,29 +220,33 @@ class CaseService {
   async ReplyComment(commentData, id) {
     return new Promise(async (resolve, reject) => {
       try {
-    const externalId = uuid.v4();
+        const externalId = uuid.v4();
         const data = {
           name: commentData?.Created_By_Name__c,
-          message: commentData?.Message_Body__c, 
+          message: commentData?.Message_Body__c,
           isReply: true,
           externalId: externalId,
-          userId: id
+          userId: id,
         };
         let comment;
         switch (true) {
           case !!commentData?.Application__c:
             data.salesforceId = commentData.Application__c;
-            comment = await Application.findOne({salesforceId: data.salesforceId})
+            comment = await Application.findOne({
+              salesforceId: data.salesforceId,
+            });
             data.relationId = comment?._id;
             break;
           case !!commentData?.Student__c:
             data.salesforceId = commentData.Student__c;
-            comment = await Student.findOne({salesforceId: data.salesforceId})
+            comment = await Student.findOne({
+              salesforceId: data.salesforceId,
+            });
             data.relationId = comment?._id;
             break;
           case !!commentData?.Cases__c:
             data.salesforceId = commentData.Cases__c;
-            comment = await Case.findOne({caseId: data.salesforceId})
+            comment = await Case.findOne({ caseId: data.salesforceId });
             data.relationId = comment?._id;
             break;
           default:
