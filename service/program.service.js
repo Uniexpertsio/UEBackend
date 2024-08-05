@@ -28,7 +28,11 @@ class ProgramService {
   }
 
   async getProgram(id, page, limit, search) {
+    let dataQuery;
+    let totalRecordsQuery;
     let searchCondition = {};
+
+    const skip = (page - 1) * limit;
 
     if (ObjectId.isValid(id)) {
       searchCondition.School__c = id;
@@ -38,34 +42,34 @@ class ProgramService {
 
     // Add search condition for program name if search is provided
     if (search) {
-      searchCondition.Name = { $regex: search, $options: "i" };
+      const searchTerms = search.split(" ").filter((term) => term.length > 0);
+      if (searchTerms.length > 0) {
+        searchCondition.$or = searchTerms.map((term) => ({
+          Name: { $regex: term, $options: "i" },
+        }));
+      }
     }
 
-    const skip = (page - 1) * limit;
+    dataQuery = this.programModel.find(searchCondition);
+    totalRecordsQuery = this.programModel.countDocuments(searchCondition);
 
-    try {
-      const totalRecords = await this.programModel.countDocuments(
-        searchCondition
-      );
+    // If page and limit are provided, apply limit and skip
+    if (page && limit) {
+      dataQuery = dataQuery.limit(parseInt(limit)).skip(skip);
+    }
 
-      const data = await this.programModel
-        .find(searchCondition)
-        .limit(parseInt(limit))
-        .skip(skip)
-        .lean(); // Use lean() for better performance
+    const [data, totalRecords] = await Promise.all([
+      dataQuery,
+      totalRecordsQuery,
+    ]);
 
-      return {
-        success: true,
+    return {
+      success: true,
+      data: {
         data: data,
         totalRecords: totalRecords,
-      };
-    } catch (error) {
-      console.error("Error in getProgram:", error);
-      return {
-        success: false,
-        error: "An error occurred while fetching programs",
-      };
-    }
+      },
+    };
   }
 
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
@@ -112,6 +116,7 @@ class ProgramService {
       let countryQuery = {};
       let programLevelQuery = {};
       let schoolIds = [];
+      let nameQuery = {};
 
       if (searchType === "Country__c") {
         console.log("searchType", searchType);
@@ -133,12 +138,15 @@ class ProgramService {
           return { programs: [], totalPrograms: 0 };
         }
         schoolIds = schools.map((school) => school.Id);
+      } else if (searchType === "Name") {
+        nameQuery = { Name: new RegExp(searchTerm, "i") };
       }
 
       const query = {
         ...filter,
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
+        ...nameQuery,
       };
 
       // const programs = await this.programModel
