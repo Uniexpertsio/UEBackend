@@ -28,11 +28,7 @@ class ProgramService {
   }
 
   async getProgram(id, page, limit, search) {
-    let dataQuery;
-    let totalRecordsQuery;
     let searchCondition = {};
-
-    const skip = (page - 1) * limit;
 
     if (ObjectId.isValid(id)) {
       searchCondition.School__c = id;
@@ -42,34 +38,34 @@ class ProgramService {
 
     // Add search condition for program name if search is provided
     if (search) {
-      const searchTerms = search.split(" ").filter((term) => term.length > 0);
-      if (searchTerms.length > 0) {
-        searchCondition.$or = searchTerms.map((term) => ({
-          Name: { $regex: term, $options: "i" },
-        }));
-      }
+      searchCondition.Name = { $regex: search, $options: "i" };
     }
 
-    dataQuery = this.programModel.find(searchCondition);
-    totalRecordsQuery = this.programModel.countDocuments(searchCondition);
+    const skip = (page - 1) * limit;
 
-    // If page and limit are provided, apply limit and skip
-    if (page && limit) {
-      dataQuery = dataQuery.limit(parseInt(limit)).skip(skip);
-    }
+    try {
+      const totalRecords = await this.programModel.countDocuments(
+        searchCondition
+      );
 
-    const [data, totalRecords] = await Promise.all([
-      dataQuery,
-      totalRecordsQuery,
-    ]);
+      const data = await this.programModel
+        .find(searchCondition)
+        .limit(parseInt(limit))
+        .skip(skip)
+        .lean(); // Use lean() for better performance
 
-    return {
-      success: true,
-      data: {
+      return {
+        success: true,
         data: data,
         totalRecords: totalRecords,
-      },
-    };
+      };
+    } catch (error) {
+      console.error("Error in getProgram:", error);
+      return {
+        success: false,
+        error: "An error occurred while fetching programs",
+      };
+    }
   }
 
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {

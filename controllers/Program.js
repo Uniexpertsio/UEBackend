@@ -54,7 +54,7 @@ class ProgramController {
         limit,
         search
       );
-      res.status(200).json({ success: true, data: programs });
+      res.status(200).json(programs);
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
