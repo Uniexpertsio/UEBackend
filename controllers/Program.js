@@ -47,11 +47,12 @@ class ProgramController {
   getPrograms = async (req, res) => {
     try {
       const { schoolId } = req.params;
-      const { page, limit } = req.query;
+      const { page, limit, search } = req.query;
       const programs = await this.programService.getPrograms(
         schoolId,
         page,
-        limit
+        limit,
+        search
       );
       res.status(200).json({ success: true, data: programs });
     } catch (error) {

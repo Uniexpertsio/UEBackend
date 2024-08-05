@@ -27,38 +27,35 @@ class ProgramService {
     //this.salesforceService = SalesforceService;
   }
 
-  // async getProgram(programId) {
-  //   let data = { ...(await this.programModel.find({School__c:programId})) };
-  //   return this.parseProgram(data);
-  // }
-  // async getProgram(id, page, limit) {
-  //   let data;
-  //   const skip = (page - 1) * limit;
-  //   if (ObjectId.isValid(id)) {
-  //     data = this.programModel.findById(id).limit(limit).skip(skip);
-  //   } else {
-  //     data = this.programModel.find({ School__c: id }).limit(limit).skip(skip);
-  //   }
-
-  //   return data;
-  // }
-  async getProgram(id, page, limit) {
+  async getProgram(id, page, limit, search) {
     let dataQuery;
     let totalRecordsQuery;
+    let searchCondition = {};
 
     const skip = (page - 1) * limit;
 
     if (ObjectId.isValid(id)) {
-      dataQuery = this.programModel.findById(id);
-      totalRecordsQuery = this.programModel.countDocuments({ _id: id });
+      searchCondition.School__c = id;
     } else {
-      dataQuery = this.programModel.find({ School__c: id });
-      totalRecordsQuery = this.programModel.countDocuments({ School__c: id });
+      searchCondition.School__c = id;
     }
+
+    // Add search condition for program name if search is provided
+    if (search) {
+      const searchTerms = search.split(" ").filter((term) => term.length > 0);
+      if (searchTerms.length > 0) {
+        searchCondition.$or = searchTerms.map((term) => ({
+          Name: { $regex: term, $options: "i" },
+        }));
+      }
+    }
+
+    dataQuery = this.programModel.find(searchCondition);
+    totalRecordsQuery = this.programModel.countDocuments(searchCondition);
 
     // If page and limit are provided, apply limit and skip
     if (page && limit) {
-      dataQuery = dataQuery.limit(limit).skip(skip);
+      dataQuery = dataQuery.limit(parseInt(limit)).skip(skip);
     }
 
     const [data, totalRecords] = await Promise.all([
@@ -66,12 +63,13 @@ class ProgramService {
       totalRecordsQuery,
     ]);
 
-    return page && limit
-      ? {
-          data,
-          totalRecords: totalRecords,
-        }
-      : data;
+    return {
+      success: true,
+      data: {
+        data: data,
+        totalRecords: totalRecords,
+      },
+    };
   }
 
   async getAllProgram(page, limit, programFilter, searchType, searchTerm) {
@@ -607,14 +605,14 @@ class ProgramService {
     return this.programModel.find({}).sort({ createdAt: 1 });
   }
 
-  async getPrograms(schoolId, page, limit) {
+  async getPrograms(schoolId, page, limit, search) {
     const school = await this.schoolModel.findById(schoolId);
     if (!school) {
       throw new Error("School width id: " + schoolId + " not found");
     }
 
     // return Promise.all(school.programmes.map(async (id) => await this.getProgram(id)));\
-    return await this.getProgram(school.Id, page, limit);
+    return await this.getProgram(school.Id, page, limit, search);
   }
 
   async getSimilarProgram(programId) {
