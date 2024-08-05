@@ -116,7 +116,6 @@ class ProgramService {
       let countryQuery = {};
       let programLevelQuery = {};
       let schoolIds = [];
-      let nameQuery = {};
 
       if (searchType === "Country__c") {
         console.log("searchType", searchType);
@@ -138,15 +137,12 @@ class ProgramService {
           return { programs: [], totalPrograms: 0 };
         }
         schoolIds = schools.map((school) => school.Id);
-      } else if (searchType === "Name") {
-        nameQuery = { Name: new RegExp(searchTerm, "i") };
       }
 
       const query = {
         ...filter,
         ...(schoolIds.length > 0 ? { School__c: { $in: schoolIds } } : {}),
         ...programLevelQuery,
-        ...nameQuery,
       };
 
       // const programs = await this.programModel
