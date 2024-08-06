@@ -12,6 +12,7 @@ const Student = require("../models/Student");
 const School = require("../models/School");
 const Application = require("../models/Application");
 const { sendDataToSF, getDataFromSF } = require("./salesforce.service");
+const Agent = require("../models/Agent");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -54,10 +55,11 @@ class ApplicationService {
     this.currencyService = new CurrencyService();
   }
 
-  convertApplicationData(data) {
+  convertApplicationData(data, agentData) {
     const convertedData = {
       Student__c: data.studentId,
-      Partner_Account__c: "", // Pass agent company Id
+      Partner_Account__c: agentData?.commonId, // Pass agent company Id
+      Partner_Contact__c: agentData?.contactId,
       Partner_User__c: "", // Pass agent Id
       Processing_Officer__c: "",
       BDM_User__c: "", // Pass BDM user Id
@@ -79,7 +81,7 @@ class ApplicationService {
       await this.schoolService.findBySfId(body.schoolId);
       await this.programService.findById(body.programId);
       await this.intakeService.findById(body.intakeId);
-
+      const data = await Agent.findById(agentId);
       const externalId = uuid.v4();
       const checkApplicationExist = await Application.findOne({
         intakeId: body.intakeId,
@@ -96,7 +98,7 @@ class ApplicationService {
         createdBy: id,
         externalId,
       });
-      const applicationSfData = this.convertApplicationData(body);
+      const applicationSfData = this.convertApplicationData(body, data);
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
       const applicationSfResponse = await sendDataToSF(
         applicationSfData,
