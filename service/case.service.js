@@ -10,6 +10,7 @@ const {
   updateDataToSF,
 } = require("../service/salesforce.service");
 const CommentService = require("./comment.service");
+const { getFileExtension } = require("../utils/fileExtention");
 
 // Defining the CaseService class
 class CaseService {
@@ -189,11 +190,31 @@ class CaseService {
         },
         { new: true }
       );
-      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Case/${id}`;
-      const sfRes = await updateDataToSF(
-        { Attachment__c: caseData?.attachment },
-        url
-      );
+      const fileExtension = await getFileExtension(caseData?.attachment);
+      const data = {
+        Name: caseData?.name,
+        ReviewRemarks__c: "",
+        Status__c: "Uploaded",
+        IsNewDoc__c: true,
+        FileType__c: fileExtension,
+        ExpiryDate__c: "2023-01-25",
+        Sequence__c: 30,
+        Mandatory__c: true,
+        Entity_Type__c: "", //Individual,Private,Proprietor,Partnership,Trust
+        ObjectType__c: "", //Student,Application,Agent
+        Account__c: cases?.accountId,
+        S3_DMS_URL__c: caseData?.attachment,
+        ContentUrl__c: caseData?.attachment,
+        Case__c: cases?.caseId,
+      };
+      console.log(caseData, data, "============");
+      const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
+      // const sfRes = await updateDataToSF(
+      //   { Attachment__c: caseData?.attachment },
+      //   url
+      // );
+      const sfRes = await sendDataToSF(data, url);
+      console.log(sfRes);
       if (!cases) {
         return res
           .status(400)
