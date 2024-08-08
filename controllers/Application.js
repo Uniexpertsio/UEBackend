@@ -102,6 +102,7 @@ class ApplicationController {
   async getComments(req, res) {
     try {
       const { applicationId } = req.params;
+      console.log(applicationId, "applid");
       const result = await this.applicationService.getComments(applicationId);
       res.status(200).json(result);
     } catch (error) {

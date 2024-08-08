@@ -148,7 +148,8 @@ class ApplicationService {
     let filter = role === "consultant" ? { createdBy } : { agentId };
 
     if (query.studentId) {
-      filter = { ...filter, studentId: query.studentId };
+      const studentData = await this.studentModel.findById(query.studentId);
+      filter = { ...filter, studentId: studentData.salesforceId };
     }
 
     if (query.status) {
@@ -236,11 +237,7 @@ class ApplicationService {
     const student = await Application.findById(applicationId);
     if (!student) throw new Error("student not found");
 
-    return Promise.all(
-      student.comments.map(async (comment) => {
-        return await this.commentService.getComment(comment);
-      })
-    );
+    return await this.commentService.getComment(applicationId);
   }
 
   async addComment(applicationId, modifiedBy, body) {
