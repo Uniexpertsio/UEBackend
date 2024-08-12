@@ -82,4 +82,10 @@ router.post(
   applicationController.createApplicationFromSf.bind(applicationController)
 );
 
+router.put(
+  "/:applicationId/customDocument",
+  Middleware.checkAuth,
+  applicationController.addApplicationDocuments.bind(applicationController)
+);
+
 module.exports = router;

@@ -72,11 +72,55 @@ class DocumentService {
         applicationId,
         modifiedBy,
         createdBy: modifiedBy,
-        externalId: uuid.v4()
+        externalId: uuid.v4(),
       }));
 
       const documents = await Document.insertMany(documentsToInsert);
       return documents;
+    } catch (error) {
+      console.error("Error in add Or Update Student Document:", error);
+      throw new Error("Failed to add or update documents.");
+    }
+  }
+
+  async addOrUpdateApplicationDocument(modifiedBy, applicationId, body) {
+    try {
+      const updatedDocuments = [];
+      const documentsToInsert = [];
+
+      for (const document of body.documents) {
+        if (document.sfId && document.sfId.length) {
+          const updatedDoc = await Document.findOneAndUpdate(
+            { sfId: document.sfId },
+            {
+              $set: {
+                ...document,
+                applicationId,
+                modifiedBy,
+                createdBy: modifiedBy,
+                externalId: uuid.v4(),
+              },
+            },
+            { new: true, upsert: true }
+          );
+          updatedDocuments.push(updatedDoc);
+        } else {
+          documentsToInsert.push({
+            ...document,
+            applicationId,
+            modifiedBy,
+            createdBy: modifiedBy,
+            externalId: uuid.v4(),
+          });
+        }
+      }
+
+      if (documentsToInsert.length > 0) {
+        const insertedDocuments = await Document.insertMany(documentsToInsert);
+        updatedDocuments.push(...insertedDocuments);
+      }
+
+      return updatedDocuments;
     } catch (error) {
       console.error("Error in add Or Update Student Document:", error);
       throw new Error("Failed to add or update documents.");
@@ -150,14 +194,14 @@ class DocumentService {
         url: document.url,
         status: document.status,
         remark: document.remark,
-        type: document.name
+        type: document.name,
       }))
     );
   }
 
   async getSfDataStudentId(studentId) {
     const studentData = await Student.findById(studentId);
-    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Description__c,Document_Category__c,ReviewRemarks__c,Status__c,Used_For__c,Sequence__c,Mandatory__c,ContentUrl__c+FROM+DMS_Documents__c+WHERE+Student__c+=+'${studentData?.salesforceId}'`
+    const url = `${process.env.SF_API_URL}services/data/v50.0/query?q=SELECT+Id,Name,Description__c,Document_Category__c,ReviewRemarks__c,Status__c,Used_For__c,Sequence__c,Mandatory__c,ContentUrl__c+FROM+DMS_Documents__c+WHERE+Student__c+=+'${studentData?.salesforceId}'`;
     const sfData = await getDataFromSF(url);
     return sfData;
   }
@@ -170,7 +214,7 @@ class DocumentService {
       url: document.url,
       status: document.status,
       remark: document.remark,
-      type: document.name
+      type: document.name,
     };
   }
 }

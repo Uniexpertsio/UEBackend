@@ -215,6 +215,24 @@ class ApplicationController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async addApplicationDocuments(req, res) {
+    try {
+      const { agentId } = req.user;
+      const { applicationId } = req.params;
+      const { isFrontend } = req.query;
+      const body = req.body;
+      const result = await this.applicationService.addApplicationDocuments(
+        agentId,
+        applicationId,
+        body,
+        isFrontend
+      );
+      res.status(201).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new ApplicationController();

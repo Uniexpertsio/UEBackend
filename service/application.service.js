@@ -11,8 +11,13 @@ const CurrencyService = require("./currency.service");
 const Student = require("../models/Student");
 const School = require("../models/School");
 const Application = require("../models/Application");
-const { sendDataToSF, getDataFromSF } = require("./salesforce.service");
+const {
+  sendDataToSF,
+  getDataFromSF,
+  updateDataToSF,
+} = require("./salesforce.service");
 const Agent = require("../models/Agent");
+const Document = require("../models/Document");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -609,6 +614,83 @@ class ApplicationService {
       };
     } catch (error) {
       return error;
+    }
+  }
+
+  async addApplicationDocuments(modifiedBy, applicationId, body, isFrontend) {
+    try {
+      // Find the application
+      const checkApplication = isFrontend
+        ? await Application.findById({ _id: applicationId })
+        : await Application.findOne({ salesforceId: applicationId });
+      if (!checkApplication) throw "Application not found";
+
+      // Add or update application document
+      const document =
+        await this.documentService.addOrUpdateApplicationDocument(
+          modifiedBy,
+          checkApplication?._id,
+          body
+        );
+
+      // Update Salesforce if it's a frontend request
+      if (isFrontend) {
+        await Promise.all(
+          document.map(async (doc) => {
+            const data = {
+              Name: doc?.name,
+              Lock_Record__c: false,
+              Active__c: "",
+              LatestDocumentId__c: "",
+              ReviewRemarks__c: "",
+              BypassDocumentation__c: false,
+              Status__c: doc?.status,
+              IsPublic__c: "",
+              IsNewDoc__c: true,
+              FileType__c: "",
+              Is_Downloaded__c: false,
+              Sequence__c: 30,
+              Mandatory__c: doc?.mandatory,
+              Entity_Type__c: "",
+              ObjectType__c: doc?.objectType,
+              Account__c: "",
+              School__c: "",
+              Student__c: "",
+              Application__c: checkApplication?.salesforceId,
+              Programme__c: "",
+              Used_For__c: doc?.usedFor,
+              S3_DMS_URL__c: doc?.url,
+              ContentUrl__c: doc?.url,
+            };
+
+            // Check if there's an existing Salesforce ID
+            const existingDocument = body.documents.find(
+              (document) => document.sfId
+            );
+
+            if (existingDocument) {
+              // Update existing Salesforce document
+              const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${existingDocument.sfId}`;
+              await updateDataToSF(data, url);
+            } else {
+              // Create new Salesforce document
+              const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
+              const sfRes = await sendDataToSF(data, url);
+              doc["sfId"] = sfRes.id;
+              await Document.findOneAndUpdate(
+                { _id: doc._id },
+                { $set: { sfId: sfRes.id } },
+                { new: true }
+              );
+            }
+          })
+        );
+      }
+
+      return document;
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 }
