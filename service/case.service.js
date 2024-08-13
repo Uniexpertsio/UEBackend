@@ -229,8 +229,6 @@ class CaseService {
 
   // Method to update a case
   async updateCase(id, caseData) {
-    console.log(id, "===============");
-    console.log(caseData, "=================");
     return await Case.findOneAndUpdate({ caseId: id }, caseData, {
       new: true,
     });
