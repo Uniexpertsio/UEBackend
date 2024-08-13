@@ -229,7 +229,11 @@ class CaseService {
 
   // Method to update a case
   async updateCase(id, caseData) {
-    return await Case.findByIdAndUpdate(id, caseData, { new: true });
+    console.log(id, "===============");
+    console.log(caseData, "=================");
+    return await Case.findOneAndUpdate({ caseId: id }, caseData, {
+      new: true,
+    });
   }
 
   // Method to delete a case
