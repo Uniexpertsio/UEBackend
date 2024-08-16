@@ -27,7 +27,7 @@ class TestScoreService {
     let totalMarks;
     switch (body.examType) {
       case "12th Standard English Mark":
-        totalMarks = body?.englishMarks; // Placeholder
+        totalMarks = body?.percentile; // Placeholder
         break;
       case "GRE":
         totalMarks = body?.percentile;
@@ -81,7 +81,7 @@ class TestScoreService {
         let totalMarks;
         switch (body?.examType) {
           case "12th Standard English Mark":
-            totalMarks = body?.englishMarks;
+            totalMarks = body?.percentile;
             break;
           case "GRE":
             totalMarks = body?.percentile;
@@ -134,7 +134,6 @@ class TestScoreService {
             testScoreData.totalMarks = body?.Overall__c;
             break;
         }
-        console.log("testScoreData;;;;;", testScoreData);
         return this.testScoreModel.updateOne(
           { _id: testScoreId },
           {
