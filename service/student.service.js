@@ -148,7 +148,7 @@ class StudentService {
       Name: data.degree,
       Country_of_Institution__c: data.country,
       Class__c: data?.division,
-      Score__c: this.setScore(data),
+      CGPA__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
       Affiliated_University__c: data.affiliatedUniversity,
@@ -172,7 +172,7 @@ class StudentService {
       Name: data.degree,
       Country_of_Institution__c: data.country,
       Class__c: data?.class || data?.division || null,
-      Score__c: this.setScore(data),
+      CGPA__c: this.setScore(data),
       Attended_Institution_To__c: data.attendedTo.split("T")[0],
       Attended_Institution_From__c: data.attendedFrom.split("T")[0],
       Affiliated_University__c: data.affiliatedUniversity,
@@ -786,8 +786,10 @@ class StudentService {
     }
 
     const educationData = this.convertEducationData(body);
+    console.log("educationData", educationData);
     const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
     const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
+    console.log("sfEducationResponse---", sfEducationResponse);
     if (sfEducationResponse?.id) {
       await this.educationService.updateSfId(
         education.id,
