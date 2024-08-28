@@ -161,29 +161,29 @@ class StudentService {
     return convertedData;
   }
 
-  convertEducationData(data) {
-    const convertedData = {
-      Name_of_Institution__c: data.institutionName,
-      Lock_Record__c: true,
-      ShowInProfile__c: true,
-      Level_of_Education__c: data.level,
-      Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
-      Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
-      Name: data.degree,
-      Country_of_Institution__c: data.country,
-      Class__c: data?.class || data?.division || null,
-      CGPA__c: this.setScore(data),
-      Attended_Institution_To__c: data.attendedTo.split("T")[0],
-      Attended_Institution_From__c: data.attendedFrom.split("T")[0],
-      Affiliated_University__c: data.affiliatedUniversity,
-      Verification_Status__c: "", // You may update this based on your specific logic
-      Student__c: data?.sfId, // Replace with the actual student ID
-      Primary_Language_of_Instruction__c: data?.instituteLanguage || null,
-      Grade__c: data?.grade,
-    };
+  // convertEducationData(data) {
+  //   const convertedData = {
+  //     Name_of_Institution__c: data.institutionName,
+  //     Lock_Record__c: true,
+  //     ShowInProfile__c: true,
+  //     Level_of_Education__c: data.level,
+  //     Degree_Awarded_On__c: data.degreeAwardedOn.split("T")[0],
+  //     Degree_Awarded__c: data.isDegreeAwarded ? "Yes" : "No",
+  //     Name: data.degree,
+  //     Country_of_Institution__c: data.country,
+  //     Class__c: data?.class || data?.division || null,
+  //     CGPA__c: this.setScore(data),
+  //     Attended_Institution_To__c: data.attendedTo.split("T")[0],
+  //     Attended_Institution_From__c: data.attendedFrom.split("T")[0],
+  //     Affiliated_University__c: data.affiliatedUniversity,
+  //     Verification_Status__c: "", // You may update this based on your specific logic
+  //     Student__c: data?.sfId, // Replace with the actual student ID
+  //     Primary_Language_of_Instruction__c: data?.instituteLanguage || null,
+  //     Grade__c: data?.grade,
+  //   };
 
-    return convertedData;
-  }
+  //   return convertedData;
+  // }
 
   convertWorkHistoryData(data, studentId) {
     const convertedData = {
