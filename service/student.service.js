@@ -1700,7 +1700,7 @@ class StudentService {
                 LatestDocumentId__c: "",
                 ReviewRemarks__c: "",
                 BypassDocumentation__c: false,
-                Status__c: doc?.status,
+                Status__c: "Uploaded",
                 IsPublic__c: "",
                 IsNewDoc__c: true,
                 FileType__c: "",
@@ -1725,7 +1725,7 @@ class StudentService {
               for (const document of body.documents) {
                 if (document.sfId) {
                   const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
-                  const sfRes = await sendDataToSF(data, url);
+                  const sfRes = await updateDataToSF(data, url);
                   sfIdFound = true; // Set the flag to true if sfId is found
                 }
               }

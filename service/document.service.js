@@ -48,6 +48,7 @@ class DocumentService {
             {
               $set: {
                 ...document,
+                status: "Uploaded",
                 studentId,
                 applicationId,
                 modifiedBy,
