@@ -20,7 +20,7 @@ class CaseService {
 
   // Method to retrieve all cases associated with a contact ID from Salesforce
   async getAllCases(contactId) {
-    return await Case.find({ contactId });
+    return await Case.find({ contactId }).sort({ createdAt: -1 });
   }
 
   // Method to get a case by its ID
