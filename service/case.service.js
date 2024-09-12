@@ -122,6 +122,7 @@ class CaseService {
       Priority: data?.priority,
       Description: data?.description,
       Case_Sub_Reason__c: data?.subType,
+      Origin: "Portal"
     };
     return caseData;
   }
@@ -207,7 +208,6 @@ class CaseService {
         ContentUrl__c: caseData?.attachment,
         Case__c: cases?.caseId,
       };
-      console.log(caseData, data, "============");
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
       // const sfRes = await updateDataToSF(
       //   { Attachment__c: caseData?.attachment },
