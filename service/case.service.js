@@ -20,7 +20,7 @@ class CaseService {
 
   // Method to retrieve all cases associated with a contact ID from Salesforce
   async getAllCases(contactId) {
-    return await Case.find({ contactId });
+    return await Case.find({ contactId }).sort({ createdAt: -1 });
   }
 
   // Method to get a case by its ID
@@ -122,6 +122,7 @@ class CaseService {
       Priority: data?.priority,
       Description: data?.description,
       Case_Sub_Reason__c: data?.subType,
+      Origin: "Portal"
     };
     return caseData;
   }
@@ -137,7 +138,6 @@ class CaseService {
 
       // Converting case data to a format suitable for Salesforce
       const data = this.convertToCaseData(caseData);
-
       // Sending case data to Salesforce
       const sfRes = await sendDataToSF(data, url);
       // If the response from Salesforce is successful
@@ -207,7 +207,6 @@ class CaseService {
         ContentUrl__c: caseData?.attachment,
         Case__c: cases?.caseId,
       };
-      console.log(caseData, data, "============");
       const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
       // const sfRes = await updateDataToSF(
       //   { Attachment__c: caseData?.attachment },

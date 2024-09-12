@@ -311,7 +311,8 @@ class StudentController {
           break;
       }
       if (studentId) {
-        query = { $and: [{ studentId, applicationId: { $exists: false } }] };
+        // query = { $and: [{ studentId, applicationId: { $exists: false } }] };
+        query = { studentId };
       }
       if (studentId && applicationId) {
         query = {

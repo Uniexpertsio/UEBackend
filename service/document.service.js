@@ -37,52 +37,122 @@ class DocumentService {
     });
   }
 
+  // async addOrUpdateStudentDocument(modifiedBy, studentId, body, applicationId) {
+  //   try {
+  //     const updatedDocuments = [];
+
+  //     for (const document of body.documents) {
+  //       if (document.sfId && document.sfId.length) {
+  //         const updatedDoc = await Document.findOneAndUpdate(
+  //           { sfId: document.sfId },
+  //           {
+  //             $set: {
+  //               ...document,
+  //               status: "Uploaded",
+  //               studentId,
+  //               applicationId,
+  //               modifiedBy,
+  //               createdBy: modifiedBy,
+  //               externalId: uuid.v4(),
+  //             },
+  //           },
+  //           { new: true, upsert: true }
+  //         );
+
+  //         updatedDocuments.push(updatedDoc);
+  //       }
+  //     }
+
+  //     if (updatedDocuments.length > 0) {
+  //       return updatedDocuments;
+  //     }
+
+  //     const documentsToInsert = body.documents.map((doc) => ({
+  //       ...doc,
+  //       studentId,
+  //       applicationId,
+  //       modifiedBy,
+  //       createdBy: modifiedBy,
+  //       externalId: uuid.v4(),
+  //     }));
+
+  //     const documents = await Document.insertMany(documentsToInsert);
+  //     return documents;
+  //   } catch (error) {
+  //     console.error("Error in add Or Update Student Document:", error);
+  //     throw new Error("Failed to add or update documents.");
+  //   }
+  // }
+
+
+
   async addOrUpdateStudentDocument(modifiedBy, studentId, body, applicationId) {
     try {
       const updatedDocuments = [];
-
+  
       for (const document of body.documents) {
         if (document.sfId && document.sfId.length) {
+          const updateFields = {
+            ...document,
+            status: "Uploaded",
+            modifiedBy,
+            createdBy: modifiedBy,
+            externalId: uuid.v4(),
+          };
+  
+          // Conditionally set studentId and applicationId
+          if (document.usedFor === "Both") {
+            updateFields.studentId = studentId;
+            updateFields.applicationId = applicationId;
+          } else if (document.usedFor === "Application") {
+            updateFields.applicationId = applicationId;
+          }
+  
           const updatedDoc = await Document.findOneAndUpdate(
             { sfId: document.sfId },
-            {
-              $set: {
-                ...document,
-                status: "Uploaded",
-                studentId,
-                applicationId,
-                modifiedBy,
-                createdBy: modifiedBy,
-                externalId: uuid.v4(),
-              },
-            },
+            { $set: updateFields },
             { new: true, upsert: true }
           );
-
+  
           updatedDocuments.push(updatedDoc);
         }
       }
-
+  
       if (updatedDocuments.length > 0) {
         return updatedDocuments;
       }
-
-      const documentsToInsert = body.documents.map((doc) => ({
-        ...doc,
-        studentId,
-        applicationId,
-        modifiedBy,
-        createdBy: modifiedBy,
-        externalId: uuid.v4(),
-      }));
-
+  
+      // Prepare documents for insertion
+      const documentsToInsert = body.documents.map((doc) => {
+        const documentFields = {
+          ...doc,
+          modifiedBy,
+          createdBy: modifiedBy,
+          externalId: uuid.v4(),
+        };
+  
+        // Conditionally set studentId and applicationId
+        if (doc.usedFor === "Both") {
+          documentFields.studentId = studentId;
+          documentFields.applicationId = applicationId;
+        } else if (doc.usedFor === "Application") {
+          documentFields.applicationId = applicationId;
+        }
+  
+        return documentFields;
+      });
+  
+      // Insert documents into the database
       const documents = await Document.insertMany(documentsToInsert);
       return documents;
     } catch (error) {
-      console.error("Error in add Or Update Student Document:", error);
+      console.error("Error in addOrUpdateStudentDocument:", error);
       throw new Error("Failed to add or update documents.");
     }
   }
+  
+  
+  
 
   async addOrUpdateApplicationDocument(modifiedBy, applicationId, body) {
     try {

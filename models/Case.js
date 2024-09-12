@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const statusEnum = ["New", "Resolved","Rejected"];
+
 const caseSchema = new mongoose.Schema(
   {
     contactName:String,
@@ -14,7 +16,7 @@ const caseSchema = new mongoose.Schema(
     priority: String,
     subject: String,
     attachment: { type: String, required: false },
-    status:{type:String,required:false,default:'New'},
+    status:{type:String,required:false,default:'New',enum: statusEnum},
     caseNumber:{type:String,required:false},
     comments: {
       type: [String],

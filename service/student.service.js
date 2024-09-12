@@ -1726,6 +1726,7 @@ class StudentService {
                 if (document.sfId) {
                   const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
                   const sfRes = await updateDataToSF(data, url);
+                  console.log('sfRes____',sfRes)
                   sfIdFound = true; // Set the flag to true if sfId is found
                 }
               }
@@ -1733,10 +1734,11 @@ class StudentService {
               if (!sfIdFound) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
                 const sfRes = await sendDataToSF(data, url);
-                doc["sfId"] = sfRes.id;
+                console.log('sfRes___2',sfRes)
+                doc["sfId"] = sfRes?.id;
                 await Document.findOneAndUpdate(
                   { _id: doc._id },
-                  { $set: { sfId: sfRes.id } },
+                  { $set: { sfId: sfRes?.id } },
                   { new: true }
                 );
               }
