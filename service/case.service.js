@@ -138,7 +138,6 @@ class CaseService {
 
       // Converting case data to a format suitable for Salesforce
       const data = this.convertToCaseData(caseData);
-
       // Sending case data to Salesforce
       const sfRes = await sendDataToSF(data, url);
       // If the response from Salesforce is successful
