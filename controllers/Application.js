@@ -9,12 +9,13 @@ class ApplicationController {
 
   async addApplication(req, res) {
     try {
-      const { id, agentId } = req.user;
+      const { id, agentId, sfId } = req.user;
       const body = req.body;
       const result = await this.applicationService.addApplication(
         id,
         agentId,
-        body
+        body,
+        sfId
       );
       res.status(201).json(result);
     } catch (error) {

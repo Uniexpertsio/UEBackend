@@ -60,12 +60,11 @@ class ApplicationService {
     this.currencyService = new CurrencyService();
   }
 
-  convertApplicationData(data, agentData) {
+  convertApplicationData(data, agentData, partnerContact) {
     const convertedData = {
       Student__c: data.studentId,
       Partner_Account__c: agentData?.commonId, // Pass agent company Id
-      Partner_Contact__c: agentData?.contactId,
-      Partner_User__c: "", // Pass agent Id
+      Partner_Contact__c: partnerContact,
       Processing_Officer__c: "",
       BDM_User__c: "", // Pass BDM user Id
       School__c: data.schoolId, // Pass School Id
@@ -80,7 +79,7 @@ class ApplicationService {
     return convertedData;
   }
 
-  async addApplication(id, agentId, body) {
+  async addApplication(id, agentId, body, partnerContact) {
     try {
       await this.findStudentById(body.studentId);
       await this.schoolService.findBySfId(body.schoolId);
@@ -103,7 +102,11 @@ class ApplicationService {
         createdBy: id,
         externalId,
       });
-      const applicationSfData = this.convertApplicationData(body, data);
+      const applicationSfData = this.convertApplicationData(
+        body,
+        data,
+        partnerContact
+      );
       const applicationSfUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Application__c`;
       const applicationSfResponse = await sendDataToSF(
         applicationSfData,
