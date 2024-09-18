@@ -38,50 +38,56 @@ function getApplications(req, res) {
 // }
 async function getNotificationController(req, res) {
   try {
-    const { id, agentId } = req.user;
-    const staff = await Staff.findOne({_id: id})
-    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${staff?.sfId}'`;
+    const { id } = req.user;
+    const staff = await Staff.findOne({ _id: id });
+    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${staff?.sfId}'`;
     const result = await getDataFromSF(url);
+    console.log('result---', result);
 
     // Process each record
     const records = await Promise.all(result.records.map(async (record) => {
       const data = {};
-      const { Application__c, Student__c, Document__c } = record;
+      const { Type__c, Application__c, Student__c, Document__c } = record;
 
-      // Determine which field is present and fetch related data
-      switch (true) {
-        case !!Application__c:
-          // data.salesforceId = Application__c;
-          const application = await Application.findOne({ salesforceId: Application__c });
-          data._id = application?._id;
+      // Determine which type is present and fetch related data
+      switch (Type__c) {
+        case 'Application':
+          if (Application__c) {
+            const application = await Application.findOne({ salesforceId: Application__c });
+            data._id = application?._id || null;
+          }
           break;
-        case !!Student__c:
-          // data.salesforceId = Student__c;
-          const student = await Student.findOne({ salesforceId: Student__c });
-          data._id = student?._id;
+        case 'Student':
+          if (Student__c) {
+            const student = await Student.findOne({ salesforceId: Student__c });
+            data._id = student?._id || null;
+          }
           break;
-        case !!Document__c:
-          // data.salesforceId = Document__c;
-          const caseRecord = await Case.findOne({ caseId: Document__c });
-          data._id = caseRecord?._id;
+        case 'Document':
+          if (Document__c) {
+            const document = await Document.findOne({ documentId: Document__c });
+            data._id = document?._id || null;
+          }
           break;
         default:
-          data.relationId = null; // No related record found
+          data._id = null; // No related record found
           break;
       }
-
       // Return the combined record with additional data
       return {
         ...record,
         ...data,
       };
     }));
+    console.log('-----',records)
+
     res.status(200).json(records);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 }
+
 
 
 
