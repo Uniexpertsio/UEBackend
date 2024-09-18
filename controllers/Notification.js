@@ -42,7 +42,6 @@ async function getNotificationController(req, res) {
     const staff = await Staff.findOne({ _id: id });
     const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${staff?.sfId}'`;
     const result = await getDataFromSF(url);
-    console.log('result---', result);
 
     // Process each record
     const records = await Promise.all(result.records.map(async (record) => {
@@ -79,7 +78,6 @@ async function getNotificationController(req, res) {
         ...data,
       };
     }));
-    console.log('-----',records)
 
     res.status(200).json(records);
   } catch (error) {
