@@ -575,12 +575,13 @@ class StudentController {
   addStudentComment = async (req, res) => {
     try {
       const { studentId } = req.params;
-      const { id } = req.user;
+      const { id, sfId } = req.user;
       const body = req.body;
       const response = await this.studentService.addStudentComment(
         studentId,
         id,
-        body
+        body,
+        sfId
       );
       res.status(200).json(response);
     } catch (error) {
