@@ -8,6 +8,7 @@ const {
   dismissNotification,
 } = require("../service/notification.service");
 const { getDataFromSF } = require("../service/salesforce.service");
+const Case = require("../models/Case");
 
 function addApplication(req, res) {
   const { id } = req.user;
@@ -25,48 +26,44 @@ function getApplications(req, res) {
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 
-// async function getNotificationController(req, res) {
-//   try {
-//     // const { id, agentId } = req.user;
-//     const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'003Hy00000vXrXqIAK'`;
-//     const result = await getDataFromSF(url);
-//     res.status(200).json(result?.records);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// }
 async function getNotificationController(req, res) {
   try {
-    const { id } = req.user;
-    const staff = await Staff.findOne({ _id: id });
-    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${staff?.sfId}'`;
+    const { sfId } = req?.user;
+    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${sfId}'`;
     const result = await getDataFromSF(url);
 
     // Process each record
     const records = await Promise.all(result.records.map(async (record) => {
       const data = {};
-      const { Type__c, Application__c, Student__c, Document__c } = record;
+      const { Type__c, Application__c, Student__c, Case__c, Document__c } = record;
 
       // Determine which type is present and fetch related data
       switch (Type__c) {
         case 'Application':
-          if (Application__c) {
             const application = await Application.findOne({ salesforceId: Application__c });
             data._id = application?._id || null;
-          }
           break;
         case 'Student':
-          if (Student__c) {
             const student = await Student.findOne({ salesforceId: Student__c });
             data._id = student?._id || null;
-          }
+          break;
+        case 'Chat':
+            if(record?.Application__c) {
+              const application = await Application.findOne({ salesforceId: Application__c });
+              data._id = application?._id || null;
+            } else if(record?.Student__c) {
+              const student = await Student.findOne({ salesforceId: Student__c });
+              data._id = student?._id || null;
+            } else if(record?.Case__c) {
+              const cases = await Case.findOne({ caseId: Case__c });
+              data._id = cases?._id || null;
+            } else {
+              data._id = null;
+            }
           break;
         case 'Document':
-          if (Document__c) {
             const document = await Document.findOne({ documentId: Document__c });
             data._id = document?._id || null;
-          }
           break;
         default:
           data._id = null; // No related record found
@@ -78,7 +75,6 @@ async function getNotificationController(req, res) {
         ...data,
       };
     }));
-
     res.status(200).json(records);
   } catch (error) {
     console.error(error);

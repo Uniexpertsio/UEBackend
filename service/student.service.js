@@ -1945,7 +1945,7 @@ class StudentService {
     }
   }
 
-  async addStudentComment(studentId, modifiedBy, body) {
+  async addStudentComment(studentId, modifiedBy, body, sfId) {
     try {
       const comment = await this.commentService.add(
         body.message,
@@ -1967,18 +1967,13 @@ class StudentService {
       }
 
       const data = {
-        Enter_Note__c: null,
         Application__c: null,
-        Partner_User__c: null,
-        Lead__c: null,
-        PartnerNote__c: null,
-        University_Notes__c: null,
-        Subject__c: "Offer Related",
         Student__c: studentData?.salesforceId,
         Message_Body__c: body.message,
-        Type__c: "Inbound",
+        Type__c: "Outbound",
+        Lead__c: null,
+        Partner_Contact__c: sfId,
         External__c: true,
-        CourseEnquiry__c: null,
         Cases__c: null,
       };
       // Send comment data to Salesforce endpoint
