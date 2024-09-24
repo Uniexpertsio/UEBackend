@@ -125,7 +125,7 @@ class IntakeService {
   }
   async getUniqueIntakeList() {
     try {
-      return await this.intakeModel.distinct("Name");
+      return await this.intakeModel.distinct("Name", {Status__c: "Open"});
     } catch (error) {
       console.error("Error fetching unique intake list:", error);
       return {
