@@ -692,7 +692,6 @@ class StudentService {
   ) {
     try {
       if (isFrontend) {
-        console.log('ifffffffffffffff',isFrontend)
         if (studentDetails.studentInformation) {
           await this.checkForValidUsers(
             studentDetails.studentInformation.staffId,
