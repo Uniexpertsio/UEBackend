@@ -718,14 +718,30 @@ class StudentService {
       const query = isFrontend
         ? { _id: studentId }
         : { salesforceId: studentId };
+      // const update = {
+      //   $set: {
+      //     ...studentDetails,
+      //     modifiedBy,
+      //   },
+      // };
+      // const options = { new: true, runValidators: true };
+
+      // const updatedStudent = await StudentModel.findOneAndUpdate(
+      //   query,
+      //   update,
+      //   options
+      // );
+
       const update = {
         $set: {
           ...studentDetails,
           modifiedBy,
         },
       };
-      const options = { new: true, runValidators: true };
-
+  
+      // Add upsert option
+      const options = { new: true, runValidators: true, upsert: true };
+  
       const updatedStudent = await StudentModel.findOneAndUpdate(
         query,
         update,
