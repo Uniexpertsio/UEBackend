@@ -19,6 +19,17 @@ class StudentController {
     }
   }
 
+  async createStudentFromSf(req, res) {
+    try {
+      const { salesforceId } = req.params;
+      const body = req.body;
+      const result = await this.studentService.createStudentFromSf(body, salesforceId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   async getStudents(req, res) {
     try {
       const { agentId, role, _id } = req.user;

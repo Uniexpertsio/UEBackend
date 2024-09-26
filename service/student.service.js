@@ -423,6 +423,57 @@ class StudentService {
     }
   }
 
+  async createStudentFromSf(studentInformation, salesforceId) {
+    try {
+      let staffId = studentInformation.studentInformation.partnerAccount;
+      let counsellorId = studentInformation.studentInformation.partneruser;
+  
+      const [staff, counsellor] = await Promise.all([
+        this.staffService.findByAgentIdForSf(staffId),
+        this.staffService.findByIdForSf(counsellorId),
+      ]);
+  
+      // Check if either staff or counsellor is not found
+      if (!staff || !counsellor) {
+        throw new Error("Staff or counsellor not found");
+      }
+  
+      // Prepare the student data
+      studentInformation.studentInformation.staffId = staff._id.toString();
+      studentInformation.studentInformation.counsellorId = counsellor._id.toString();
+      studentInformation.agentId = staff._id.toString();
+      studentInformation.createdBy = counsellor._id.toString();
+      studentInformation.modifiedBy = counsellor._id.toString();
+      studentInformation.salesforceId = salesforceId;
+  
+      // Check if the student already exists
+      let student = await StudentModel.findOne({ salesforceId });
+  
+      if (student) {
+        // Update the existing student
+        Object.assign(student, studentInformation);
+        await student.save();
+      } else {
+        // Create a new student
+        const externalId = uuid();
+        student = await StudentModel.create({
+          ...studentInformation,
+          externalId,
+          currentStage: 1,
+        });
+      }
+  
+      return {
+        id: student._id,
+      };
+    } catch (error) {
+      // Handle any errors that occur during the process
+      console.error("Error in createStudent:", error);
+      throw error;
+    }
+  }
+  
+
   async preferredCountries() {
     return PreferredCountries;
   }
