@@ -10,6 +10,12 @@ router.post(
   Middleware.checkAuth,
   studentController.createStudent.bind(studentController)
 );
+
+router.put(
+  "/:salesforceId",
+  Middleware.checkAuth,
+  studentController.createStudentFromSf.bind(studentController)
+);
 router.get(
   "/",
   Middleware.checkAuth,

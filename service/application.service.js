@@ -465,14 +465,14 @@ class ApplicationService {
   async updateApplication(applicationSfId, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const checkApplicationExist = await Application.findOne({
-          salesforceId: applicationSfId,
-        });
-        if (!checkApplicationExist) {
-          return reject({
-            message: `Application does not exist with ${applicationSfId}`,
-          });
-        }
+        // const checkApplicationExist = await Application.findOne({
+        //   salesforceId: applicationSfId,
+        // });
+        // if (!checkApplicationExist) {
+        //   return reject({
+        //     message: `Application does not exist with ${applicationSfId}`,
+        //   });
+        // }
         const payload = {
           applicationId: body.Name,
           salesforceId: body.Id,
@@ -489,8 +489,14 @@ class ApplicationService {
             salesforceId: applicationSfId,
           },
           { $set: payload },
-          { new: true }
+          { upsert: true, new: true }
         );
+        if (result.nModified === 0 && result.upsertedCount === 0) {
+          // If no document was modified or created
+          return reject({
+            message: `Failed to update or create application with ${applicationSfId}`,
+          });
+        }
         resolve({ message: "Success", status: 200, sf: applicationSfId });
       } catch (error) {
         console.log(error);
