@@ -445,6 +445,10 @@ class StudentService {
       studentInformation.createdBy = counsellor._id.toString();
       studentInformation.modifiedBy = counsellor._id.toString();
       studentInformation.salesforceId = salesforceId;
+      studentInformation.demographicInformation.haveMedicalHistory = studentInformation?.demographicInformation?.haveMedicalHistory
+      ? true: false;
+      studentInformation.backgroundInformation.isRefusedVisa = studentInformation?.backgroundInformation?.isRefusedVisa
+      ? true: false;
   
       // Check if the student already exists
       let student = await StudentModel.findOne({ salesforceId });

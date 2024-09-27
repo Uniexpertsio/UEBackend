@@ -189,14 +189,11 @@ class StaffService {
   }
   async findByIdForSf(id) {
       const res = await this.staffModel.findOne({ sfId: id }, { _id: 1 });
-      console.log('ressss',res)
       return res;
   }
 
   async findByAgentId(agentId) {
     const user = await this.staffModel.find({ agentId });
-    console.log('staffffff',user )
-
     if (!user) {
       throw new Error(id);
     }
@@ -205,10 +202,8 @@ class StaffService {
   }
 
   async findByAgentIdForSf(agentId) {
-    const agentData = await Agent.findOne({commonId: agentId}, { _id: 1,commonId: 1 })
-    console.log('agent id ', agentData)
+      const agentData = await Agent.findOne({commonId: agentId}, { _id: 1,commonId: 1 })
       const staffData = await this.staffModel.findOne({ agentId: agentData._id });    
-      console.log('------------',staffData)
       return agentData;
   }
 
