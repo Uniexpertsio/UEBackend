@@ -114,12 +114,13 @@ class ApplicationController {
   async addComment(req, res) {
     try {
       const { applicationId } = req.params;
-      const { id } = req.user;
+      const { id, sfId } = req.user;
       const body = req.body;
       const result = await this.applicationService.addComment(
         applicationId,
         id,
-        body
+        body, 
+        sfId
       );
       res.status(200).json(result);
     } catch (error) {

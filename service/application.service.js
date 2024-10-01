@@ -248,7 +248,7 @@ class ApplicationService {
     return await this.commentService.getComment(applicationId);
   }
 
-  async addComment(applicationId, modifiedBy, body) {
+  async addComment(applicationId, modifiedBy, body, sfId) {
     const comment = await this.commentService.add(
       body.message,
       modifiedBy,
@@ -257,18 +257,13 @@ class ApplicationService {
     );
     const application = await Application.findById(applicationId);
     const data = {
-      Enter_Note__c: null,
       Application__c: application?.salesforceId,
-      Partner_User__c: null,
-      Lead__c: null,
-      PartnerNote__c: null,
-      University_Notes__c: null,
-      Subject__c: "Offer Related",
       Student__c: null,
       Message_Body__c: body?.message,
-      Type__c: "Inbound",
+      Type__c: "Outbound",
+      Lead__c: null,
+      Partner_Contact__c: sfId,
       External__c: true,
-      CourseEnquiry__c: null,
       Cases__c: null,
     };
     // Send comment data to Salesforce endpoint
@@ -470,14 +465,14 @@ class ApplicationService {
   async updateApplication(applicationSfId, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const checkApplicationExist = await Application.findOne({
-          salesforceId: applicationSfId,
-        });
-        if (!checkApplicationExist) {
-          return reject({
-            message: `Application does not exist with ${applicationSfId}`,
-          });
-        }
+        // const checkApplicationExist = await Application.findOne({
+        //   salesforceId: applicationSfId,
+        // });
+        // if (!checkApplicationExist) {
+        //   return reject({
+        //     message: `Application does not exist with ${applicationSfId}`,
+        //   });
+        // }
         const payload = {
           applicationId: body.Name,
           salesforceId: body.Id,
@@ -494,8 +489,14 @@ class ApplicationService {
             salesforceId: applicationSfId,
           },
           { $set: payload },
-          { new: true }
+          { upsert: true, new: true }
         );
+        if (result.nModified === 0 && result.upsertedCount === 0) {
+          // If no document was modified or created
+          return reject({
+            message: `Failed to update or create application with ${applicationSfId}`,
+          });
+        }
         resolve({ message: "Success", status: 200, sf: applicationSfId });
       } catch (error) {
         console.log(error);

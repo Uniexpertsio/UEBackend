@@ -48,11 +48,12 @@ class CaseController {
   async createCaseComment(req, res) {
     const commentData = req.body;
     const { caseId } = req.params;
-    const { id } = req.user;
+    const { id, sfId } = req.user;
     const newCase = await this.caseService.createCaseComment(
       commentData,
       id,
-      caseId
+      caseId,
+      sfId
     );
     res.status(201).send({
       statuscode: 201,

@@ -7,6 +7,7 @@ const { MappingFiles } = require("./../constants/Agent.constants");
 const Agent = require("../models/Agent");
 const { sendEmailToStaff } = require("../utils/sendMail");
 const emailValidator = require("../utils/emailValidator");
+const { ObjectId } = require("mongodb");
 
 class StaffService {
   constructor() {
@@ -186,14 +187,24 @@ class StaffService {
 
     return user;
   }
+  async findByIdForSf(id) {
+      const res = await this.staffModel.findOne({ sfId: id }, { _id: 1 });
+      return res;
+  }
+
   async findByAgentId(agentId) {
     const user = await this.staffModel.find({ agentId });
-
     if (!user) {
       throw new Error(id);
     }
 
     return user;
+  }
+
+  async findByAgentIdForSf(agentId) {
+      const agentData = await Agent.findOne({commonId: agentId}, { _id: 1,commonId: 1 })
+      const staffData = await this.staffModel.findOne({ agentId: agentData._id });    
+      return agentData;
   }
 
   queryByName(name) {

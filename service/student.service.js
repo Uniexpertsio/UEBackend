@@ -421,6 +421,61 @@ class StudentService {
     }
   }
 
+  async createStudentFromSf(studentInformation, salesforceId) {
+    try {
+      let staffId = studentInformation.studentInformation.partnerAccount;
+      let counsellorId = studentInformation.studentInformation.partneruser;
+  
+      const [staff, counsellor] = await Promise.all([
+        this.staffService.findByAgentIdForSf(staffId),
+        this.staffService.findByIdForSf(counsellorId),
+      ]);
+  
+      // Check if either staff or counsellor is not found
+      if (!staff || !counsellor) {
+        throw new Error("Staff or counsellor not found");
+      }
+  
+      // Prepare the student data
+      studentInformation.studentInformation.staffId = staff._id.toString();
+      studentInformation.studentInformation.counsellorId = counsellor._id.toString();
+      studentInformation.agentId = staff._id.toString();
+      studentInformation.createdBy = counsellor._id.toString();
+      studentInformation.modifiedBy = counsellor._id.toString();
+      studentInformation.salesforceId = salesforceId;
+      studentInformation.demographicInformation.haveMedicalHistory = studentInformation?.demographicInformation?.haveMedicalHistory
+      ? true: false;
+      studentInformation.backgroundInformation.isRefusedVisa = studentInformation?.backgroundInformation?.isRefusedVisa
+      ? true: false;
+  
+      // Check if the student already exists
+      let student = await StudentModel.findOne({ salesforceId });
+  
+      if (student) {
+        // Update the existing student
+        Object.assign(student, studentInformation);
+        await student.save();
+      } else {
+        // Create a new student
+        const externalId = uuid();
+        student = await StudentModel.create({
+          ...studentInformation,
+          externalId,
+          currentStage: 1,
+        });
+      }
+  
+      return {
+        id: student._id,
+      };
+    } catch (error) {
+      // Handle any errors that occur during the process
+      console.error("Error in createStudent:", error);
+      throw error;
+    }
+  }
+  
+
   async preferredCountries() {
     return PreferredCountries;
   }
@@ -716,14 +771,30 @@ class StudentService {
       const query = isFrontend
         ? { _id: studentId }
         : { salesforceId: studentId };
+      // const update = {
+      //   $set: {
+      //     ...studentDetails,
+      //     modifiedBy,
+      //   },
+      // };
+      // const options = { new: true, runValidators: true };
+
+      // const updatedStudent = await StudentModel.findOneAndUpdate(
+      //   query,
+      //   update,
+      //   options
+      // );
+
       const update = {
         $set: {
           ...studentDetails,
           modifiedBy,
         },
       };
-      const options = { new: true, runValidators: true };
-
+  
+      // Add upsert option
+      const options = { new: true, runValidators: true, upsert: true };
+  
       const updatedStudent = await StudentModel.findOneAndUpdate(
         query,
         update,
@@ -1943,7 +2014,7 @@ class StudentService {
     }
   }
 
-  async addStudentComment(studentId, modifiedBy, body) {
+  async addStudentComment(studentId, modifiedBy, body, sfId) {
     try {
       const comment = await this.commentService.add(
         body.message,
@@ -1965,18 +2036,13 @@ class StudentService {
       }
 
       const data = {
-        Enter_Note__c: null,
         Application__c: null,
-        Partner_User__c: null,
-        Lead__c: null,
-        PartnerNote__c: null,
-        University_Notes__c: null,
-        Subject__c: "Offer Related",
         Student__c: studentData?.salesforceId,
         Message_Body__c: body.message,
-        Type__c: "Inbound",
+        Type__c: "Outbound",
+        Lead__c: null,
+        Partner_Contact__c: sfId,
         External__c: true,
-        CourseEnquiry__c: null,
         Cases__c: null,
       };
       // Send comment data to Salesforce endpoint
