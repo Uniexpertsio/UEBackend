@@ -380,10 +380,8 @@ class StudentService {
 
         // Construct the URL for Salesforce API to create a Contact
         const studentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact`;
-        console.log("studentData====================>", studentData);
         // Send student data to Salesforce
         const sfStudentResponse = await sendDataToSF(studentData, studentUrl);
-        console.log("sfStudentResponse==========>", sfStudentResponse);
         // Get the Salesforce ID if the student was successfully created in Salesforce
         const sfId = sfStudentResponse?.id;
         let contactDetails;
@@ -1726,7 +1724,7 @@ class StudentService {
                 if (document.sfId) {
                   const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
                   const sfRes = await updateDataToSF(data, url);
-                  console.log('sfRes____',sfRes)
+                  console.log("sfRes____", sfRes);
                   sfIdFound = true; // Set the flag to true if sfId is found
                 }
               }
@@ -1734,7 +1732,7 @@ class StudentService {
               if (!sfIdFound) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
                 const sfRes = await sendDataToSF(data, url);
-                console.log('sfRes___2',sfRes)
+                console.log("sfRes___2", sfRes);
                 doc["sfId"] = sfRes?.id;
                 await Document.findOneAndUpdate(
                   { _id: doc._id },
