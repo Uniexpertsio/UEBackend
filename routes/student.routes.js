@@ -223,4 +223,10 @@ router.get(
   studentController.getStudentsByStudentId.bind(studentController)
 );
 
+router.get(
+  "/studentCounsellor",
+  Middleware.checkAuth,
+  studentController.getStudentCounsellor.bind(studentController)
+);
+
 module.exports = router;
