@@ -605,7 +605,6 @@ class StudentService {
 
   async getStudentGeneralInformation(studentId) {
     const objId = parseInMongoObjectId(studentId);
-
     const student = await StudentModel.aggregate([
       {
         $match: { _id: objId }, // Replace studentId with the specific student ID you're querying
@@ -1123,7 +1122,6 @@ class StudentService {
     if (result.modifiedCount === 0) {
       throw new Error("student not found");
     }
-    console.log(result);
     const workHistoryData = this.convertWorkHistoryData(
       body,
       student?.salesforceId
@@ -1144,33 +1142,87 @@ class StudentService {
     return workHistory;
   }
 
+  // async updateStudentWorkHistory(studentId, modifiedBy, workHistoryId, body) {
+  //   try {
+  //     // Fetch work history and student asynchronously
+  //     const [workHistory, student] = await Promise.all([
+  //       this.workHistoryService.getDatafromSfid(workHistoryId),
+  //       StudentModel.findOne({ salesforceId: studentId }),
+  //     ]);
+
+  //     // Check if work history and student exist
+  //     if (!workHistory || !student) {
+  //       throw new Error("Work history or student not found.");
+  //     }
+  //     // Check if the work history belongs to the student
+  //     const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
+  //       student?._id,
+  //       workHistory?._id
+  //     );
+  //     if (!isStudent) {
+  //       throw new Error("Work history does not belong to the student.");
+  //     }
+
+  //     const data = {
+  //       employerName: body?.Name,
+  //       studentId: student._id,
+  //       contactInfo: body?.Contact_info__c,
+  //       doj: body?.Date_of_Joining__c,
+  //       dor: body?.Date_of_relieving__c,
+  //       designation: body?.Designation__c,
+  //       email: body?.Email_Id__c,
+  //       "signingAuthority.email": body?.Signing_Contact_Email__c,
+  //       "signingAuthority.phone": body?.Signing_Contact_Phone__c,
+  //       "signingAuthority.name": body?.Signing_Contact_Name__c,
+  //       signedPersonPhone: body?.Phone_Number_of_the_Signed_Person__c,
+  //       signedPersonEmail: body?.Email_ID_of_the_Signed_Person__c,
+  //       signedPersonName: body?.Name_of_the_Signed_Person__c,
+  //       countryCode: body?.Country_Code__c,
+  //       signedPersonCountryCode: body?.Signed_Country_Code__c,
+  //     };
+  //     // Update work history
+  //     const updatedWorkHistory = await this.workHistoryService.update(
+  //       modifiedBy,
+  //       workHistory?._id,
+  //       data
+  //     );
+
+  //     if (updatedWorkHistory) {
+  //       return {
+  //         status: 200,
+  //         success: true,
+  //         message: "Work history updated successfully",
+  //       };
+  //     }
+  //   } catch (error) {
+  //     // Handle errors
+  //     console.error("Error in updateStudentWorkHistory:", error);
+  //     throw error; // Rethrow the error for the caller to handle
+  //   }
+  // }
+
   async updateStudentWorkHistory(studentId, modifiedBy, workHistoryId, body) {
     try {
-      // Fetch work history and student asynchronously
-      const [workHistory, student] = await Promise.all([
-        this.workHistoryService.getDatafromSfid(workHistoryId),
-        StudentModel.findOne({ salesforceId: studentId }),
-      ]);
+      // Fetch student asynchronously
+      const student = await StudentModel.findOne({ salesforceId: studentId });
 
-      // Check if work history and student exist
-      if (!workHistory || !student) {
-        throw new Error("Work history or student not found.");
+      // Check if student exists
+      if (!student) {
+        throw new Error("Student does not exist.");
       }
-      // Check if the work history belongs to the student
-      const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
-        student?._id,
-        workHistory?._id
+
+      // Fetch work history
+      const workHistory = await this.workHistoryService.getDatafromSfid(
+        workHistoryId
       );
-      if (!isStudent) {
-        throw new Error("Work history does not belong to the student.");
-      }
 
+      // Prepare the data object for both creation and update
       const data = {
         employerName: body?.Name,
         studentId: student._id,
         contactInfo: body?.Contact_info__c,
-        doj: body?.Date_of_Joining__c,
-        dor: body?.Date_of_relieving__c,
+        doj: new Date(body?.Date_of_Joining__c),
+        dor: new Date(body?.Date_of_relieving__c),
         designation: body?.Designation__c,
         email: body?.Email_Id__c,
         "signingAuthority.email": body?.Signing_Contact_Email__c,
@@ -1182,10 +1234,47 @@ class StudentService {
         countryCode: body?.Country_Code__c,
         signedPersonCountryCode: body?.Signed_Country_Code__c,
       };
-      // Update work history
+      console.log(workHistory, "===================");
+
+      // If work history doesn't exist, create it
+      if (!workHistory) {
+        data["WorkHistorySfId"] = workHistoryId;
+        console.log(data);
+        const newWorkHistory = await this.workHistoryService.add(
+          student?._id,
+          modifiedBy,
+          data
+        );
+        if (newWorkHistory?._id) {
+          await StudentModel.updateOne(
+            { _id: student?._id },
+            {
+              $push: { workHistory: newWorkHistory?._id },
+              $set: { modifiedBy },
+            }
+          );
+        }
+        return {
+          status: 201,
+          success: true,
+          message: "Work history created successfully",
+          workHistory: newWorkHistory,
+        };
+      }
+
+      // Check if the work history belongs to the student
+      const isStudent = await this.checkIfWorkHistoryBelongsToStudent(
+        student._id,
+        workHistory._id
+      );
+      if (!isStudent) {
+        throw new Error("Work history does not belong to the student.");
+      }
+
+      // Update the existing work history
       const updatedWorkHistory = await this.workHistoryService.update(
         modifiedBy,
-        workHistory?._id,
+        workHistory._id,
         data
       );
 
@@ -1194,8 +1283,16 @@ class StudentService {
           status: 200,
           success: true,
           message: "Work history updated successfully",
+          workHistory: updatedWorkHistory,
         };
       }
+
+      // If for some reason the update fails
+      return {
+        status: 400,
+        success: false,
+        message: "Failed to update work history",
+      };
     } catch (error) {
       // Handle errors
       console.error("Error in updateStudentWorkHistory:", error);
