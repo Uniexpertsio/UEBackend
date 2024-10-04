@@ -571,27 +571,27 @@ function generateAuthResponse(staff, agent, token, sfId) {
     token: token,
     sfId,
     agent,
-    isDocumentsRequired: agent?.documents.length === 0,
-    isTncAccepted: agent.tncMeta
-      ? agent.tncMeta.isAccepted
-        ? agent.tncMeta.isAccepted
+    isDocumentsRequired: agent?.documents?.length === 0,
+    isTncAccepted: agent?.tncMeta
+      ? agent?.tncMeta?.isAccepted
+        ? agent?.tncMeta?.isAccepted
         : false
       : false,
-    status: agent.verificationStatus,
+    status: agent?.verificationStatus,
     details: {
-      name: staff.fullName,
-      email: staff.email,
-      phone: staff.phone,
-      country: agent.address.country,
-      companyName: agent.company.companyName,
+      name: staff?.fullName,
+      email: staff?.email,
+      phone: staff?.phone,
+      country: agent?.address?.country,
+      companyName: agent?.company?.companyName,
     },
     staff: {
-      id: staff.id,
-      agentId: staff.agentId,
-      isActive: staff.isActive,
-      role: staff.role,
-      modules: staff.modules,
-      dp: staff.dp,
+      id: staff?.id,
+      agentId: staff?.agentId,
+      isActive: staff?.isActive,
+      role: staff?.role,
+      modules: staff?.modules,
+      dp: staff?.dp,
     },
   };
 }

@@ -447,32 +447,35 @@ class StudentService {
     try {
       let staffId = studentInformation.studentInformation.partnerAccount;
       let counsellorId = studentInformation.studentInformation.partneruser;
-  
+
       const [staff, counsellor] = await Promise.all([
         this.staffService.findByAgentIdForSf(staffId),
         this.staffService.findByIdForSf(counsellorId),
       ]);
-  
+
       // Check if either staff or counsellor is not found
       if (!staff || !counsellor) {
         throw new Error("Staff or counsellor not found");
       }
-  
+
       // Prepare the student data
       studentInformation.studentInformation.staffId = staff._id.toString();
-      studentInformation.studentInformation.counsellorId = counsellor._id.toString();
+      studentInformation.studentInformation.counsellorId =
+        counsellor._id.toString();
       studentInformation.agentId = staff._id.toString();
       studentInformation.createdBy = counsellor._id.toString();
       studentInformation.modifiedBy = counsellor._id.toString();
       studentInformation.salesforceId = salesforceId;
-      studentInformation.demographicInformation.haveMedicalHistory = studentInformation?.demographicInformation?.haveMedicalHistory
-      ? true: false;
-      studentInformation.backgroundInformation.isRefusedVisa = studentInformation?.backgroundInformation?.isRefusedVisa
-      ? true: false;
-  
+      studentInformation.demographicInformation.haveMedicalHistory =
+        studentInformation?.demographicInformation?.haveMedicalHistory
+          ? true
+          : false;
+      studentInformation.backgroundInformation.isRefusedVisa =
+        studentInformation?.backgroundInformation?.isRefusedVisa ? true : false;
+
       // Check if the student already exists
       let student = await StudentModel.findOne({ salesforceId });
-  
+
       if (student) {
         // Update the existing student
         Object.assign(student, studentInformation);
@@ -486,7 +489,7 @@ class StudentService {
           currentStage: 1,
         });
       }
-  
+
       return {
         id: student._id,
       };
@@ -496,7 +499,6 @@ class StudentService {
       throw error;
     }
   }
-  
 
   async preferredCountries() {
     return PreferredCountries;
@@ -813,10 +815,10 @@ class StudentService {
           modifiedBy,
         },
       };
-  
+
       // Add upsert option
       const options = { new: true, runValidators: true, upsert: true };
-  
+
       const updatedStudent = await StudentModel.findOneAndUpdate(
         query,
         update,
@@ -846,6 +848,13 @@ class StudentService {
 
   getStudentEducation(studentId) {
     return this.educationService.getByStudentId(studentId);
+  }
+
+  async getStudentCounsellor(agentId) {
+    return staffModel.find(
+      { agentId, role: "consultant" },
+      { _id: 1, fullName: 1 }
+    );
   }
 
   async addStudentEducation(studentId, modifiedBy, body) {
@@ -1898,7 +1907,7 @@ class StudentService {
                 if (document.sfId) {
                   const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c/${document.sfId}`;
                   const sfRes = await updateDataToSF(data, url);
-                  console.log('sfRes____',sfRes)
+                  console.log("sfRes____", sfRes);
                   sfIdFound = true; // Set the flag to true if sfId is found
                 }
               }
@@ -1906,7 +1915,7 @@ class StudentService {
               if (!sfIdFound) {
                 const url = `${process.env.SF_API_URL}services/data/v50.0/sobjects/DMS_Documents__c`;
                 const sfRes = await sendDataToSF(data, url);
-                console.log('sfRes___2',sfRes)
+                console.log("sfRes___2", sfRes);
                 doc["sfId"] = sfRes?.id;
                 await Document.findOneAndUpdate(
                   { _id: doc._id },

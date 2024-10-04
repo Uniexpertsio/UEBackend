@@ -23,7 +23,10 @@ class StudentController {
     try {
       const { salesforceId } = req.params;
       const body = req.body;
-      const result = await this.studentService.createStudentFromSf(body, salesforceId);
+      const result = await this.studentService.createStudentFromSf(
+        body,
+        salesforceId
+      );
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -457,6 +460,16 @@ class StudentController {
         id,
         body
       );
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  getStudentCounsellor = async (req, res) => {
+    try {
+      const { agentId } = req.user;
+      const result = await this.studentService.getStudentCounsellor(agentId);
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
