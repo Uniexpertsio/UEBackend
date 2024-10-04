@@ -64,6 +64,45 @@ class TestScoreService {
     return testScore;
   }
 
+  async addTestScoreFromSf(studentId, modifiedBy, body, agentId, Id) {
+    try {
+      const externalId = uuid.v4();
+      let testScoreData = {
+        trfId: Id,
+        status: body?.Verification_Status__c,
+        showInProfile: body?.ShowInProfile__c,
+        doe: body?.Date_of_Exam__c,
+        certificateNo: body?.ID_Certificate_No__c,
+        examType: body.English_Exam_Type__c
+      };
+      switch (body.English_Exam_Type__c) {
+        case "12th STD. English mark":
+          testScoreData.totalMarks = body?.Total_Score__c;
+          break;
+        case "GRE":
+          testScoreData.totalMarks =
+            body?.Quantitative_reasoning_Percentile__c;
+          break;
+        case "GMAT":
+          testScoreData.totalMarks = body?.Total_Percentile__c;
+          break;
+        default:
+          testScoreData.totalMarks = body?.Overall__c;
+          break;
+      }
+      const testScore = this.testScoreModel.create({
+        ...testScoreData,
+        studentId,
+        modifiedBy,
+        createdBy: modifiedBy,
+        externalId,
+      });
+      return testScore;
+    } catch(error) {
+      throw error;
+    }
+  }
+
   async updateTestScoreSfId(testScoreId, id) {
     return this.testScoreModel.updateOne(
       { _id: testScoreId },
@@ -112,8 +151,8 @@ class TestScoreService {
           }
         );
       } else {
-        console.log("body>>", body);
         let testScoreData = {
+          trfId: body?.Id,
           status: body?.Verification_Status__c,
           showInProfile: body?.ShowInProfile__c,
           doe: body?.Date_of_Exam__c,

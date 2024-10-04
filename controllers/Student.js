@@ -268,14 +268,15 @@ class StudentController {
     try {
       const { studentId, testScoreId } = req.params;
       const { body } = req;
-      const { id } = req.user;
+      const { id, agentId } = req.user;
       const { isFrontend } = req.query;
       const result = await this.studentService.updateStudentTestScore(
         studentId,
         id,
         testScoreId,
         isFrontend,
-        body
+        body,
+        agentId
       );
       res.status(200).json(result);
     } catch (error) {
