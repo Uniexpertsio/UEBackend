@@ -19,15 +19,6 @@ class WorkHistoryService {
       createdBy: modifiedBy,
       externalId,
     });
-    const url = "Work_history__c/ExternalId__c/11995";
-    // const sf = await sendToSF(MappingFiles.STUDENT_work_history, {
-    //   ...workHistory,
-    //   externalId: externalId,
-    //   _user: { agentId, id: modifiedBy },
-    //   url
-    // });
-
-    // console.log("sf work history: "+sf);
     return workHistory;
   }
 

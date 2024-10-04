@@ -76,6 +76,7 @@ class StudentController {
   async getStudentGeneralInformation(req, res) {
     try {
       const studentId = req.params.studentId;
+      console.log(studentId, "studentId===");
       const result = await this.studentService.getStudentGeneralInformation(
         studentId
       );
