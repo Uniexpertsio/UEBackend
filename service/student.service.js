@@ -138,25 +138,6 @@ class StudentService {
     }
   }
 
-  setScore(data) {
-    switch (data?.gradingScheme) {
-      case "Percentage":
-        return data?.percentage;
-      case "CGPA":
-        return parseFloat(data?.cgpa);
-      case "GPA":
-        return parseFloat(data?.gpa);
-      case "Grade":
-        return "";
-      case "Class":
-        return "";
-      case "Score":
-        return data?.score;
-      case "Division":
-        return "";
-    }
-  }
-
   convertEducationData(data) {
     const convertedData = {
       Name_of_Institution__c: data.institutionName,
