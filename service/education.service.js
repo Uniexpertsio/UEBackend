@@ -28,7 +28,6 @@ class EducationService {
   }
 
   async update(modifiedBy, educationId, body) {
-    console.log('FFFFFFFFFFFFF', modifiedBy, educationId, body)
     return await Education.updateOne(
       { _id: educationId },
       { $set: { ...body, modifiedBy } }
