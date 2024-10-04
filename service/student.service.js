@@ -26,6 +26,7 @@ const Staff = require("../models/Staff");
 const { parseInMongoObjectId } = require("../utils/sfErrorHandeling");
 const Application = require("../models/Application");
 const TestScore = require("../models/TestScore");
+const Education = require("../models/Education");
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -118,6 +119,25 @@ class StudentService {
 
     return convertedData;
   }
+  setScore(data) {
+    switch (data?.gradingScheme) {
+      case "Percentage":
+        return data?.percentage;
+      case "CGPA":
+        return parseFloat(data?.cgpa);
+      case "GPA":
+        return parseFloat(data?.gpa);
+      case "Grade":
+        return "";
+      case "Class":
+        return "";
+      case "Score":
+        return data?.score;
+      case "Division":
+        return "";
+    }
+  }
+
   setScore(data) {
     switch (data?.gradingScheme) {
       case "Percentage":
@@ -829,45 +849,48 @@ class StudentService {
   }
 
   async addStudentEducation(studentId, modifiedBy, body) {
-    const education = await this.educationService.add(
-      studentId,
-      modifiedBy,
-      body
-    );
-
-    const checkEducationExist = await StudentModel.findById(studentId);
-    let result;
-    if (checkEducationExist.educations.length === 0) {
-      result = await StudentModel.updateOne(
-        { _id: studentId },
-        {
-          $push: { educations: education.id },
-          $set: { modifiedBy, currentStage: 2 },
-        }
+    try{
+      const education = await this.educationService.add(
+        studentId,
+        modifiedBy,
+        body
       );
-    } else {
-      result = await StudentModel.updateOne(
-        { _id: studentId },
-        { $push: { educations: education.id }, $set: { modifiedBy } }
-      );
+  
+      const checkEducationExist = await StudentModel.findById(studentId);
+      let result;
+      if (checkEducationExist.educations.length === 0) {
+        result = await StudentModel.updateOne(
+          { _id: studentId },
+          {
+            $push: { educations: education.id },
+            $set: { modifiedBy, currentStage: 2 },
+          }
+        );
+      } else {
+        result = await StudentModel.updateOne(
+          { _id: studentId },
+          { $push: { educations: education.id }, $set: { modifiedBy } }
+        );
+      }
+  
+      if (result.modifiedCount === 0) {
+        throw new Error("Student not found");
+      }
+      const educationData = this.convertEducationData(body);
+      const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
+      const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
+      console.log("sfEducationResponse---", sfEducationResponse);
+      if (sfEducationResponse?.id) {
+        await this.educationService.updateSfId(
+          education.id,
+          sfEducationResponse?.id
+        );
+      }
+      return { id: education.id, sf: sfEducationResponse };
+    } catch(error) {
+      console.log('error---',error)
     }
-
-    if (result.modifiedCount === 0) {
-      throw new Error("Student not found");
-    }
-
-    const educationData = this.convertEducationData(body);
-    console.log("educationData", educationData);
-    const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
-    const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
-    console.log("sfEducationResponse---", sfEducationResponse);
-    if (sfEducationResponse?.id) {
-      await this.educationService.updateSfId(
-        education.id,
-        sfEducationResponse?.id
-      );
-    }
-    return { id: education.id, sf: sfEducationResponse };
+    
   }
 
   async addEducationToStudent(studentId, educationData) {
@@ -894,64 +917,142 @@ class StudentService {
     return savedEducation;
   }
 
+  // async updateStudentEducation(studentId, modifiedBy, educationId, body) {
+  //   try {
+  //     // Fetch education and student asynchronously
+  //     const [education, student] = await Promise.all([
+  //       this.educationService.getEducationFromSFID(educationId),
+  //       StudentModel.findOne({ salesforceId: studentId }),
+  //     ]);
+
+  //     // Check if education and student exist
+  //     if (!education || !student) {
+  //       throw new Error("Education or student not found.");
+  //     }
+
+  //     // Check if the education belongs to the student
+  //     const isStudent = await this.checkIfEducationBelongsToStudent(
+  //       student._id,
+  //       education._id
+  //     );
+  //     if (!isStudent) {
+  //       throw new Error("Education does not belong to the student.");
+  //     }
+
+  //     const data = {
+  //       institutionName: body?.Name_of_Institution__c,
+  //       level: body?.Level_of_Education__c,
+  //       isDegreeAwarded: body?.Degree_Awarded__c.toLowerCase() === "yes",
+  //       country: body?.Country_of_Institution__c,
+  //       affiliatedUniversity: body?.Affiliated_University__c,
+  //       attendedFrom: body?.Attended_Institution_From__c,
+  //       attendedTo: body?.Attended_Institution_To__c,
+  //       degreeAwardedOn: body?.Degree_Awarded_On__c,
+  //       class: body?.Class__c,
+  //       // educationSfId: body?.Id,
+  //       studentId: student._id,
+  //       showInProfile: body?.ShowInProfile__c,
+  //       degree: body?.Name,
+  //     };
+  //     // Update education
+  //     const updatedEducation = await this.educationService.update(
+  //       modifiedBy,
+  //       education._id,
+  //       data
+  //     );
+
+  //     // Return success response if education is updated
+  //     if (updatedEducation) {
+  //       return {
+  //         status: 200,
+  //         success: true,
+  //         message: "Education updated successfully",
+  //       };
+  //     }
+  //   } catch (error) {
+  //     // Handle errors
+  //     console.error("Error in updateStudentEducation:", error);
+  //     throw error; // Rethrow the error for the caller to handle
+  //   }
+  // }
+  
   async updateStudentEducation(studentId, modifiedBy, educationId, body) {
     try {
-      // Fetch education and student asynchronously
-      const [education, student] = await Promise.all([
-        this.educationService.getEducationFromSFID(educationId),
-        StudentModel.findOne({ salesforceId: studentId }),
-      ]);
+        // Fetch education and student asynchronously
+        const student = await StudentModel.findOne({ salesforceId: studentId });
 
-      // Check if education and student exist
-      if (!education || !student) {
-        throw new Error("Education or student not found.");
-      }
+        // Check if education and student exist
+        if (!student) {
+            throw new Error("Student not found.");
+        }
 
-      // Check if the education belongs to the student
-      const isStudent = await this.checkIfEducationBelongsToStudent(
-        student._id,
-        education._id
-      );
-      if (!isStudent) {
-        throw new Error("Education does not belong to the student.");
-      }
-
-      const data = {
-        institutionName: body?.Name_of_Institution__c,
-        level: body?.Level_of_Education__c,
-        isDegreeAwarded: body?.Degree_Awarded__c.toLowerCase() === "yes",
-        country: body?.Country_of_Institution__c,
-        affiliatedUniversity: body?.Affiliated_University__c,
-        attendedFrom: body?.Attended_Institution_From__c,
-        attendedTo: body?.Attended_Institution_To__c,
-        degreeAwardedOn: body?.Degree_Awarded_On__c,
-        class: body?.Class__c,
-        // educationSfId: body?.Id,
-        studentId: student._id,
-        showInProfile: body?.ShowInProfile__c,
-        degree: body?.Name,
-      };
-      // Update education
-      const updatedEducation = await this.educationService.update(
-        modifiedBy,
-        education._id,
-        data
-      );
-
-      // Return success response if education is updated
-      if (updatedEducation) {
-        return {
-          status: 200,
-          success: true,
-          message: "Education updated successfully",
+        // Helper function to get the name of the grading scheme field
+        const getGradingSchemeFieldName = (body) => {
+            const fields = [
+                { name: 'percentage', value: body?.Percentage__c },
+                { name: 'Grade__c', value: body?.Grade__c },
+                { name: 'CGPA__c', value: body?.CGPA__c },
+                { name: 'GPA__c', value: body?.GPA__c },
+                { name: 'Score__c', value: body?.Score__c },
+                { name: 'Class__c', value: body?.Class__c },
+            ];
+            // Return the name of the first non-empty value
+            const foundField = fields.find(field => field.value !== null && field.value !== '' && field.value !== undefined);
+            return foundField ? foundField.name : null; // Return the field name or null
         };
-      }
+
+        const gradingScheme = getGradingSchemeFieldName(body); // Get the grading scheme field name
+
+        const data = {
+            educationSfId: body?.Id,
+            institutionName: body?.Name_of_Institution__c,
+            level: body?.Level_of_Education__c,
+            isDegreeAwarded: body?.Degree_Awarded__c ? body.Degree_Awarded__c.toLowerCase() === "yes" : false,
+            country: body?.Country_of_Institution__c,
+            affiliatedUniversity: body?.Affiliated_University__c,
+            attendedFrom: body?.Attended_Institution_From__c,
+            attendedTo: body?.Attended_Institution_To__c,
+            degreeAwardedOn: body?.Degree_Awarded_On__c,
+            class: body?.Class__c,
+            studentId: student._id,
+            showInProfile: body?.ShowInProfile__c,
+            degree: body?.Name,
+            gradingScheme: gradingScheme,
+            cgpa: body?.CGPA__c,
+            percentage: body?.Percentage__c,
+            gpa: body?.GPA__c,
+            score: body?.Score__c,
+            grade: body?.Grade__c,
+        };
+
+        const checkEducation = await Education.findOne({ educationSfId: educationId, studentId: student._id });
+        if (checkEducation) {
+            // Update education
+            const updatedEducation = await this.educationService.update(
+                modifiedBy,
+                checkEducation._id,
+                data
+            );
+        } else {
+            const education = await this.educationService.add(
+                student._id,
+                modifiedBy,
+                data
+            );
+        }
+        return {
+            status: 200,
+            success: true,
+            message: "Education updated/created successfully",
+        };
     } catch (error) {
-      // Handle errors
-      console.error("Error in updateStudentEducation:", error);
-      throw error; // Rethrow the error for the caller to handle
+        // Handle errors
+        console.error("Error in updateStudentEducation:", error);
+        throw error; // Rethrow the error for the caller to handle
     }
-  }
+}
+
+
 
   async deleteEducation(studentId, modifiedBy, educationId) {
     await this.checkIfEducationBelongsToStudent(studentId, educationId);
