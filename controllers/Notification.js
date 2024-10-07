@@ -29,9 +29,8 @@ function getApplications(req, res) {
 async function getNotificationController(req, res) {
   try {
     const { sfId } = req?.user;
-    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c,Contact_Name__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${sfId}'`;
+    const url = `${process.env.SF_API_URL}services/data/v55.0/query?q=SELECT+Id,Name,CreatedDate,CreatedById,SystemModstamp,Type__c,Contact__c,Student__c,Application__c,Account__c,Subject__c,Body__c+FROM+Bell_Notification__c+WHERE+Contact__c+=+'${sfId}'`;
     const result = await getDataFromSF(url);
-
     // Process each record
     const records = await Promise.all(
       result.records.map(async (record) => {
