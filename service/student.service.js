@@ -29,6 +29,7 @@ const Application = require("../models/Application");
 const TestScore = require("../models/TestScore");
 const Education = require("../models/Education");
 const Student = require("../models/Student");
+const staffModel = require("../models/Staff");
 
 const PreferredCountries = {
   Australia: "Australia",
@@ -487,8 +488,27 @@ class StudentService {
     return PreferredCountries;
   }
 
-  async getStudent(agentId, query, role, createdBy, searchData) {
-    let filter = role === "consultant" ? { createdBy } : { agentId };
+  async getStudent(
+    agentId,
+    query,
+    role,
+    createdBy,
+    searchData,
+    accessibility,
+    branchId
+  ) {
+    let filter;
+    if (accessibility?.length > 0 && accessibility?.includes("Student")) {
+      const userIds = await staffModel.find({ branchId }, { _id: 1 });
+      // Extract the user IDs from the result
+      const userIdsArray = userIds.map((user) => user._id);
+      // Use the extracted user IDs in your filter
+      filter = {
+        createdBy: { $in: userIdsArray },
+      };
+    } else {
+      filter = role === "consultant" ? { createdBy } : { agentId };
+    }
     const sortByType = query.sortByType === "Ascending" ? 1 : -1;
     const sortBy = {};
     if (query.sortBy) {
@@ -840,13 +860,13 @@ class StudentService {
   }
 
   async addStudentEducation(studentId, modifiedBy, body) {
-    try{
+    try {
       const education = await this.educationService.add(
         studentId,
         modifiedBy,
         body
       );
-  
+
       const checkEducationExist = await StudentModel.findById(studentId);
       let result;
       if (checkEducationExist.educations.length === 0) {
@@ -863,13 +883,16 @@ class StudentService {
           { $push: { educations: education.id }, $set: { modifiedBy } }
         );
       }
-  
+
       if (result.modifiedCount === 0) {
         throw new Error("Student not found");
       }
       const educationData = this.convertEducationData(body);
       const educationUrl = `${process.env.SF_API_URL}services/data/v55.0/sobjects/Education__c`;
-      const sfEducationResponse = await sendDataToSF(educationData, educationUrl);
+      const sfEducationResponse = await sendDataToSF(
+        educationData,
+        educationUrl
+      );
       console.log("sfEducationResponse---", sfEducationResponse);
       if (sfEducationResponse?.id) {
         await this.educationService.updateSfId(
@@ -878,10 +901,9 @@ class StudentService {
         );
       }
       return { id: education.id, sf: sfEducationResponse };
-    } catch(error) {
-      console.log('error---',error)
+    } catch (error) {
+      console.log("error---", error);
     }
-    
   }
 
   async addEducationToStudent(studentId, educationData) {
@@ -966,39 +988,46 @@ class StudentService {
   //     throw error; // Rethrow the error for the caller to handle
   //   }
   // }
-  
+
   async updateStudentEducation(studentId, modifiedBy, educationId, body) {
     try {
       // Fetch student asynchronously
       const student = await StudentModel.findOne({ salesforceId: studentId });
-  
+
       // Check if student exists
       if (!student) {
         throw new Error("Student not found.");
       }
-  
+
       // Helper function to get the name of the grading scheme field
       const getGradingSchemeFieldName = (body) => {
         const fields = [
-          { name: 'percentage', value: body?.Percentage__c },
-          { name: 'Grade__c', value: body?.Grade__c },
-          { name: 'CGPA__c', value: body?.CGPA__c },
-          { name: 'GPA__c', value: body?.GPA__c },
-          { name: 'Score__c', value: body?.Score__c },
-          { name: 'Class__c', value: body?.Class__c },
+          { name: "percentage", value: body?.Percentage__c },
+          { name: "Grade__c", value: body?.Grade__c },
+          { name: "CGPA__c", value: body?.CGPA__c },
+          { name: "GPA__c", value: body?.GPA__c },
+          { name: "Score__c", value: body?.Score__c },
+          { name: "Class__c", value: body?.Class__c },
         ];
         // Return the name of the first non-empty value
-        const foundField = fields.find(field => field.value !== null && field.value !== '' && field.value !== undefined);
+        const foundField = fields.find(
+          (field) =>
+            field.value !== null &&
+            field.value !== "" &&
+            field.value !== undefined
+        );
         return foundField ? foundField.name : null; // Return the field name or null
       };
-  
+
       const gradingScheme = getGradingSchemeFieldName(body); // Get the grading scheme field name
-  
+
       const data = {
         educationSfId: body?.Id,
         institutionName: body?.Name_of_Institution__c,
         level: body?.Level_of_Education__c,
-        isDegreeAwarded: body?.Degree_Awarded__c ? body.Degree_Awarded__c.toLowerCase() === "yes" : false,
+        isDegreeAwarded: body?.Degree_Awarded__c
+          ? body.Degree_Awarded__c.toLowerCase() === "yes"
+          : false,
         country: body?.Country_of_Institution__c,
         affiliatedUniversity: body?.Affiliated_University__c,
         attendedFrom: body?.Attended_Institution_From__c,
@@ -1015,8 +1044,11 @@ class StudentService {
         score: body?.Score__c,
         grade: body?.Grade__c,
       };
-  
-      const checkEducation = await Education.findOne({ educationSfId: educationId, studentId: student._id });
+
+      const checkEducation = await Education.findOne({
+        educationSfId: educationId,
+        studentId: student._id,
+      });
       if (checkEducation) {
         // Update education
         const updatedEducation = await this.educationService.update(
@@ -1036,7 +1068,7 @@ class StudentService {
           modifiedBy,
           data
         );
-        if(education) {
+        if (education) {
           const checkEducationExist = await StudentModel.findById(student._id);
           let result;
           if (checkEducationExist.educations.length === 0) {
@@ -1696,7 +1728,14 @@ class StudentService {
     return { id: testScore.id, sfId: testScoreSfResponse?.id };
   }
 
-  async updateStudentTestScore(studentId, modifiedBy, testScoreId, isFrontend, body, agentId) {
+  async updateStudentTestScore(
+    studentId,
+    modifiedBy,
+    testScoreId,
+    isFrontend,
+    body,
+    agentId
+  ) {
     try {
       // Fetch test score and student asynchronously
       let student;
@@ -1705,22 +1744,33 @@ class StudentService {
       } else {
         student = await StudentModel.findOne({ salesforceId: studentId });
       }
-  
+
       // Check if student exists
       if (!student) {
         return { status: 404, error: "Student not found." };
       }
-  
+
       // Determine if testScoreId is an ObjectId or a Salesforce ID
       let testScore;
       if (mongoose.isValidObjectId(testScoreId)) {
-        testScore = await TestScore.findOne({_id: testScoreId, studentId: student._id});
+        testScore = await TestScore.findOne({
+          _id: testScoreId,
+          studentId: student._id,
+        });
       } else {
-        testScore = await TestScore.findOne({ trfId: testScoreId, studentId: student._id });
+        testScore = await TestScore.findOne({
+          trfId: testScoreId,
+          studentId: student._id,
+        });
       }
-      if(testScore) {
-        const updateTestScore = await this.testScoreService
-        .update(modifiedBy, testScore?._id, isFrontend, body, student._id);
+      if (testScore) {
+        const updateTestScore = await this.testScoreService.update(
+          modifiedBy,
+          testScore?._id,
+          isFrontend,
+          body,
+          student._id
+        );
         return {
           status: 200,
           success: true,
@@ -1734,7 +1784,7 @@ class StudentService {
           agentId,
           testScoreId
         );
-        if(addTestScore) {
+        if (addTestScore) {
           // update mongodb _id in student collection
           const checkTestScoreExist = await StudentModel.findById(student._id);
           let result;
@@ -1759,8 +1809,7 @@ class StudentService {
           message: "Test score created successfully",
         };
       }
-         
-    } catch(error) {
+    } catch (error) {
       throw error;
     }
   }
