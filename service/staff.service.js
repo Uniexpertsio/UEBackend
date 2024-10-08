@@ -190,9 +190,8 @@ class StaffService {
       throw StaffDoesNotBelongsToAgentException();
     }
   }
-
-  getAllStaff(agentId) {
-    return this.staffModel.find({ agentId }).populate({
+  getAllStaff(agentId, id) {
+    return this.staffModel.find({ agentId, _id: { $ne: id } }).populate({
       path: "branchId",
       select: "name",
     });

@@ -5,8 +5,9 @@ const staffService = new StaffService();
 // Controller functions
 async function getAllStaff(req, res) {
   try {
-    const { agentId } = req.user;
-    const staff = await staffService.getAllStaff(agentId);
+    const { agentId, _id } = req.user;
+    console.log(req.user, "====================");
+    const staff = await staffService.getAllStaff(agentId, _id);
     res.status(200).json(staff);
   } catch (error) {
     res.status(500).json({ error: error.message });
