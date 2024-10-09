@@ -35,7 +35,7 @@ class StudentController {
 
   async getStudents(req, res) {
     try {
-      const { agentId, role, _id } = req.user;
+      const { agentId, role, _id, modules, branchId } = req.user;
       const query = req.query;
       const searchData = {
         searchType: req.query.searchType,
@@ -46,7 +46,9 @@ class StudentController {
         query,
         role,
         _id,
-        searchData
+        searchData,
+        modules,
+        branchId
       );
       res.status(200).json(result);
     } catch (error) {

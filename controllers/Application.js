@@ -25,13 +25,15 @@ class ApplicationController {
 
   async getApplications(req, res) {
     try {
-      const { agentId, role, _id } = req.user;
+      const { agentId, role, _id, modules, branchId } = req.user;
       const query = req.query;
       const result = await this.applicationService.getApplications(
         agentId,
         query,
         role,
-        _id
+        _id,
+        modules,
+        branchId
       );
       res.status(200).json(result);
     } catch (error) {
@@ -119,7 +121,7 @@ class ApplicationController {
       const result = await this.applicationService.addComment(
         applicationId,
         id,
-        body, 
+        body,
         sfId
       );
       res.status(200).json(result);
