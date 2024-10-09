@@ -27,7 +27,7 @@ class StaffService {
       Branch__c: inputData?.branchId,
       // Whatsapp_No__c: inputData.personalDetails.phone,
       Email: inputData?.email,
-      Password__c: inputData?.password,
+      ...(inputData?.password && { Password__c: inputData?.password }),
       // Phone: "8987678987",
       // Birthdate: "2022-07-11", // Assuming a default value
       AccountId: id, // Assuming a default value
@@ -119,12 +119,36 @@ class StaffService {
   }
 
   async updateStaff(agentId, staffId, staffDetails) {
+    // Use Promise.all to parallelize independent tasks
+    const [agentInfo, staffID] = await Promise.all([
+      Agent.findById(agentId),
+      StaffModel.findById(staffId, { sfId: 1 }),
+    ]);
+
+    // Check if the staff belongs to the agent (consider moving it into the parallel block if it doesn't depend on `agentInfo`)
     await this.checkIfStaffBelongsToAgent(agentId, staffId);
+
+    // If branchId exists, verify the branch (this could also be done in parallel if you want)
     if (staffDetails.branchId) {
       await this.branchService.findById(staffDetails.branchId);
     }
-    //this.salesforceService.sendToSF(MappingFiles.AGENT_staff, staffDetails);
-    return this.staffModel.updateOne({ _id: staffId }, { ...staffDetails });
+
+    const staffData = this.convertToAgentData(
+      staffDetails,
+      agentInfo,
+      agentInfo?.commonId
+    );
+
+    // Construct the Salesforce API URL
+    const agentUrl = `${process.env.SF_API_URL}services/data/v50.0/sobjects/Contact/${staffID?.sfId}`;
+
+    // Update Salesforce and MongoDB in parallel
+    await Promise.all([
+      SalesforceService.updateDataToSF(staffData, agentUrl),
+      this.staffModel.updateOne({ _id: staffId }, { ...staffDetails }),
+    ]);
+
+    return { success: true };
   }
 
   async getStaff(agentId, staffId) {
@@ -166,9 +190,8 @@ class StaffService {
       throw StaffDoesNotBelongsToAgentException();
     }
   }
-
-  getAllStaff(agentId) {
-    return this.staffModel.find({ agentId }).populate({
+  getAllStaff(agentId, id) {
+    return this.staffModel.find({ agentId, _id: { $ne: id } }).populate({
       path: "branchId",
       select: "name",
     });
@@ -188,8 +211,8 @@ class StaffService {
     return user;
   }
   async findByIdForSf(id) {
-      const res = await this.staffModel.findOne({ sfId: id }, { _id: 1 });
-      return res;
+    const res = await this.staffModel.findOne({ sfId: id }, { _id: 1 });
+    return res;
   }
 
   async findByAgentId(agentId) {
@@ -202,9 +225,12 @@ class StaffService {
   }
 
   async findByAgentIdForSf(agentId) {
-      const agentData = await Agent.findOne({commonId: agentId}, { _id: 1,commonId: 1 })
-      const staffData = await this.staffModel.findOne({ agentId: agentData._id });    
-      return agentData;
+    const agentData = await Agent.findOne(
+      { commonId: agentId },
+      { _id: 1, commonId: 1 }
+    );
+    const staffData = await this.staffModel.findOne({ agentId: agentData._id });
+    return agentData;
   }
 
   queryByName(name) {

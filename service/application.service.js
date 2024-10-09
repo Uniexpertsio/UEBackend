@@ -18,6 +18,7 @@ const {
 } = require("./salesforce.service");
 const Agent = require("../models/Agent");
 const Document = require("../models/Document");
+const staffModel = require("../models/Staff");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -152,8 +153,26 @@ class ApplicationService {
     return student;
   }
 
-  async getApplications(agentId, query, role, createdBy) {
-    let filter = role === "consultant" ? { createdBy } : { agentId };
+  async getApplications(
+    agentId,
+    query,
+    role,
+    createdBy,
+    accessibility,
+    branchId
+  ) {
+    let filter;
+    if (accessibility?.length > 0 && accessibility?.includes("Application")) {
+      const userIds = await staffModel.find({ branchId }, { _id: 1 });
+      // Extract the user IDs from the result
+      const userIdsArray = userIds.map((user) => user._id);
+      // Use the extracted user IDs in your filter
+      filter = {
+        createdBy: { $in: userIdsArray },
+      };
+    } else {
+      filter = role === "consultant" ? { createdBy } : { agentId };
+    }
 
     if (query.studentId) {
       const studentData = await this.studentModel.findById(query.studentId);
@@ -462,42 +481,119 @@ class ApplicationService {
     }
   }
 
+  // async updateApplication(applicationSfId, body) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       // const checkApplicationExist = await Application.findOne({
+  //       //   salesforceId: applicationSfId,
+  //       // });
+  //       // if (!checkApplicationExist) {
+  //       //   return reject({
+  //       //     message: `Application does not exist with ${applicationSfId}`,
+  //       //   });
+  //       // }
+  //       const payload = {
+  //         applicationId: body.Name,
+  //         salesforceId: body.Id,
+  //         schoolId: body.School__c,
+  //         programId: body.Programme__c,
+  //         status: body.Status__c,
+  //         stage: body.Current_Stage__c,
+  //         intakeId: body.Intake__c,
+  //         studentId: body.Student__c,
+  //         country: body.RecordTypeId,
+  //       };
+  //       await Application.updateOne(
+  //         {
+  //           salesforceId: applicationSfId,
+  //         },
+  //         { $set: payload },
+  //         { upsert: true, new: true }
+  //       );
+  //       if (result.nModified === 0 && result.upsertedCount === 0) {
+  //         // If no document was modified or created
+  //         return reject({
+  //           message: `Failed to update or create application with ${applicationSfId}`,
+  //         });
+  //       }
+  //       resolve({ message: "Success", status: 200, sf: applicationSfId });
+  //     } catch (error) {
+  //       console.log(error);
+  //       reject(error);
+  //     }
+  //   });
+  // }
+
   async updateApplication(applicationSfId, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        // const checkApplicationExist = await Application.findOne({
-        //   salesforceId: applicationSfId,
-        // });
-        // if (!checkApplicationExist) {
-        //   return reject({
-        //     message: `Application does not exist with ${applicationSfId}`,
-        //   });
-        // }
-        const payload = {
-          applicationId: body.Name,
-          salesforceId: body.Id,
-          schoolId: body.School__c,
-          programId: body.Programme__c,
-          status: body.Status__c,
-          stage: body.Current_Stage__c,
-          intakeId: body.Intake__c,
-          studentId: body.Student__c,
-          country: body.RecordTypeId,
-        };
-        await Application.updateOne(
-          {
-            salesforceId: applicationSfId,
-          },
-          { $set: payload },
-          { upsert: true, new: true }
-        );
-        if (result.nModified === 0 && result.upsertedCount === 0) {
-          // If no document was modified or created
+        const [agent, staff] = await Promise.all([
+          Agent.findOne({ commonId: body?.Partner_Account__c }),
+          staffModel.findOne({ sfId: body?.Partner_Contact__c }),
+        ]);
+        if (!agent) {
+          console.log("agent not found");
           return reject({
-            message: `Failed to update or create application with ${applicationSfId}`,
+            message: `Agent not found`,
           });
         }
-        resolve({ message: "Success", status: 200, sf: applicationSfId });
+        if (!staff) {
+          console.log("staff not found");
+          return reject({
+            message: `Staff not found`,
+          });
+        }
+
+        const agentId = agent ? agent._id : null; // Retrieve agent ID if found
+        const createdBy = staff ? staff._id : null; // Retrieve staff ID if found
+        const modifiedBy = staff ? staff._id : null;
+
+        const externalId = uuid.v4();
+        const payload = {
+          applicationId: body?.Name,
+          salesforceId: body?.Id,
+          schoolId: body?.School__c,
+          programId: body?.Programme__c,
+          status: body?.Status__c,
+          stage: body?.Current_Stage__c,
+          intakeId: body?.Intake__c,
+          studentId: body?.Student__c,
+          country: body?.RecordTypeId,
+          agentId,
+          createdBy,
+          modifiedBy,
+        };
+
+        // Use upsert to add or update the document
+        const result = await Application.updateOne(
+          { salesforceId: applicationSfId },
+          {
+            $set: {
+              ...payload,
+              externalId,
+            },
+          },
+          { upsert: true, new: true }
+        );
+
+        if (result.upsertedCount > 0) {
+          return resolve({
+            message: "Application created successfully",
+            status: 201,
+            sf: applicationSfId,
+          });
+        }
+
+        if (result.nModified === 0) {
+          return reject({
+            message: `No changes made to application with ${applicationSfId}`,
+          });
+        }
+        resolve({
+          message: "Application updated successfully",
+          status: 200,
+          sf: applicationSfId,
+        });
       } catch (error) {
         console.log(error);
         reject(error);
