@@ -503,7 +503,6 @@ Auth.post.resetPassword = async (req, res) => {
   );
 
   let agent = await Agent.findOne({ "personalDetails.email": req.body.email });
-
   const token = jwt.sign(
     {
       id: staff._id,

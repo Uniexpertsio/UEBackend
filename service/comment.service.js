@@ -51,11 +51,15 @@ class CommentService {
     try {
       console.log(caseId);
       if (ObjectId.isValid(caseId)) {
-        return this.commentModel.find({ relationId: caseId });
+        return this.commentModel
+          .find({ relationId: caseId })
+          .populate("userId");
       } else {
         const caseData = await Case.findOne({ caseId: caseId }, { _id: 1 });
         console.log(caseData);
-        return await this.commentModel.find({ relationId: caseData._id });
+        return await this.commentModel
+          .find({ relationId: caseData._id })
+          .populate("userId");
       }
     } catch (error) {
       throw error;
@@ -65,13 +69,17 @@ class CommentService {
   async getComment(studentId) {
     try {
       if (ObjectId.isValid(studentId)) {
-        return this.commentModel.find({ relationId: studentId });
+        return this.commentModel
+          .find({ relationId: studentId })
+          .populate("userId");
       } else {
         const student = await Student.findOne(
           { salesforceId: studentId },
           { _id: 1 }
         );
-        return await this.commentModel.find({ relationId: student._id });
+        return await this.commentModel
+          .find({ relationId: student._id })
+          .populate("userId");
       }
     } catch (error) {
       throw error;

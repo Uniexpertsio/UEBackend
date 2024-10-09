@@ -155,8 +155,26 @@ class ApplicationService {
     return student;
   }
 
-  async getApplications(agentId, query, role, createdBy) {
-    let filter = role === "consultant" ? { createdBy } : { agentId };
+  async getApplications(
+    agentId,
+    query,
+    role,
+    createdBy,
+    accessibility,
+    branchId
+  ) {
+    let filter;
+    if (accessibility?.length > 0 && accessibility?.includes("Application")) {
+      const userIds = await staffModel.find({ branchId }, { _id: 1 });
+      // Extract the user IDs from the result
+      const userIdsArray = userIds.map((user) => user._id);
+      // Use the extracted user IDs in your filter
+      filter = {
+        createdBy: { $in: userIdsArray },
+      };
+    } else {
+      filter = role === "consultant" ? { createdBy } : { agentId };
+    }
 
     if (query.studentId) {
       const studentData = await this.studentModel.findById(query.studentId);
@@ -624,19 +642,19 @@ class ApplicationService {
           Agent.findOne({ commonId: body?.Partner_Account__c }),
           staffModel.findOne({ sfId: body?.Partner_Contact__c }),
         ]);
-        if(!agent) {
-          console.log('agent not found')
+        if (!agent) {
+          console.log("agent not found");
           return reject({
             message: `Agent not found`,
           });
         }
-        if(!staff) {
-          console.log('staff not found')
+        if (!staff) {
+          console.log("staff not found");
           return reject({
             message: `Staff not found`,
           });
         }
-  
+
         const agentId = agent ? agent._id : null; // Retrieve agent ID if found
         const createdBy = staff ? staff._id : null; // Retrieve staff ID if found
         const modifiedBy = staff ? staff._id : null;
@@ -654,9 +672,9 @@ class ApplicationService {
           country: body?.RecordTypeId,
           agentId,
           createdBy,
-          modifiedBy
+          modifiedBy,
         };
-  
+
         // Use upsert to add or update the document
         const result = await Application.updateOne(
           { salesforceId: applicationSfId },
@@ -668,17 +686,25 @@ class ApplicationService {
           },
           { upsert: true, new: true }
         );
-  
+
         if (result.upsertedCount > 0) {
-          return resolve({ message: "Application created successfully", status: 201, sf: applicationSfId });
+          return resolve({
+            message: "Application created successfully",
+            status: 201,
+            sf: applicationSfId,
+          });
         }
-  
+
         if (result.nModified === 0) {
           return reject({
             message: `No changes made to application with ${applicationSfId}`,
           });
         }
-        resolve({ message: "Application updated successfully", status: 200, sf: applicationSfId });
+        resolve({
+          message: "Application updated successfully",
+          status: 200,
+          sf: applicationSfId,
+        });
       } catch (error) {
         console.log(error);
         reject(error);

@@ -59,7 +59,6 @@ class CaseService {
       };
       const url = `${process.env.SF_API_URL}services/data/v55.0/sobjects/NoteMark__c/`;
       const sendingComment = await sendDataToSF(data, url);
-      console.log(sendingComment, "sendingComment");
       if (sendingComment?.id && comment?.comment?._id) {
         await this.commentService.updateCommentSfId(
           comment?.comment?._id,
@@ -117,7 +116,7 @@ class CaseService {
       Priority: data?.priority,
       Description: data?.description,
       Case_Sub_Reason__c: data?.subType,
-      Origin: "Portal"
+      Origin: "Portal",
     };
     return caseData;
   }

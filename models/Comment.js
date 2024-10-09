@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
+const staffModel = require("./Staff");
 
 const CommentSchema = new mongoose.Schema(
   {
     message: { type: String, required: true },
     name: { type: String, required: false },
-    userId: { type: String, required: true },
+    userId: { type: String, required: true, ref: staffModel },
     attachment: { type: String, required: false, default: "" },
     relationId: { type: String, required: true },
     externalId: { type: String, required: true },
     isVideo: { type: Boolean, required: false, default: false },
-    salesforceId: { type:String, required:false },
-    isReply: { type: Boolean, default: false},
+    salesforceId: { type: String, required: false },
+    isReply: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
