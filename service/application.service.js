@@ -19,6 +19,8 @@ const {
 const Agent = require("../models/Agent");
 const Document = require("../models/Document");
 const staffModel = require("../models/Staff");
+const Case = require("../models/Case");
+const Comment = require("../models/Comment");
 
 const ApplicationStatus = {
   NEW: "New",
@@ -303,6 +305,115 @@ class ApplicationService {
       throw new Error("Application " + applicationId + " not found");
     }
     return comment;
+  }
+
+  // async addCommentFromSf(body) {
+  //   const checkStaff = await staffModel.findOne({sfId: body.Partner_Account__c});
+  //   if(!checkStaff) {
+  //     return 'Staff not found';
+  //   }
+    
+  //   const data = {
+  //     message: body?.Message_Body__c,
+  //     userId: checkStaff._id,
+
+  //   }
+  //   const comment = await this.commentService.add(data);
+    
+  //   const result = await Application.updateOne(
+  //     { _id: applicationId },
+  //     { $push: { comments: comment.comment.id }, $set: { modifiedBy } }
+  //   );
+  //   if (result.modifiedCount === 0) {
+  //     throw new Error("Application " + applicationId + " not found");
+  //   }
+  //   return comment;
+  // }
+
+  async addCommentFromSf(body, commentSfId) {
+    try {
+      const checkComment = await Comment.findOne({salesforceId: commentSfId});
+      if(checkComment) {
+        return {status: 400,message: 'Comment already exist'};
+      }
+      // Step 1: Check staff with the partner account ID
+      const checkStaff = await staffModel.findOne({ sfId: body.Partner_Contact__c });
+      if (!checkStaff) {
+          return {status: 404,message: 'Staff not found'};
+      }
+    
+      // Step 2: Prepare to retrieve relation ID based on which field is populated
+      let relationId = null;
+    
+      if (body.Application__c) {
+          const application = await Application.findOne({ salesforceId: body.Application__c });
+          if (application) {
+              relationId = application._id;
+          } else {
+              return {status: 404,message: 'Application not found'};
+          }
+      } else if (body.Student__c) {
+          const student = await Student.findOne({ salesforceId: body.Student__c });
+          if (student) {
+              relationId = student._id;
+          } else {
+              return {status: 404,message: 'Student not found'};
+          }
+      } else if (body.Cases__c) {
+          const cases = await Case.findOne({ Cases__c: body.Cases__c });
+          if (cases) {
+              relationId = cases._id;
+          } else {
+              return {status: 404,message: 'Case not found'};
+          }
+      } else {
+          return {status: 404,message: 'No related entity found'};
+      }
+    
+      // Step 3: Create the comment
+      const externalId = uuid.v4();
+      const commentData = {
+          message: body.Message_Body__c, // Ensure this matches your schema
+          userId: checkStaff._id, // User ID of the staff member
+          relationId, // Relation ID retrieved based on which entity was found
+          externalId,
+          salesforceId: commentSfId
+      };
+      
+      const comment = await Comment.create({...commentData});
+    
+      // Check if the comment was created successfully
+      if (!comment) {
+        return { status: 500, message: 'Failed to create comment' };
+      }
+      
+      // Step 4: Update the related entity with the new comment ID
+      let updateResult;
+      
+      if (body.Application__c) {
+          updateResult = await Application.updateOne(
+              { _id: relationId },
+              { $push: { comments: comment.id }, $set: { modifiedBy: checkStaff._id } }
+          );
+      } else if (body.Student__c) {
+          updateResult = await Student.updateOne(
+              { _id: relationId },
+              { $push: { comments: comment.id }, $set: { modifiedBy: checkStaff._id } }
+          );
+      } else if (body.Cases__c) {
+          updateResult = await Case.updateOne(
+              { _id: relationId },
+              { $push: { comments: comment.id }, $set: { modifiedBy: checkStaff._id } }
+          );
+      }
+    
+      if (updateResult.modifiedCount === 0) {
+          return {status: 404,message: "No related entity found for updating comments"};
+      }
+      return {status: 200, success: true, message: 'Comment created successfully'};
+    } catch(error) {
+      return error;
+    }
   }
 
   async getDocuments(applicationId) {

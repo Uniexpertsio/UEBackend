@@ -130,6 +130,17 @@ class ApplicationController {
     }
   }
 
+  async addCommentFromSf(req, res) {
+    try {
+      const { commentSfId } = req.params;
+      const body = req.body;
+      const result = await this.applicationService.addCommentFromSf(body, commentSfId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   async getStudentDocuments(req, res) {
     try {
       const { applicationId } = req.params;

@@ -46,6 +46,11 @@ router.post(
   Middleware.checkAuth,
   applicationController.addComment.bind(applicationController)
 );
+router.post(
+  "/commentFromSftoDb/:commentSfId",
+  Middleware.checkAuth,
+  applicationController.addCommentFromSf.bind(applicationController)
+);
 router.get(
   "/:applicationId/document",
   Middleware.checkAuth,
