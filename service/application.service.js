@@ -192,10 +192,9 @@ class ApplicationService {
         const student = await this.findStudentById(application.studentId);
         const studentName = parseStudentName(student);
         let counsellor = "";
-        if (application?.counsellorId) {
-          counsellor = (
-            await this.staffService.findById(application.counsellorId)
-          ).fullName;
+        if (application?.createdBy) {
+          counsellor = (await this.staffService.findById(application.createdBy))
+            .fullName;
         }
         let intake = "";
         if (application?.intakeId) {
