@@ -853,7 +853,7 @@ class StudentService {
   async getStudentCounsellor(agentId) {
     return staffModel.find(
       { agentId, role: "consultant" },
-      { _id: 1, fullName: 1 }
+      { _id: 1, fullName: 1, sfId: 1 }
     );
   }
 
